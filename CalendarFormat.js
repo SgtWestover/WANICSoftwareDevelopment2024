@@ -1,8 +1,15 @@
+/*
+Name: Zach Rojas, Kaelin Wang Hu
+Date: 11/21/2023
+Last Edit: 11/22/2023
+Desc: Handles the main calendar page and formatting
+*/
 // Global variable for the current date
 let currentDate = new Date();
 
 // When the DOM content is fully loaded, initialize the calendar
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function () 
+{
     addNavigationEventListeners();
     renderCalendar(currentDate);
 });
@@ -32,23 +39,33 @@ function renderCalendar(date)
     let dayOfMonth = 1;
 
     // Create rows for each week
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 6; i++) 
+    {
         let row = document.createElement('tr');
 
         // Create cells for each day of the week
-        for (let j = 0; j < 7; j++) {
+        for (let j = 0; j < 7; j++) 
+        {
             let cell = document.createElement('td');
-
             // Fill cells with the day number or leave them blank
-            if ((i === 0 && j < startingDay) || dayOfMonth > monthDays) {
+            if ((i === 0 && j < startingDay) || dayOfMonth > monthDays) 
+            {
                 cell.innerText = '';
-            } else {
+            } 
+            else 
+            {
+                cell.classList.add('calendar-cell'); 
                 cell.innerText = dayOfMonth;
-
+                cell.style.cursor = 'pointer'; // Optional: change the cursor to indicate clickable
+                cell.addEventListener('click', function() 
+                {
+                    window.location.href = 'days.html';
+                });
                 // Highlight the current day
                 if (dayOfMonth === currentDate.getDate() &&
                     date.getMonth() === currentDate.getMonth() &&
-                    date.getFullYear() === currentDate.getFullYear()) {
+                    date.getFullYear() === currentDate.getFullYear())    
+                {
                     cell.classList.add('selected-day');
                 }
 
@@ -88,17 +105,20 @@ function addNavigationEventListeners()
     });
 }
 
+//changes the month based on a delta int
 function changeMonth(delta) 
 {
     // Adjust the month
     let newMonth = currentDate.getMonth() + delta;
     let newYear = currentDate.getFullYear();
     
+    //if the new month exceeds the months of the current year, switch to the new year,
     if (newMonth > 11) 
     {
         newMonth = 0;
         newYear++;
-    } else if (newMonth < 0) 
+    } 
+    else if (newMonth < 0) 
     {
         newMonth = 11;
         newYear--;
@@ -114,10 +134,12 @@ function changeMonth(delta)
         newDay = lastDayNewMonth; // Set to the last day of the new month
     }
 
+    //create the new date and render the new calendar
     currentDate = new Date(newYear, newMonth, newDay);
     renderCalendar(currentDate);
 }
 
+//changes the day based on the delta
 function changeDay(delta) 
 {
     // Adjust the day
@@ -130,18 +152,20 @@ function changeDay(delta)
     {
         // If the day change is consistent with delta, no month or year rollover occurred
         currentDate = newDate;
-    } else {
+    } 
+    else 
+    {
         // Month or year rollover occurred, adjust to the first or last day of the month
         if (delta > 0) 
         {
             // Moving forward, set to the first day of the next month
             currentDate = new Date(newDate.getFullYear(), newDate.getMonth(), 1);
-        } else 
+        } 
+        else 
         {
             // Moving backward, set to the last day of the previous month
             currentDate = new Date(newDate.getFullYear(), newDate.getMonth() + 1, 0);
         }
     }
-
     renderCalendar(currentDate);
 }

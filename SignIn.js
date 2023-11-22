@@ -1,5 +1,10 @@
-// script.js
-let users = JSON.parse(localStorage.getItem('users')) || {};
+/*
+Name: Kaelin Wang Hu
+Date: 11/21/2023
+Last Edit: 11/22/2023
+Desc: Handles log-ins
+*/
+let users = JSON.parse(localStorage.getItem('users')) || {}; //stored locally (unsafe) but saves throughout pages and the browser
 
 window.addEventListener('load', clearFields); //clear fields on load or reload
 
@@ -23,6 +28,7 @@ function clearFields()
     let usernameField = document.getElementById('username');
     let passwordField = document.getElementById('password');
     
+    //null checks to avoid null errors where the script cannot get the fields
     if (usernameField) 
     {
         usernameField.value = '';
@@ -35,7 +41,7 @@ function clearFields()
 //tests whether the username is valid (>3 characters, doesn't contain special characters except for underscore dash)
 function isValidUsername(username) 
 {
-    const usernameRegex = /^[A-Za-z0-9_@.-]{4,}$/;
+    const usernameRegex = /^[A-Za-z0-9_@.-]{4,}$/; //wizardry
     return usernameRegex.test(username);
 }
 
@@ -47,7 +53,7 @@ function isValidPassword(password, username)
         return false;
     }
     // Regex to check for at least 8 characters, 1 uppercase, 1 lowercase, 1 number, and 1 special character
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/;
     return passwordRegex.test(password);
 }
 
@@ -57,11 +63,11 @@ function signIn(username, password)
     users = JSON.parse(localStorage.getItem('users')) || {};
     if (users[username]) 
     {
-        //if successful, go to index.html
+        //if successful, go to calendar.html, where the actual calendar is
         if (users[username] === password)
         {
-            clearFields();
-            window.location.href = 'index.html';
+            clearFields(); //clear fields for security
+            window.location.href = 'calendar.html';
         }
         //otherwise, if incorrect, alert and clear
         else 
@@ -81,7 +87,7 @@ function signIn(username, password)
 //sign up function
 function signUp(username, password) 
 {
-    users = JSON.parse(localStorage.getItem('users')) || {};
+    users = JSON.parse(localStorage.getItem('users')) || {}; //get the saved list from local storage
     //if username is not valid, alert
     if (!isValidUsername(username)) 
     {
@@ -112,7 +118,7 @@ function signUp(username, password)
 function logout() 
 {
     // Redirect to the login/signup page
-    window.location.href = 'test.html';
+    window.location.href = 'signin.html';
 }
 document.addEventListener('DOMContentLoaded', function() 
 {
@@ -121,17 +127,18 @@ document.addEventListener('DOMContentLoaded', function()
     if (authForm) {
         authForm.addEventListener('submit', function(event) 
         {
+            //forces you to fill in the fields
             event.preventDefault();
-            const username = document.getElementById('username').value.trim();
+            const username = document.getElementById('username').value.trim(); //trims to avoid whitespaces afterwards
             const password = document.getElementById('password').value;
-            const action = document.getElementById('action').value;
+            const action = document.getElementById('action').value; //specified action of whether to sign in or up.
 
-            if (!username || !password) 
+            if (!username || !password) //safety check
             {
                 alert("Please enter both username and password!");
                 return;
             }
-
+            //signs in or signs up based on the action of the button clicked
             if (action === 'signIn') 
             {
                 signIn(username, password);
@@ -147,6 +154,6 @@ document.addEventListener('DOMContentLoaded', function()
     let logoutButton = document.getElementById('logout');
     if (logoutButton) 
     {
-        logoutButton.addEventListener('click', logout);
+        logoutButton.addEventListener('click', logout); //on click to the logout button (if it exists), log out
     }
 });

@@ -1,6 +1,12 @@
-/* Calendar ----------------------------------------- */
+/*
+Name: Zach Rojas and Kaelin Wang Hu
+Date: 11/21/2023
+Last Edited: 11/22/2023
+Desc: style for index
+*/
 
-body {
+body 
+{
     font-family: Arial, sans-serif;
     background-color: #181a1b;
     margin: 0;
@@ -8,7 +14,8 @@ body {
     height: auto;
 }
 
-header {
+header 
+{
     background-color: #333;
     color: #fff;
     text-align: center;
@@ -19,14 +26,16 @@ header {
     height: 75px
 }
 
-table {
+table 
+{
     width: 100%;
     border-collapse: collapse;
     margin-top: 130px;
     height: 80%;
 }
 
-th, td {
+th, td 
+{
     border: 3px solid #3a3e41;
     padding: 8px;
     text-align: center;
@@ -38,18 +47,25 @@ th, td {
   width: 14.28%; /* 100% divided by 7 days of the week */
 }
 
-th {
+th 
+{
     background-color: #333;
     color: #ffffff;
     height: 10%;
 }
 
-td {
+td 
+{
     background-color: #181a1b;
     color: #fff;
 }
-
-.today {
+.calendar-cell:hover 
+{
+  background-color: rgb(255, 0, 0);
+  cursor: pointer; 
+}
+.today 
+{
     background-color: #4CAF50;
     color: #fff;
 }
@@ -59,7 +75,8 @@ td {
 
 
  /* The side navigation menu */
- .sidebar {
+ .sidebar 
+  {
     margin: 0;
     padding: 0;
     width: 200px;
@@ -71,14 +88,16 @@ td {
   }
   
   /* Sidebar links */
-  .sidebar a {
+  .sidebar a 
+  {
     display: block;
     color: white;
     padding: 16px;
     text-decoration: none;
   }
 
-.button-container {
+.button-container 
+{
   position: fixed; /* Fixed positioning */
   top: 70px; /* Height of the header */
   left: 0;
@@ -92,37 +111,44 @@ td {
   /* Add more styling as needed */
 }
 
-.selected-day {
-  background-color: #ff69b4; /* Bright pink color */
+.selected-day 
+{
+  background-color: #ff69b4; /* Bright pink color heheheha*/
   color: #fff;
 }
 
-#prev-month:hover, #next-month:hover, #prev-day:hover, #next-day:hover {
+#prev-month:hover, #next-month:hover, #prev-day:hover, #next-day:hover 
+{
   background-color: #4CAF50;
 }
 
   /* Active/current link */
-  .sidebar a.active {
+  .sidebar a.active 
+  {
     background-color: #04AA6D;
     color: white;
   }
   
   /* Links on mouse-over */
-  .sidebar a:hover:not(.active) {
+  .sidebar a:hover:not(.active) 
+  {
     background-color: #747474;
     color: white;
   }
   
   /* Page content. The value of the margin-left property should match the value of the sidebar's width property */
-  div.content {
+  div.content 
+  {
     margin-left: 200px;
     padding: 1px 16px;
     height: 750px
   }
   
   /* On screens that are less than 700px wide, make the sidebar into a topbar */
-  @media screen and (max-width: 700px) {
-    .sidebar {
+  @media screen and (max-width: 700px) 
+  {
+    .sidebar 
+    {
       width: 100%;
       height: auto;
       position: relative;
@@ -132,8 +158,10 @@ td {
   }
   
   /* On screens that are less than 400px, display the bar vertically, instead of horizontally */
-  @media screen and (max-width: 400px) {
-    .sidebar a {
+  @media screen and (max-width: 400px) 
+  {
+    .sidebar a 
+    {
       text-align: center;
       float: none;
     }
@@ -141,9 +169,10 @@ td {
 
 
 
-  /* Pop-up box thing --------------------------------------------------*/
+  /* Pop-up box thing (goofy) --------------------------------------------------*/
   
-  .box {
+  .box 
+  {
     width: 150px;
     margin: 0 auto;
     background: white;
@@ -154,7 +183,8 @@ td {
     margin-top: 150px;
   }
   
-  .button {
+  .button 
+  {
     font-size: 1em;
     padding: 10px;
     color: #fff;
@@ -164,11 +194,13 @@ td {
     cursor: pointer;
     transition: all 0.3s ease-out;
   }
-  .button:hover {
+  .button:hover 
+  {
     background: #06D85F;
   }
   
-  .overlay {
+  .overlay 
+  {
     position: fixed;
     top: 0;
     bottom: 0;
@@ -179,12 +211,14 @@ td {
     visibility: hidden;
     opacity: 0;
   }
-  .overlay:target {
+  .overlay:target 
+  {
     visibility: visible;
     opacity: 1;
   }
   
-  .popup {
+  .popup 
+  {
     margin: 70px auto;
     padding: 20px;
     background: #fff;
@@ -194,12 +228,14 @@ td {
     transition: all 5s ease-in-out;
   }
   
-  .popup h2 {
+  .popup h2 
+  {
     margin-top: 0;
     color: #333;
     font-family: Tahoma, Arial, sans-serif;
   }
-  .popup .close {
+  .popup .close 
+  {
     position: absolute;
     top: 20px;
     right: 30px;
@@ -209,19 +245,24 @@ td {
     text-decoration: none;
     color: #333;
   }
-  .popup .close:hover {
+  .popup .close:hover 
+  {
     color: #06D85F;
   }
-  .popup .content {
+  .popup .content 
+  {
     max-height: 30%;
     overflow: auto;
   }
   
-  @media screen and (max-width: 700px){
-    .box{
+  @media screen and (max-width: 700px)
+  {
+    .box
+    {
       width: 70%;
     }
-    .popup{
+    .popup
+    {
       width: 70%;
     }
   }
