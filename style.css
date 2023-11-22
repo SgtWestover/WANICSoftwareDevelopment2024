@@ -1,8 +1,8 @@
-/* SideBar ----------------------------------------- */
+/* Calendar ----------------------------------------- */
 
 body {
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    background-color: #181a1b;
     margin: 0;
     padding: 0;
     height: auto;
@@ -27,7 +27,7 @@ table {
 }
 
 th, td {
-    border: 3px solid #ddd;
+    border: 3px solid #3a3e41;
     padding: 8px;
     text-align: center;
     height: 80px;
@@ -35,12 +35,13 @@ th, td {
 
 th {
     background-color: #333;
-    color: #fff;
+    color: #ffffff;
     height: 10%;
 }
 
 td {
-    background-color: #fff;
+    background-color: #181a1b;
+    color: #fff;
 }
 
 .today {
@@ -57,7 +58,7 @@ td {
     margin: 0;
     padding: 0;
     width: 200px;
-    background-color: #dedede;
+    background-color: #2b2e30;
     position: fixed;
     height: 100%;
     overflow: auto;
@@ -67,7 +68,7 @@ td {
   /* Sidebar links */
   .sidebar a {
     display: block;
-    color: black;
+    color: white;
     padding: 16px;
     text-decoration: none;
   }
@@ -80,7 +81,7 @@ td {
   
   /* Links on mouse-over */
   .sidebar a:hover:not(.active) {
-    background-color: #555;
+    background-color: #747474;
     color: white;
   }
   
