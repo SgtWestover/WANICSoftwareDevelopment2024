@@ -1,7 +1,8 @@
 // script.js
-let users = {}; //username to password maps
+let users = JSON.parse(localStorage.getItem('users')) || {};
 
 window.addEventListener('load', clearFields); //clear fields on load or reload
+
 
 //sets the action, whether sign up or sign in, based on which button is clicked
 function setAction(action) 
@@ -9,29 +10,6 @@ function setAction(action)
     document.getElementById('action').value = action;
 }
 
-//event listener for both sign up and sign in
-document.getElementById('authForm').addEventListener('submit', function(event) 
-{
-    event.preventDefault();
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-    const action = document.getElementById('action').value;
-
-    if (!username || !password) 
-    {
-        alert("Please enter both username and password!");
-        return;
-    }
-
-    if (action === 'signIn') 
-    {
-        signIn(username, password);
-    } 
-    else if (action === 'signUp') 
-    {
-        signUp(username, password);
-    }
-});
 
 //clears the password field
 function clearPassword()
@@ -42,14 +20,22 @@ function clearPassword()
 //clears both fields
 function clearFields() 
 {
-    document.getElementById('username').value = '';
-    clearPassword();
+    let usernameField = document.getElementById('username');
+    let passwordField = document.getElementById('password');
+    
+    if (usernameField) 
+    {
+        usernameField.value = '';
+    }
+    if (passwordField) 
+    {
+        passwordField.value = '';
+    }
 }
-
 //tests whether the username is valid (>3 characters, doesn't contain special characters except for underscore dash)
 function isValidUsername(username) 
 {
-    const usernameRegex = /^[A-Za-z0-9_-]{4,}$/;
+    const usernameRegex = /^[A-Za-z0-9_@.-]{4,}$/;
     return usernameRegex.test(username);
 }
 
@@ -68,6 +54,7 @@ function isValidPassword(password, username)
 //sign in function
 function signIn(username, password) 
 {
+    users = JSON.parse(localStorage.getItem('users')) || {};
     if (users[username]) 
     {
         //if successful, go to index.html
@@ -94,6 +81,7 @@ function signIn(username, password)
 //sign up function
 function signUp(username, password) 
 {
+    users = JSON.parse(localStorage.getItem('users')) || {};
     //if username is not valid, alert
     if (!isValidUsername(username)) 
     {
@@ -115,7 +103,50 @@ function signUp(username, password)
     else 
     {
         users[username] = password;
+        localStorage.setItem('users', JSON.stringify(users));
         alert("Sign up successful!");
         clearFields(); // Clear fields after successful sign-up
     }
 }
+
+function logout() 
+{
+    // Redirect to the login/signup page
+    window.location.href = 'test.html';
+}
+document.addEventListener('DOMContentLoaded', function() 
+{
+    // Check if authForm exists before attaching event listener
+    let authForm = document.getElementById('authForm');
+    if (authForm) {
+        authForm.addEventListener('submit', function(event) 
+        {
+            event.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const action = document.getElementById('action').value;
+
+            if (!username || !password) 
+            {
+                alert("Please enter both username and password!");
+                return;
+            }
+
+            if (action === 'signIn') 
+            {
+                signIn(username, password);
+            } 
+            else if (action === 'signUp') 
+            {
+                signUp(username, password);
+            }
+        });
+    }
+
+    // Attach the event listener to the logout button, if it exists
+    let logoutButton = document.getElementById('logout');
+    if (logoutButton) 
+    {
+        logoutButton.addEventListener('click', logout);
+    }
+});
