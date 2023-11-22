@@ -33,6 +33,11 @@ th, td {
     height: 80px;
 }
 
+#calendar th, #calendar td 
+{
+  width: 14.28%; /* 100% divided by 7 days of the week */
+}
+
 th {
     background-color: #333;
     color: #ffffff;
@@ -72,7 +77,30 @@ td {
     padding: 16px;
     text-decoration: none;
   }
-  
+
+.button-container {
+  position: fixed; /* Fixed positioning */
+  top: 70px; /* Height of the header */
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin: auto; /* Auto margins for horizontal centering */
+  width: 100%; /* Set a specific width if necessary */
+  text-align: center; /* Ensures content inside is centered */
+  padding: 10px;
+  background-color: #333; /* Optional: to match the header background */
+  /* Add more styling as needed */
+}
+
+.selected-day {
+  background-color: #ff69b4; /* Bright pink color */
+  color: #fff;
+}
+
+#prev-month:hover, #next-month:hover, #prev-day:hover, #next-day:hover {
+  background-color: #4CAF50;
+}
+
   /* Active/current link */
   .sidebar a.active {
     background-color: #04AA6D;

@@ -1,52 +1,55 @@
+// Global variable for the current date
+let currentDate = new Date();
 
-
+// When the DOM content is fully loaded, initialize the calendar
 document.addEventListener('DOMContentLoaded', function () {
-    // Get the current date
-    let currentDate = new Date();
+    addNavigationEventListeners();
+    renderCalendar(currentDate);
+});
+
+/**
+ * Renders the calendar for a given date.
+ * @param {Date} date - The date for which to render the calendar.
+ */
+function renderCalendar(date) 
+{
+    // Clear previous calendar content
+    let calendarBody = document.getElementById('calendar-body');
+    calendarBody.innerHTML = '';
 
     // Set the month and year in the header
-    document.getElementById('month-year').innerText = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(currentDate);
+    document.getElementById('month-year').innerText = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(date);
 
-    // Get the first day of the month and the last day of the month
-    let firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    let lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    // Get the first and last day of the month
+    let firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    let lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
 
-    // Get the starting day of the week and the number of days in the month
+    // Determine the starting day of the week and the total number of days in the month
     let startingDay = firstDay.getDay();
     let monthDays = lastDay.getDate();
 
-    // Get the table body element
-    let calendarBody = document.getElementById('calendar-body');
-
-    // Counter for the day of the month
+    // Initialize the day counter
     let dayOfMonth = 1;
 
-    // Loop through the rows (weeks) of the calendar
-    for (let i = 0; i < 6; i++) 
-    {
-        // Create a table row element
+    // Create rows for each week
+    for (let i = 0; i < 6; i++) {
         let row = document.createElement('tr');
 
-        // Loop through the columns (days) of the week
-        for (let j = 0; j < 7; j++)
-        {
-            // Create a table cell element
+        // Create cells for each day of the week
+        for (let j = 0; j < 7; j++) {
             let cell = document.createElement('td');
 
-            // Check if the current cell is before the starting day or after the last day
-            if ((i === 0 && j < startingDay) || dayOfMonth > monthDays) 
-            {
-                cell.innerText = ''; // Empty cell
-            } 
-            else 
-            {
-                // Add the day of the month to the cell
+            // Fill cells with the day number or leave them blank
+            if ((i === 0 && j < startingDay) || dayOfMonth > monthDays) {
+                cell.innerText = '';
+            } else {
                 cell.innerText = dayOfMonth;
 
-                // Add a class for the current day
-                if (dayOfMonth === currentDate.getDate() && currentDate.getMonth() === firstDay.getMonth()) 
-                {
-                    cell.classList.add('today');
+                // Highlight the current day
+                if (dayOfMonth === currentDate.getDate() &&
+                    date.getMonth() === currentDate.getMonth() &&
+                    date.getFullYear() === currentDate.getFullYear()) {
+                    cell.classList.add('selected-day');
                 }
 
                 // Increment the day of the month
@@ -60,4 +63,76 @@ document.addEventListener('DOMContentLoaded', function () {
         // Append the row to the calendar body
         calendarBody.appendChild(row);
     }
-});
+}
+
+function addNavigationEventListeners() {
+    // Navigate to the previous month
+    document.getElementById('prev-month').addEventListener('click', function() {
+        changeMonth(-1);
+    });
+
+    // Navigate to the next month
+    document.getElementById('next-month').addEventListener('click', function() {
+        changeMonth(1);
+    });
+
+    // Navigate to the previous day
+    document.getElementById('prev-day').addEventListener('click', function() {
+        changeDay(-1);
+    });
+
+    // Navigate to the next day
+    document.getElementById('next-day').addEventListener('click', function() {
+        changeDay(1);
+    });
+}
+
+function changeMonth(delta) {
+    // Adjust the month
+    let newMonth = currentDate.getMonth() + delta;
+    let newYear = currentDate.getFullYear();
+    
+    if (newMonth > 11) {
+        newMonth = 0;
+        newYear++;
+    } else if (newMonth < 0) {
+        newMonth = 11;
+        newYear--;
+    }
+
+    // Get the last day of the new month
+    let lastDayNewMonth = new Date(newYear, newMonth + 1, 0).getDate();
+    
+    // If the current day is greater than the last day of the new month, adjust the day
+    let newDay = currentDate.getDate();
+    if (newDay > lastDayNewMonth) {
+        newDay = lastDayNewMonth; // Set to the last day of the new month
+    }
+
+    currentDate = new Date(newYear, newMonth, newDay);
+    renderCalendar(currentDate);
+}
+
+function changeDay(delta) {
+    // Adjust the day
+    let newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() + delta);
+
+    // Check for month or year change
+    let dayDelta = newDate.getDate() - currentDate.getDate();
+    if (dayDelta === delta) {
+        // If the day change is consistent with delta, no month or year rollover occurred
+        currentDate = newDate;
+    } else {
+        // Month or year rollover occurred, adjust to the first or last day of the month
+        if (delta > 0) {
+            // Moving forward, set to the first day of the next month
+            currentDate = new Date(newDate.getFullYear(), newDate.getMonth(), 1);
+        } else {
+            // Moving backward, set to the last day of the previous month
+            currentDate = new Date(newDate.getFullYear(), newDate.getMonth() + 1, 0);
+        }
+    }
+
+    renderCalendar(currentDate);
+}
