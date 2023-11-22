@@ -59,7 +59,7 @@ function renderCalendar(date)
                 cell.style.cursor = 'pointer'; // Optional: change the cursor to indicate clickable
                 cell.addEventListener('click', function() 
                 {
-                    window.location.href = 'days.html';
+                    window.location.href = '#popup1';
                 });
                 // Highlight the current day
                 if (dayOfMonth === currentDate.getDate() &&
