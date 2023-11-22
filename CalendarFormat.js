@@ -65,7 +65,8 @@ function renderCalendar(date)
     }
 }
 
-function addNavigationEventListeners() {
+function addNavigationEventListeners() 
+{
     // Navigate to the previous month
     document.getElementById('prev-month').addEventListener('click', function() {
         changeMonth(-1);
@@ -87,15 +88,18 @@ function addNavigationEventListeners() {
     });
 }
 
-function changeMonth(delta) {
+function changeMonth(delta) 
+{
     // Adjust the month
     let newMonth = currentDate.getMonth() + delta;
     let newYear = currentDate.getFullYear();
     
-    if (newMonth > 11) {
+    if (newMonth > 11) 
+    {
         newMonth = 0;
         newYear++;
-    } else if (newMonth < 0) {
+    } else if (newMonth < 0) 
+    {
         newMonth = 11;
         newYear--;
     }
@@ -105,7 +109,8 @@ function changeMonth(delta) {
     
     // If the current day is greater than the last day of the new month, adjust the day
     let newDay = currentDate.getDate();
-    if (newDay > lastDayNewMonth) {
+    if (newDay > lastDayNewMonth) 
+    {
         newDay = lastDayNewMonth; // Set to the last day of the new month
     }
 
@@ -113,22 +118,26 @@ function changeMonth(delta) {
     renderCalendar(currentDate);
 }
 
-function changeDay(delta) {
+function changeDay(delta) 
+{
     // Adjust the day
     let newDate = new Date(currentDate);
     newDate.setDate(newDate.getDate() + delta);
 
     // Check for month or year change
     let dayDelta = newDate.getDate() - currentDate.getDate();
-    if (dayDelta === delta) {
+    if (dayDelta === delta) 
+    {
         // If the day change is consistent with delta, no month or year rollover occurred
         currentDate = newDate;
     } else {
         // Month or year rollover occurred, adjust to the first or last day of the month
-        if (delta > 0) {
+        if (delta > 0) 
+        {
             // Moving forward, set to the first day of the next month
             currentDate = new Date(newDate.getFullYear(), newDate.getMonth(), 1);
-        } else {
+        } else 
+        {
             // Moving backward, set to the last day of the previous month
             currentDate = new Date(newDate.getFullYear(), newDate.getMonth() + 1, 0);
         }
