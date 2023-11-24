@@ -39,7 +39,7 @@ function renderCalendar(date)
     let dayOfMonth = 1;
 
     // Create rows for each week
-    for (let i = 0; i < 6; i++) 
+    for (let i = 0; i < 5; i++) 
     {
         let row = document.createElement('tr');
 
