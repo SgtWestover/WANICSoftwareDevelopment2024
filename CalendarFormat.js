@@ -37,9 +37,13 @@ function renderCalendar(date)
 
     // Initialize the day counter
     let dayOfMonth = 1;
+    
+    //set rows based on starting day, and total number of days
+    let numRows = 5
 
+    if (startingDay === 5 && monthDays > 30 || startingDay === 6 && monthDays > 29) numRows = 6;
     // Create rows for each week
-    for (let i = 0; i < 5; i++) 
+    for (let i = 0; i < numRows; i++) 
     {
         let row = document.createElement('tr');
 
