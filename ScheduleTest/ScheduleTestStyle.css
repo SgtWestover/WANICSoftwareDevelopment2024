@@ -1,0 +1,41 @@
+
+
+
+.time-block-container{
+    margin-top: 50px;
+    height: 300px;
+    background-color: white;
+    color: green;
+    border-radius: 15px;
+    text-align: center;
+    float: left;
+}
+
+.time-block{
+    position: relative;
+    margin-top: 50px;
+    width: 100%;
+    height: 200px;
+    background-color: lightblue;
+    /*border-radius: 15px;*/
+    text-align: center;
+    float: left;
+    margin-left: 5%;
+    z-index: 0;
+    transition: all 250ms;
+}
+
+.time-block:hover {
+    background-color: goldenrod;
+    width: 110%;
+    height: 250px;
+    margin-top: 25px;
+    margin-left: -5%;
+    z-index: 2;
+
+}
+
+.schedule-body {
+    width: 100%;
+    margin-left: 0%;
+}
