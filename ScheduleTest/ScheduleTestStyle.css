@@ -1,41 +1,38 @@
-
-
-
-.time-block-container{
-    margin-top: 50px;
-    height: 300px;
+.day-container 
+{
+    position: relative;
+    width: 100%;
+    display: flex;
     background-color: white;
     color: green;
     border-radius: 15px;
     text-align: center;
-    float: left;
 }
 
-.time-block{
-    position: relative;
-    margin-top: 50px;
-    width: 100%;
-    height: 200px;
-    background-color: lightblue;
-    /*border-radius: 15px;*/
-    text-align: center;
-    float: left;
-    margin-left: 5%;
-    z-index: 0;
-    transition: all 250ms;
-}
-
-.time-block:hover {
-    background-color: goldenrod;
-    width: 110%;
+.time-block 
+{
     height: 250px;
-    margin-top: 25px;
-    margin-left: -5%;
-    z-index: 2;
-
+    margin-top: 50px;
+    flex-grow: 1;
+    background-color: lightblue;
+    transition: all 250ms;
+    text-align: center;
+    padding: 10px;
 }
 
-.schedule-body {
-    width: 100%;
-    margin-left: 0%;
+.time-block:hover 
+{
+    background-color: goldenrod;
+}
+
+.time-block:first-child 
+{
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+}
+
+.time-block:last-child 
+{
+    border-top-right-radius: 15px;
+    border-bottom-right-radius: 15px;
 }

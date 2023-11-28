@@ -1,23 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Calendar</title>
-        <link rel="stylesheet" href="ScheduleTestStyle.css">
-        
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar</title>
+    <link rel="stylesheet" href="ScheduleTestStyle.css">
+</head>
+
+<body>
+    <input type="number" id="startTime" onblur="evaluateInputOnBlur('startTime')" onkeydown="handleEnterKeyPress(event, 'startTime')" value="0" min="0" max="23">
+    <input type="number" id="endTime" onblur="evaluateInputOnBlur('endTime')" onkeydown="handleEnterKeyPress(event, 'endTime')" value="24" min="1" max="24">
     
-    <body>
-        <input type="number" id="startTime" onChange="setStartTime(this.value)" value="0">
-        <input type="number" id="endTime" onChange="setEndTime(this.value)" value="24">
-        <div id="scheduleBody" class="schedule-body"> </div>
-
-
-
-
-
-
-        <script type='text/javascript' language='javascript' src='DayScheduleFormat.js'> </script>
-    </body>
+    <div id= "scheduleBody" class="schedule-body"> </div>
+    <script type='text/javascript' src='DayScheduleFormat.js'></script>
+</body>
 </html>
