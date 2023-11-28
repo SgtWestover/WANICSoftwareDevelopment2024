@@ -200,7 +200,7 @@ td
   }
   .button:hover 
   {
-    background: #06D85F;
+    background: #04AA6D;
   }
   
   .overlay 
@@ -214,6 +214,7 @@ td
     transition: opacity 500ms;
     visibility: hidden;
     opacity: 0;
+    z-index: 10;
   }
   .overlay:target 
   {
@@ -253,7 +254,7 @@ td
   }
   .popup .close:hover 
   {
-    color: #06D85F;
+    color: #04AA6D;
   }
   .popup .content 
   {
