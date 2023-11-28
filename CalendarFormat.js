@@ -60,48 +60,46 @@ function renderCalendar(date)
             {
                 cell.classList.add('calendar-cell'); 
                 cell.innerText = dayOfMonth;
-                cell.style.cursor = 'pointer'; // Optional: change the cursor to indicate clickable
+                cell.style.cursor = 'pointer';
                 cell.addEventListener('click', function() //Click on day
                 {
                     window.location.href = '#popup1';
-                    
                     //change popup text based on day
                     switch (cell.cellIndex) 
                     {
                         case 0:
-                            document.getElementById('popupHeader').innerHTML = "Sunday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
+                            document.getElementById('popupHeader').innerHTML += "Sunday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
                             break;
                         case 1:
-                            document.getElementById('popupHeader').innerHTML = "Monday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
+                            document.getElementById('popupHeader').innerHTML += "Monday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
                             break;
                         case 2:
-                            document.getElementById('popupHeader').innerHTML = "Tuesday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
+                            document.getElementById('popupHeader').innerHTML += "Tuesday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
                             break;
                         case 3:
-                            document.getElementById('popupHeader').innerHTML = "Wednesday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
+                            document.getElementById('popupHeader').innerHTML += "Wednesday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
                             break;
                         case 4:
-                            document.getElementById('popupHeader').innerHTML = "Thursday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
+                            document.getElementById('popupHeader').innerHTML += "Thursday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
                             break;
                         case 5:
-                            document.getElementById('popupHeader').innerHTML = "Friday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
+                            document.getElementById('popupHeader').innerHTML += "Friday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
                             break;
                         case 6:
-                            document.getElementById('popupHeader').innerHTML = "Saturday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
+                            document.getElementById('popupHeader').innerHTML += "Saturday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
                             break;
                         default:
                             break;
+                        
                     }
-                    //change text if current date
                     for (let l = 0; l < cell.classList.length; l++)
                     {
                         console.log(cell.classList[l]);
                         if (cell.classList[l] == 'selected-day')
                         {
-                            document.getElementById('popupHeader').innerHTML = "Today";
+                            document.getElementById('popupHeader').innerHTML += " (Today)";
                         }
                     }
-                    //document.getElementById('popupHeader').innerHTML = cell.className;
                 });
                 // Highlight the current day
                 if (dayOfMonth === currentDate.getDate() &&
@@ -109,6 +107,7 @@ function renderCalendar(date)
                     date.getFullYear() === currentDate.getFullYear())    
                 {
                     cell.classList.add('selected-day');
+                    
                 }
 
                 // Increment the day of the month
@@ -123,6 +122,11 @@ function renderCalendar(date)
         calendarBody.appendChild(row);
     }
 }
+
+document.querySelector('.popup .close').addEventListener('click', function() 
+{
+    document.getElementById('popupHeader').innerHTML = '';
+});
 
 function addNavigationEventListeners() 
 {
