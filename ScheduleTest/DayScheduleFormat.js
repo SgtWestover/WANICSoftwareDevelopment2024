@@ -54,6 +54,7 @@ window.onload = function()
 {
     startTime = 0;
     endTime = 24;
+    initializeInputListeners();
     generateSchedule();
 };
 
@@ -113,10 +114,26 @@ function evaluateInputOnBlur(inputId)
 // Adjusted function to handle Enter keypress
 function handleEnterKeyPress(event, inputId) 
 {
-    if(event.key === 'Enter') 
+    if(event.key === 'Enter')
     {
         event.preventDefault();
         evaluateInputOnBlur(inputId);
         event.target.blur(); 
     }
+}
+
+function initializeInputListeners() {
+    // Get the input elements
+    let startTimeInput = document.getElementById('startTime');
+    let endTimeInput = document.getElementById('endTime');
+
+    // Add event listener for the 'input' event to the start time input
+    startTimeInput.addEventListener('input', function() {
+        setStartTime(this.value); // Call setStartTime when the value changes
+    });
+
+    // Add event listener for the 'input' event to the end time input
+    endTimeInput.addEventListener('input', function() {
+        setEndTime(this.value); // Call setEndTime when the value changes
+    });
 }
