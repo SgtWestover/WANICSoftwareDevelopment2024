@@ -112,18 +112,51 @@ function handleEnterKeyPress(event, inputId)
     }
 }
 
-function initializeInputListeners() {
+function initializeInputListeners() 
+{
     // Get the input elements
     let startTimeInput = document.getElementById('startTime');
     let endTimeInput = document.getElementById('endTime');
 
     // Add event listener for the 'input' event to the start time input
-    startTimeInput.addEventListener('input', function() {
-        setStartTime(this.value); // Call setStartTime when the value changes
+    startTimeInput.addEventListener('input', function() 
+    {
+        validateAndSetTime('startTime', this.value); // Call validateAndSetTime when the value changes
     });
 
     // Add event listener for the 'input' event to the end time input
-    endTimeInput.addEventListener('input', function() {
-        setEndTime(this.value); // Call setEndTime when the value changes
+    endTimeInput.addEventListener('input', function() 
+    {
+        validateAndSetTime('endTime', this.value); // Call validateAndSetTime when the value changes
     });
+}
+
+// Validation and setting of time
+function validateAndSetTime(inputId, value) 
+{
+    let time = parseInt(value, 10);
+
+    if(inputId === 'startTime') 
+    {
+        if (!isNaN(time) && time >= 0 && time < endTime) 
+        {
+            setStartTime(time); // Update the start time if within valid range
+        } 
+        else 
+        {
+            // Reset to the previous valid value if out of range
+            document.getElementById('startTime').value = startTime;
+        }
+    } else if(inputId === 'endTime') 
+    {
+        if (!isNaN(time) && time > startTime && time <= 24) 
+        {
+            setEndTime(time); // Update the end time if within valid range
+        } 
+        else 
+        {
+            // Reset to the previous valid value if out of range
+            document.getElementById('endTime').value = endTime;
+        }
+    }
 }
