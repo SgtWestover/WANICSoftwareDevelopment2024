@@ -29,10 +29,6 @@ function generateSchedule()
     // Get the schedule body element
     let scheduleBody = document.getElementById('scheduleBody');
     
-    // Preserve the timeIndicator if it exists before clearing the scheduleBody
-    let timeIndicator = document.getElementById('timeIndicator');
-    let timeIndicatorExists = timeIndicator !== null;
-
     // Clear previous content from the schedule body
     scheduleBody.innerHTML = '';
 
@@ -52,16 +48,6 @@ function generateSchedule()
 
     // Add the day container to the schedule body
     scheduleBody.appendChild(dayContainer);
-
-    // If the timeIndicator already existed, append it back to the schedule body;
-    // otherwise, create and append a new timeIndicator.
-    if (!timeIndicatorExists) 
-    {
-        timeIndicator = document.createElement('div');
-        timeIndicator.id = 'timeIndicator';
-        timeIndicator.classList.add('time-indicator');
-    }
-    scheduleBody.appendChild(timeIndicator); // Append the time indicator to the schedule body
 }
 
 window.onload = function() 
