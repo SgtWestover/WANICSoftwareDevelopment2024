@@ -12,6 +12,8 @@ Desc: Handles the formatting for the day schedule
 let startTime = 0;
 let endTime = 24;
 
+let dayContainer;
+
 function setStartTime(time)
 {
     startTime = time;
@@ -33,9 +35,15 @@ function generateSchedule()
     scheduleBody.innerHTML = '';
 
     // Create a container for the entire day's schedule
-    let dayContainer = document.createElement('div');
+    dayContainer = document.createElement('div');
     dayContainer.classList.add("day-container");
-    
+    dayContainer.setAttribute('id', 'day-container');
+    dayContainer.addEventListener("mousemove", function(event) {
+        lineFollow(event);
+    });
+    let line = document.getElementById('line');
+    dayContainer.appendChild(line);
+
     // Add the day container to the schedule body
     scheduleBody.appendChild(dayContainer);
 }
@@ -159,4 +167,14 @@ function validateAndSetTime(inputId, value)
             document.getElementById('endTime').value = endTime;
         }
     }
+}
+
+
+function lineFollow(event)
+{
+    let line = document.getElementById('line');
+
+    console.log(event.clientX - parseInt(getComputedStyle(dayContainer).getPropertyValue('left')));
+    line.style.left = `${event.clientX - parseInt(getComputedStyle(dayContainer).getPropertyValue('left')) - 10 }px`; //mousPos - % left
+
 }

@@ -1,25 +1,37 @@
 
 body
 {
-    background-color: rgb(128, 128, 255);
+    background-color: lightblue;
 }
 
 .day-container 
 {
     position: relative;
-    margin-top: 5%;
-    width: 100%;
+    top: 50px;
+    left: 5%;
+    width: 90%;
     height: 400px;
     display: flex;
-    background-color: lightcyan;
+    background-color: rgb(231, 255, 255);
     color: green;
     border-radius: 15px;
     text-align: center;
+    overflow: hidden;
+}
+
+.day-container:hover .line {
+    opacity: 1; /* Set opacity to 1 on hover */
 }
 
 .line
 {
-    width: ;
+    position: absolute;
+    z-index: 100;
+    width: 3.5px;
+    height: 400px;
+    background-color: black;
+    opacity: 0;
+    transition: opacity 150ms;
 }
 
 
