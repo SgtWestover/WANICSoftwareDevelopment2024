@@ -1,38 +1,28 @@
+
+body
+{
+    background-color: rgb(128, 128, 255);
+}
+
 .day-container 
 {
     position: relative;
+    margin-top: 5%;
     width: 100%;
+    height: 400px;
     display: flex;
-    background-color: white;
+    background-color: lightcyan;
     color: green;
     border-radius: 15px;
     text-align: center;
 }
 
-.time-block 
+.line
 {
-    height: 250px;
-    margin-top: 50px;
-    flex-grow: 1;
-    background-color: lightblue;
-    transition: all 250ms;
-    text-align: center;
-    padding: 10px;
+    width: ;
 }
 
-.time-block:hover 
-{
-    background-color: goldenrod;
-}
 
-.time-block:first-child 
-{
-    border-top-left-radius: 15px;
-    border-bottom-left-radius: 15px;
-}
 
-.time-block:last-child 
-{
-    border-top-right-radius: 15px;
-    border-bottom-right-radius: 15px;
-}
+
+

@@ -35,17 +35,7 @@ function generateSchedule()
     // Create a container for the entire day's schedule
     let dayContainer = document.createElement('div');
     dayContainer.classList.add("day-container");
-
-    // Generate time blocks for each hour within the day container
-    for (let i = startTime; i < endTime; i++) 
-    {
-        // Create a new time block element
-        let timeBlock = document.createElement('div');
-        timeBlock.innerHTML = i + 1; // Set the time block's display number
-        timeBlock.classList.add('time-block'); // Add the 'time-block' class for styling
-        dayContainer.appendChild(timeBlock); // Append the time block to the day container
-    }
-
+    
     // Add the day container to the schedule body
     scheduleBody.appendChild(dayContainer);
 }
