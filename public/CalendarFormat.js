@@ -10,6 +10,11 @@ let currentDate = new Date();
 // When the DOM content is fully loaded, initialize the calendar
 document.addEventListener('DOMContentLoaded', function () 
 {
+    if (window.location.hash === '#popup1') 
+    {
+        window.location.href = 'calendar.html';
+        return; // Exit the function to prevent further execution
+    }
     addNavigationEventListeners();
     renderCalendar(currentDate);
 });
