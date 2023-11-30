@@ -68,6 +68,7 @@ function renderCalendar(date)
                 cell.style.cursor = 'pointer';
                 cell.addEventListener('click', function() //Click on day
                 {
+                    //console.log("Line 64: " + document.getElementById('popupHeader').id);
                     window.location.href = '#popup1';
                     //change popup text based on day
                     switch (cell.cellIndex) 
@@ -105,6 +106,7 @@ function renderCalendar(date)
                             document.getElementById('popupHeader').innerHTML += " (Today)";
                         }
                     }
+                    
                 });
                 // Highlight the current day
                 if (dayOfMonth === currentDate.getDate() &&
@@ -220,3 +222,4 @@ function changeDay(delta)
     }
     renderCalendar(currentDate);
 }
+
