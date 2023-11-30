@@ -34,10 +34,13 @@ body
     transition: opacity 150ms;
 }
 
-.measurement-lines
+.measurement-line
 {
-    width: 2px;
-    height: 10px;
+    position: absolute;
+    z-index: 11;
+    width: 3px;
+    height: 400px;
+    background-color: gray;
     opacity: 0.4;
 }
 

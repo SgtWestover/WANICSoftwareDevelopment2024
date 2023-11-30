@@ -14,6 +14,8 @@ let endTime = 24;
 
 let dayContainer;
 
+
+
 function setStartTime(time)
 {
     startTime = time;
@@ -44,24 +46,36 @@ function generateSchedule()
     let line = document.getElementById('line');
     dayContainer.appendChild(line);
 
-    // Create Lines to show the hour things
-    generateTimeMeasuerments(dayContainer);
+    
 
     // Add the day container to the schedule body
     scheduleBody.appendChild(dayContainer);
+
+    // Create Lines to show the hour things
+    generateTimeMeasuerments(dayContainer);
+    // generate new lines on resize
+    window.addEventListener("resize", function(event) {
+        generateTimeMeasuerments();
+        console.log("Window Resized");
+    });
 }
 
-function generateTimeMeasuerments(parent)
+function generateTimeMeasuerments()
 {
-    for (let i = 0; i < endTime - startTime; i++)
+    const currentLines = document.getElementsByClassName('measurement-line');
+    while(currentLines.length > 0)
+    {
+        currentLines[0].parentNode.removeChild(currentLines[0]);
+    }
+
+    for (let i = 1; i < endTime - startTime; i++)
     {
         let line = document.createElement('div');
         line.classList.add('measurement-line');
-        line.style.left = `${i * (dayContainer.offsetWidth / 24)}`
-        parent.appendChild(line);
+        let max = parseInt(dayContainer.offsetWidth);
+        line.style.left = `${i * ((parseInt(dayContainer.offsetWidth)) / (endTime - startTime))}px`;
+        dayContainer.appendChild(line);   
     }
-
-
 }
 
 window.onload = function() 
@@ -197,6 +211,7 @@ function lineFollow(event)
     //Gets the selected time based on mouse position
     let current = event.clientX - parseInt(getComputedStyle(dayContainer).getPropertyValue('left')) - 10;
     let max = parseInt(dayContainer.offsetWidth);
+    console.log(max);
     let percent = Math.floor((current / max) * 100) + 1;
     let selectedHour = ((endTime - startTime) * percent / 100) + startTime;
     selectedHour = Math.floor(selectedHour * 4) / 4;
