@@ -14,20 +14,6 @@ let endTime = 24;
 
 let dayContainer;
 
-
-
-function setStartTime(time)
-{
-    startTime = time;
-    generateSchedule();
-}
-
-function setEndTime(time)
-{
-    endTime = time;
-    generateSchedule();
-}
-
 function generateSchedule() 
 {
     // Get the schedule body element
@@ -72,7 +58,6 @@ function generateTimeMeasuerments()
     {
         let line = document.createElement('div');
         line.classList.add('measurement-line');
-        let max = parseInt(dayContainer.offsetWidth);
         line.style.left = `${i * ((parseInt(dayContainer.offsetWidth)) / (endTime - startTime))}px`;
         dayContainer.appendChild(line);   
     }
@@ -82,10 +67,10 @@ window.onload = function()
 {
     startTime = 0;
     endTime = 24;
-    initializeInputListeners();
+    //initializeInputListeners();
     generateSchedule();
 };
-
+/*
 function setStartTime(input) 
 {
     let time = parseInt(input, 10); // Parse as an integer to remove leading zeros
@@ -198,24 +183,18 @@ function validateAndSetTime(inputId, value)
         }
     }
 }
-
+*/
 
 function lineFollow(event)
 {
-    let line = document.getElementById('line');
-    let debugBox = document.getElementById('debugBox');
-
-    //console.log(parseInt(dayContainer.offsetWidth));
-    line.style.left = `${event.clientX - parseInt(getComputedStyle(dayContainer).getPropertyValue('left')) - 10 }px`; //mousPos - % left
+    let line = document.getElementById('line');    
+    let Left = line.parentElement.getBoundingClientRect().left;
+    line.style.left = `${event.clientX - Left - 1.75}px`; // mousePos
 
     //Gets the selected time based on mouse position
-    let current = event.clientX - parseInt(getComputedStyle(dayContainer).getPropertyValue('left')) - 10;
+    let current = event.clientX - Left - 10;
     let max = parseInt(dayContainer.offsetWidth);
-    console.log(max);
     let percent = Math.floor((current / max) * 100) + 1;
     let selectedHour = ((endTime - startTime) * percent / 100) + startTime;
     selectedHour = Math.floor(selectedHour * 4) / 4;
-    debugBox.innerHTML = selectedHour;
-    
-
 }

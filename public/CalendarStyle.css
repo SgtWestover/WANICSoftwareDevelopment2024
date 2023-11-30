@@ -257,10 +257,12 @@ td
   {
     color: #04AA6D;
   }
-  .popup .content 
+  .popup .popup-content 
   {
     max-height: 30%;
     overflow: auto;
+    padding: 1px 16px;
+    height: 750px
   }
   
   @media screen and (max-width: 700px)
@@ -274,3 +276,45 @@ td
       width: 70%;
     }
   }
+
+  /* Day Schedule ---------------------------------------*/
+
+.day-container 
+{
+    position: relative;
+    top: 50px;
+    left: 5%;
+    width: 90%;
+    height: 400px;
+    display: flex;
+    background-color: rgb(231, 255, 255);
+    color: green;
+    border-radius: 15px;
+    text-align: center;
+    overflow: hidden;
+}
+
+.day-container:hover .line {
+    opacity: 1; /* Set opacity to 1 on hover */
+}
+
+.line
+{
+    position: absolute;
+    z-index: 100;
+    width: 3.5px;
+    height: 400px;
+    background-color: black;
+    opacity: 0;
+    transition: opacity 150ms;
+}
+
+.measurement-line
+{
+    position: absolute;
+    z-index: 11;
+    width: 3px;
+    height: 400px;
+    background-color: gray;
+    opacity: 0.4;
+}
