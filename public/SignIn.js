@@ -10,7 +10,7 @@ window.addEventListener('load', clearFields); //clear fields on load or reload
 
 
 //sets the action, whether sign up or sign in, based on which button is clicked
-function setAction(action) 
+function setAction(action)
 {
     document.getElementById('action').value = action;
 }
@@ -23,30 +23,30 @@ function clearPassword()
 }
 
 //clears both fields
-function clearFields() 
+function clearFields()
 {
     let usernameField = document.getElementById('username');
     let passwordField = document.getElementById('password');
-    
+
     //null checks to avoid null errors where the script cannot get the fields
-    if (usernameField) 
+    if (usernameField)
     {
         usernameField.value = '';
     }
-    if (passwordField) 
+    if (passwordField)
     {
         passwordField.value = '';
     }
 }
 //tests whether the username is valid (>3 characters, doesn't contain special characters except for underscore dash)
-function isValidUsername(username) 
+function isValidUsername(username)
 {
     const usernameRegex = /^[A-Za-z0-9_@.-]{4,}$/; //wizardry
     return usernameRegex.test(username);
 }
 
 //tests whether the password is valid
-function isValidPassword(password, username) 
+function isValidPassword(password, username)
 {
     if (password.toLowerCase() === username.toLowerCase()) //failsafe in case future standards change
     {
@@ -58,10 +58,40 @@ function isValidPassword(password, username)
 }
 
 //sign in function
-function signIn(username, password) 
+function signIn()
 {
-    users = JSON.parse(localStorage.getItem('users')) || {};
-    if (users[username]) 
+    let username = document.getElementById("username").value;
+    let password = document.getElementById("password").value;
+
+    console.log("login " + username + " " + password)
+    var data = new FormData();
+    var json = JSON.stringify({username: username, password: password});
+    let response = fetch('/login', { method: 'POST', credentials: 'same-origin', headers:{
+            'Content-Type': 'application/json'
+        }, body: json})
+    response.then(function (response) {
+        return response.ok
+            ? response.json().then((data))
+            : Promise.reject(new Error('Unexpected response'));
+    }).then(function (message) {
+        console.log(message);
+
+        if (message.message == "ANF")
+        {
+            document.getElementById("status").textContent = "Account does not exist";
+            console.log("account not found");
+        } else if (message.message == "WP")
+        {
+            console.log("wrong password");
+            document.getElementById("status").textContent = "Password is incorrect";
+        }
+        else if (message.message == "OK")
+        {
+            window.location.href = '/calendar.html';
+        }
+    })
+    /*users = JSON.parse(localStorage.getItem('users')) || {};
+    if (users[username])
     {
         //if successful, go to calendar.html, where the actual calendar is
         if (users[username] === password)
@@ -70,43 +100,61 @@ function signIn(username, password)
             window.location.href = 'calendar.html';
         }
         //otherwise, if incorrect, alert and clear
-        else 
+        else
         {
             alert("Incorrect password!");
             clearPassword(); // Clear fields if password is incorrect
         }
     }
     //if username does not exist, clear both fields
-    else 
+    else
     {
         alert("Username does not exist!");
         clearFields(); // Clear fields if username does not exist
-    }
+    }*/
 }
 
 //sign up function
-function signUp(username, password) 
+function signUp()
 {
+    let username = document.getElementById("username").value;
+    let password = document.getElementById("password").value;
+
+    console.log("login " + username + " " + password)
+    var data = new FormData();
+    var json = JSON.stringify({username: username, password: password});
+    let response = fetch('/signup', { method: 'POST', credentials: 'same-origin', headers:{
+            'Content-Type': 'application/json'
+        }, body: json})
+    response.then(function (response) {
+        return response.ok
+            ? response.json().then((data))
+            : Promise.reject(new Error('Unexpected response'));
+    }).then(function (message) {
+        console.log(message);
+    })
+return;
+
     users = JSON.parse(localStorage.getItem('users')) || {}; //get the saved list from local storage
     //if username is not valid, alert
-    if (!isValidUsername(username)) 
+    if (!isValidUsername(username))
     {
         alert("Username must be at least 4 characters long and can only contain letters, numbers, underscores, and dashes.");
         return;
     }
     //if password is not valid, alert
-    if (!isValidPassword(password, username)) 
+    if (!isValidPassword(password, username))
     {
         alert("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character. It cannot match your username");
         return;
     }
     //if the username is already occupied, alert
-    if (users[username]) 
+    if (users[username])
     {
         alert("Username already exists!");
     }
     //otherwise, sign up successfully
-    else 
+    else
     {
         users[username] = password;
         localStorage.setItem('users', JSON.stringify(users));
@@ -115,17 +163,17 @@ function signUp(username, password)
     }
 }
 
-function logout() 
+function logout()
 {
     // Redirect to the login/signup page
-    window.location.href = 'signin.html';
+    window.location.href = 'index.html';
 }
-document.addEventListener('DOMContentLoaded', function() 
+document.addEventListener('DOMContentLoaded', function()
 {
     // Check if authForm exists before attaching event listener
     let authForm = document.getElementById('authForm');
     if (authForm) {
-        authForm.addEventListener('submit', function(event) 
+        authForm.addEventListener('submit', function(event)
         {
             //forces you to fill in the fields
             event.preventDefault();
@@ -139,11 +187,11 @@ document.addEventListener('DOMContentLoaded', function()
                 return;
             }
             //signs in or signs up based on the action of the button clicked
-            if (action === 'signIn') 
+            if (action === 'signIn')
             {
                 signIn(username, password);
-            } 
-            else if (action === 'signUp') 
+            }
+            else if (action === 'signUp')
             {
                 signUp(username, password);
             }
@@ -152,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function()
 
     // Attach the event listener to the logout button, if it exists
     let logoutButton = document.getElementById('logout');
-    if (logoutButton) 
+    if (logoutButton)
     {
         logoutButton.addEventListener('click', logout); //on click to the logout button (if it exists), log out
     }
