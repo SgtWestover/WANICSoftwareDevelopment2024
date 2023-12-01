@@ -69,45 +69,12 @@ function renderCalendar(date)
                 cell.style.cursor = 'pointer';
                 cell.addEventListener('click', function() //Click on day
                 {
-                    //console.log("Line 64: " + document.getElementById('popupHeader').id);
+                    let clickedDate = new Date(date.getFullYear(), date.getMonth(), date.getDay() + 1);
+                   let isToday = (clickedDate.toDateString() === today.toDateString());
+                    // Emit custom event with the selected date
+                    let event = new CustomEvent('dateSelected', { detail: { date: clickedDate, isToday: isToday } });
+                    document.dispatchEvent(event);                    
                     window.location.href = '#popup1';
-                    //change popup text based on day
-                    switch (cell.cellIndex) 
-                    {
-                        case 0:
-                            document.getElementById('popupHeader').innerHTML += "Sunday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
-                            break;
-                        case 1:
-                            document.getElementById('popupHeader').innerHTML += "Monday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
-                            break;
-                        case 2:
-                            document.getElementById('popupHeader').innerHTML += "Tuesday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
-                            break;
-                        case 3:
-                            document.getElementById('popupHeader').innerHTML += "Wednesday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
-                            break;
-                        case 4:
-                            document.getElementById('popupHeader').innerHTML += "Thursday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
-                            break;
-                        case 5:
-                            document.getElementById('popupHeader').innerHTML += "Friday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
-                            break;
-                        case 6:
-                            document.getElementById('popupHeader').innerHTML += "Saturday, " + new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date) + " " + cell.innerText;
-                            break;
-                        default:
-                            break;
-                        
-                    }
-                    for (let l = 0; l < cell.classList.length; l++)
-                    {
-                        console.log(cell.classList[l]);
-                        if (cell.classList[l] == 'selected-day')
-                        {
-                            document.getElementById('popupHeader').innerHTML += " (Today)";
-                        }
-                    }
-                    
                 });
                 let cellDate = new Date(date.getFullYear(), date.getMonth(), dayOfMonth);
 
