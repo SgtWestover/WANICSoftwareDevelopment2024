@@ -294,9 +294,12 @@ td
     overflow: hidden;
 }
 
-.day-container:hover .line,
-.line:hover .lineTimeText {
+.day-container:hover .line {
     opacity: 1; /* Set opacity to 1 on hover */
+}
+
+.day-container:hover + #popup1 .popup-content .lineTimeText {
+  opacity: 1;
 }
 
 .line
@@ -321,15 +324,15 @@ td
 }
 
 .lineTimeText {
+  top: 70px;
   color: black;
   height: 50px;
-  width: 50px;
-  background-color: darksalmon;
-  top: -50px;
-  left: 50%; /* Adjust as needed */
-  transform: translateX(-50%); /* Center the element horizontally */
+  width: 75px;
+  background-color: white;
   opacity: 0;
   transition: opacity 150ms;
   position: absolute;
-  z-index: 150; /* Make sure it's above the line */
+  z-index: 15;
+  text-align: center;
+  line-height: 75px;
 }

@@ -34,6 +34,10 @@ let endTime = 24;
 
 let dayContainer;
 
+
+
+
+
 //Generates the HTML elements for the schedule menu
 function generateSchedule() 
 {
@@ -67,6 +71,21 @@ function generateSchedule()
         generateTimeMeasurements();
         console.log("Window Resized");
     });
+
+    // Add an event listener to the .day-container element
+    dayContainer.addEventListener('mouseover', function () {
+        // Select the .lineTimeText element and change its opacity
+        let lineTimeText = document.getElementById('lineTimeText');
+        lineTimeText.style.opacity = 1;
+    });
+
+    // Add an event listener to reset the opacity when not hovering
+    dayContainer.addEventListener('mouseout', function () {
+        // Select the .lineTimeText element and reset its opacity
+        let lineTimeText = document.getElementById('lineTimeText');
+        lineTimeText.style.opacity = 0;
+    });
+
 }
 
 //Generates the lines that indicate the measurements of each hour
@@ -102,20 +121,59 @@ function lineFollow(event)
     let line = document.getElementById('line');    
     let Left = line.parentElement.getBoundingClientRect().left;
     line.style.left = `${event.clientX - Left - 1.75}px`; // mousePos
-
+    
     //Gets the selected time based on mouse position
-    let current = event.clientX - Left - 10;
+    let current = event.clientX - Left;
     let max = parseInt(dayContainer.offsetWidth);
     let percent = Math.floor((current / max) * 100) + 1;
     let selectedHour = ((endTime - startTime) * percent / 100) + startTime;
     selectedHour = Math.floor(selectedHour * 4) / 4;
+    
+    lineText(event, convertToTime(selectedHour));
 }
 
 //Handles the text that shows what time the user is currently selecting
-function lineText(event)
+function lineText(event, time)
 {
-
+    let text = document.getElementById('lineTimeText');
+    let Left = text.parentElement.getBoundingClientRect().left;
+    text.style.left = `${event.clientX - Left - 5.5}px`; // mousePos
+    text.innerHTML = time;
 }
+
+function convertToTime(num)
+{
+    let ampm = "AM";
+    let hour = Math.trunc(num);
+    if (hour > 12) 
+    {
+        hour -= 12;
+        ampm = "PM";
+    }
+
+    if (hour === 12)
+    {
+        ampm = "PM"
+    }
+
+    if (hour === 0)
+    {
+        hour = 12;
+    }
+
+    num *= 100;
+    let min = ((num % 100) / 100) * 60;
+    
+    if (min != 0)
+    {
+        return hour + ":" + min + " " + ampm;
+    }
+    else
+    {
+        return hour + ":00 " + ampm;
+    }
+}
+
 
 function updatePopupHeader(eventDetail) 
 {
