@@ -121,6 +121,8 @@ function signUp()
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
 
+    if(isValidUsername(username), isValidPassword(username,))
+
     console.log("login " + username + " " + password)
     var data = new FormData();
     var json = JSON.stringify({username: username, password: password});
