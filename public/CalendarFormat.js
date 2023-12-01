@@ -53,36 +53,55 @@ function renderCalendar(date)
     for (let i = 0; i < numRows; i++) 
     {
         let row = document.createElement('tr');
+
         // Create cells for each day of the week
         for (let j = 0; j < 7; j++) 
         {
             let cell = document.createElement('td');
-            // Fill cells with the day number or leave them blank
+
+            // Use an IIFE to capture the current state of 'dayOfMonth'
+            (function(currentDay) 
+            {
+                // Fill cells with the day number or leave them blank
+                if ((i === 0 && j < startingDay) || currentDay > monthDays) 
+                {
+                    cell.innerText = '';
+                } 
+                else 
+                {
+                    cell.classList.add('calendar-cell'); 
+                    cell.innerText = currentDay;
+                    cell.style.cursor = 'pointer';
+
+                    cell.addEventListener('click', function() // Click on day
+                    {
+                        let clickedDate = new Date(date.getFullYear(), date.getMonth(), currentDay);
+                        console.log(clickedDate);
+
+                        let isToday = (clickedDate.toDateString() === today.toDateString());
+
+                        // Emit custom event with the selected date
+                        let event = new CustomEvent('dateSelected', { detail: { date: clickedDate, isToday: isToday } });
+                        document.dispatchEvent(event);
+
+                        window.location.href = '#popup1';
+                    });
+
+                    // Highlight the current day
+                    let cellDate = new Date(date.getFullYear(), date.getMonth(), currentDay);
+                    if (cellDate.getTime() === today.getTime()) 
+                    {
+                        cell.classList.add('selected-day');
+                    }
+                }
+            })(dayOfMonth); // Pass 'dayOfMonth' to the IIFE
+
             if ((i === 0 && j < startingDay) || dayOfMonth > monthDays) 
             {
-                cell.innerText = '';
+                // Skip incrementing 'dayOfMonth' if the cell is empty
             } 
             else 
             {
-                cell.classList.add('calendar-cell'); 
-                cell.innerText = dayOfMonth;
-                cell.style.cursor = 'pointer';
-                cell.addEventListener('click', function() //Click on day
-                {
-                    let clickedDate = new Date(date.getFullYear(), date.getMonth(), date.getDay() + 1);
-                   let isToday = (clickedDate.toDateString() === today.toDateString());
-                    // Emit custom event with the selected date
-                    let event = new CustomEvent('dateSelected', { detail: { date: clickedDate, isToday: isToday } });
-                    document.dispatchEvent(event);                    
-                    window.location.href = '#popup1';
-                });
-                let cellDate = new Date(date.getFullYear(), date.getMonth(), dayOfMonth);
-
-                // Highlight the current day
-                if (cellDate.getTime() === today.getTime()) 
-                {
-                    cell.classList.add('selected-day');
-                }
                 // Increment the day of the month
                 dayOfMonth++;
             }

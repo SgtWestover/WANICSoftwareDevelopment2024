@@ -58,7 +58,6 @@ function generateSchedule()
     let line = document.getElementById('line');
     dayContainer.appendChild(line);
 
-    
 
     // Add the day container to the schedule body
     scheduleBody.appendChild(dayContainer);
