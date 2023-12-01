@@ -48,7 +48,7 @@ function generateSchedule()
 }
 
 //Generates the lines that indicate the measurements of each hour
-function generateTimeMeasuerments()
+function generateTimeMeasurements()
 {
     const currentLines = document.getElementsByClassName('measurement-line');
     while(currentLines.length > 0)
