@@ -14,6 +14,7 @@ let endTime = 24;
 
 let dayContainer;
 
+//Generates the HTML elements for the schedule menu
 function generateSchedule() 
 {
     // Get the schedule body element
@@ -46,7 +47,8 @@ function generateSchedule()
     });
 }
 
-function generateTimeMeasurements()
+//Generates the lines that indicate the measurements of each hour
+function generateTimeMeasuerments()
 {
     const currentLines = document.getElementsByClassName('measurement-line');
     while(currentLines.length > 0)
@@ -63,6 +65,7 @@ function generateTimeMeasurements()
     }
 }
 
+//Runs on the window load
 window.onload = function() 
 {
     startTime = 0;
@@ -71,6 +74,7 @@ window.onload = function()
     generateSchedule();
 };
 
+//Handles the line that follows the mouse to indicate the user what time they have selected
 function lineFollow(event)
 {
     let line = document.getElementById('line');    
@@ -83,4 +87,10 @@ function lineFollow(event)
     let percent = Math.floor((current / max) * 100) + 1;
     let selectedHour = ((endTime - startTime) * percent / 100) + startTime;
     selectedHour = Math.floor(selectedHour * 4) / 4;
+}
+
+//Handles the text that shows what time the user is currently selecting
+function lineText(event)
+{
+
 }
