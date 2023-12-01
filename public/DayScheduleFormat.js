@@ -39,10 +39,10 @@ function generateSchedule()
     scheduleBody.appendChild(dayContainer);
 
     // Create Lines to show the hour things
-    generateTimeMeasuerments(dayContainer);
+    generateTimeMeasurements(dayContainer);
     // generate new lines on resize
     window.addEventListener("resize", function(event) {
-        generateTimeMeasuerments();
+        generateTimeMeasurements();
         console.log("Window Resized");
     });
 }
