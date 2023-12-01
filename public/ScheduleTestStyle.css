@@ -19,7 +19,8 @@ body
     overflow: hidden;
 }
 
-.day-container:hover .line {
+.day-container:hover .line 
+{
     opacity: 1; /* Set opacity to 1 on hover */
 }
 
