@@ -4,6 +4,7 @@ Date: 11/21/2023
 Last Edit: 11/22/2023
 Desc: Handles log-ins
 */
+//WARNING!! DEPRECATED SCRIPT!!! Kept as a backup, but Jason and his server shenanigans are doing the logins right now
 let users = JSON.parse(localStorage.getItem('users')) || {}; //stored locally (unsafe) but saves throughout pages and the browser
 
 window.addEventListener('load', clearFields); //clear fields on load or reload
@@ -119,6 +120,8 @@ function signUp()
 {
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
+
+    if(isValidUsername(username), isValidPassword(username,))
 
     console.log("login " + username + " " + password)
     var data = new FormData();
