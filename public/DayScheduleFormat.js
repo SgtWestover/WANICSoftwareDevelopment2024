@@ -26,7 +26,8 @@ function generateSchedule()
     dayContainer = document.createElement('div');
     dayContainer.classList.add("day-container");
     dayContainer.setAttribute('id', 'day-container');
-    dayContainer.addEventListener("mousemove", function(event) {
+    dayContainer.addEventListener("mousemove", function(event) 
+    {
         lineFollow(event);
     });
     let line = document.getElementById('line');
@@ -40,7 +41,8 @@ function generateSchedule()
     // Create Lines to show the hour things
     generateTimeMeasurements(dayContainer);
     // generate new lines on resize
-    window.addEventListener("resize", function(event) {
+    window.addEventListener("resize", function(event) 
+    {
         generateTimeMeasurements();
         console.log("Window Resized");
     });

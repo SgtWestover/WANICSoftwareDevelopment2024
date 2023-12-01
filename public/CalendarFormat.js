@@ -43,15 +43,16 @@ function renderCalendar(date)
     // Initialize the day counter
     let dayOfMonth = 1;
     
-    //set rows based on starting day, and total number of days
-    let numRows = 5
+    // Set rows based on starting day, and total number of days
+    let numRows = 5;
 
     if (startingDay === 5 && monthDays > 30 || startingDay === 6 && monthDays > 29) numRows = 6;
+    let today = new Date(); // Today's date
+    today.setHours(0, 0, 0, 0); // Reset time to midnight for accurate comparison
     // Create rows for each week
     for (let i = 0; i < numRows; i++) 
     {
         let row = document.createElement('tr');
-
         // Create cells for each day of the week
         for (let j = 0; j < 7; j++) 
         {
@@ -108,15 +109,13 @@ function renderCalendar(date)
                     }
                     
                 });
+                let cellDate = new Date(date.getFullYear(), date.getMonth(), dayOfMonth);
+
                 // Highlight the current day
-                if (dayOfMonth === currentDate.getDate() &&
-                    date.getMonth() === currentDate.getMonth() &&
-                    date.getFullYear() === currentDate.getFullYear())    
+                if (cellDate.getTime() === today.getTime()) 
                 {
                     cell.classList.add('selected-day');
-                    
                 }
-
                 // Increment the day of the month
                 dayOfMonth++;
             }
@@ -138,23 +137,15 @@ document.querySelector('.popup .close').addEventListener('click', function()
 function addNavigationEventListeners() 
 {
     // Navigate to the previous month
-    document.getElementById('prev-month').addEventListener('click', function() {
+    document.getElementById('prev-month').addEventListener('click', function() 
+    {
         changeMonth(-1);
     });
 
     // Navigate to the next month
-    document.getElementById('next-month').addEventListener('click', function() {
+    document.getElementById('next-month').addEventListener('click', function() 
+    {
         changeMonth(1);
-    });
-
-    // Navigate to the previous day
-    document.getElementById('prev-day').addEventListener('click', function() {
-        changeDay(-1);
-    });
-
-    // Navigate to the next day
-    document.getElementById('next-day').addEventListener('click', function() {
-        changeDay(1);
     });
 }
 
@@ -164,7 +155,6 @@ function changeMonth(delta)
     // Adjust the month
     let newMonth = currentDate.getMonth() + delta;
     let newYear = currentDate.getFullYear();
-    
     //if the new month exceeds the months of the current year, switch to the new year,
     if (newMonth > 11) 
     {
@@ -191,35 +181,3 @@ function changeMonth(delta)
     currentDate = new Date(newYear, newMonth, newDay);
     renderCalendar(currentDate);
 }
-
-//changes the day based on the delta
-function changeDay(delta) 
-{
-    // Adjust the day
-    let newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() + delta);
-
-    // Check for month or year change
-    let dayDelta = newDate.getDate() - currentDate.getDate();
-    if (dayDelta === delta) 
-    {
-        // If the day change is consistent with delta, no month or year rollover occurred
-        currentDate = newDate;
-    } 
-    else 
-    {
-        // Month or year rollover occurred, adjust to the first or last day of the month
-        if (delta > 0) 
-        {
-            // Moving forward, set to the first day of the next month
-            currentDate = new Date(newDate.getFullYear(), newDate.getMonth(), 1);
-        } 
-        else 
-        {
-            // Moving backward, set to the last day of the previous month
-            currentDate = new Date(newDate.getFullYear(), newDate.getMonth() + 1, 0);
-        }
-    }
-    renderCalendar(currentDate);
-}
-
