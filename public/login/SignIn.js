@@ -9,7 +9,6 @@ let users = JSON.parse(localStorage.getItem('users')) || {}; //stored locally (u
 
 window.addEventListener('load', clearFields); //clear fields on load or reload
 
-
 //sets the action, whether sign up or sign in, based on which button is clicked
 function setAction(action)
 {

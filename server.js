@@ -282,3 +282,9 @@ wss.on('connection', function (ws, request) {
 server.listen(8080, function () {
     console.log('Listening on http://localhost:8080');
 });
+
+app.get('/', (req, res) => 
+{
+    res.sendFile('calendar.html', { root: 'public' });
+  });
+
