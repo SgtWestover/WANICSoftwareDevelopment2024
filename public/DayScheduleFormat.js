@@ -141,15 +141,18 @@ function convertToTime(num)
 {
     let ampm = "AM";
     let hour = Math.trunc(num);
-    if (hour > 12) 
-    {
-        hour -= 12;
-        ampm = "PM";
-    }
+    
 
     if (hour === 12)
     {
         ampm = "PM"
+    }
+    
+    if (hour > 12) 
+    {
+        hour -= 12;
+        ampm = "PM";
+        if (hour === 12) ampm = "AM";
     }
 
     if (hour === 0)

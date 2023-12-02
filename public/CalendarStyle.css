@@ -16,6 +16,7 @@ body
 
 header 
 {
+    position: absolute;
     background-color: #333;
     color: #fff;
     text-align: center;
