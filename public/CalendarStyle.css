@@ -121,7 +121,7 @@ td
   color: #fff;
 }
 
-#prev-month:hover, #next-month:hover, #prev-day:hover, #next-day:hover 
+#prev-month:hover, #next-month:hover
 {
   background-color: #4CAF50;
 }
@@ -264,7 +264,33 @@ td
     padding: 1px 16px;
     height: 750px
   }
+
+  .nav-button
+  {
+    position: absolute;
+    top: 278.8px;
+    transition: all 200ms;
+    font-size: 50px;
+    font-weight: bold;
+    text-decoration: none;
+    color: #333;
+    cursor: pointer;
+  }
+
+  .nav-button:hover {
+    color: #04AA6D;
+}
   
+  #prev-day
+  {
+    left: 30px;
+  }
+
+  #next-day
+  {
+    right: 30px;
+  }
+
   @media screen and (max-width: 700px)
   {
     .box
