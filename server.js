@@ -1,7 +1,7 @@
 const session = require('express-session');
 const express = require('express');
 const http = require('http');
-//const uuid = require('uuid');
+const uuid = require('uuid');
 
 const bcrypt = require("bcrypt")
 
@@ -13,6 +13,8 @@ function onSocketError(err) {
 
 const app = express();
 const map = new Map();
+
+const users = new Map();
 
 //mongodb
 const { MongoClient } = require("mongodb");
@@ -33,20 +35,22 @@ const sessionParser = session({
 });
 
 //
-// Serve static files from the 'public' folder.
+// Don't serve static files from the 'public' folder.
 //
-app.use(express.static('public'));
+
+const cookieParser = require("cookie-parser");
 app.use(sessionParser);
 app.use(express.json())
+app.use(cookieParser())
 
-app.post('/login', async function (req, res) {
+const router = express.Router()
+
+router.post('/login', async (req, res, next) => {
     //
     // "Log in" user and set userId to session.
     //
-    //const id = uuid.v4();
-
-    console.log(req.body.username + " " + req.body.password);
-    //req.session.userId = id;
+    const id = uuid.v4();
+    req.session.userId = id;
 
     const user = await findUser(req.body.username, req.body.password);
 
@@ -60,18 +64,20 @@ app.post('/login', async function (req, res) {
     }
     else
     {
-        res.send({ result: 'OK', message: "OK" });
+        users.set(id, user.username);
+        res.status(201)./*cookie('session_id', id, {
+            expires: new Date(Date.now() + 8 * 3600000) // cookie will be removed after 8 hours
+        }).*/redirect('/calendar')
+        //res.send({ result: 'OK', message: "OK" });
         return;
     }
-});
+})
 
-app.post('/signup', async function (req, res) {
+router.post('/signup', async (req, res, next) => {
     //
     // "Log in" user and set userId to session.
     //
     //const id = uuid.v4();
-
-    console.log(req.body.username + " " + req.body.password);
     //req.session.userId = id;
     if (await findUser(req.body.username, req.body.password) == null)
     {
@@ -84,7 +90,7 @@ app.post('/signup', async function (req, res) {
 
         if (user == null)
         {
-            console.log("account " + req.body.username + " does not exist");
+
         }
         else
         {
@@ -97,16 +103,40 @@ app.post('/signup', async function (req, res) {
 
 });
 
-app.post('/deleteaccount', async function (req, res) {
-    //
-    // "Log in" user and set userId to session.
-    //
-    //const id = uuid.v4();
+const path = require('path')
 
-    console.log("deleting " + req.body.username + " " + req.body.password);
+const options = {root: path.join(__dirname, 'public')}
 
-    deleteUser(req.body.username, req.body.password)
-});
+router.use('/', (req, res, next) => {
+    //console.log(req.cookies.session_id)
+
+    /*if(req.cookies.session_id != null && users.get(req.cookies.session_id) != null && req.session.userId == null)
+    {
+        req.session.userId = req.cookies.userId;
+    }*/
+
+    if(users.get(req.session.userId) == null && !req.url.startsWith("/login")) //if user is not logged in and not on login page redirect to login page
+    {
+        res.redirect('/login')
+        //next()
+    }
+    else
+    {
+        next()
+    }
+})
+
+router.use('/login/', (req, res, next) => {
+    res.sendFile(req.url, {root: path.join(__dirname, 'public/login')})
+})
+
+router.use('/calendar', (req, res, next) => {
+    if (users.get(req.session.userId) != null)
+    {
+        console.log("sending calendar page to " + users.get(req.session.userId))
+        res.sendFile(req.url, {root: path.join(__dirname, 'public/calendar')})
+    }
+})
 
 async function findUser(username, password)
 {
@@ -148,8 +178,6 @@ async function addUser(username, password)
 
     const account = await userlist.insertOne(user);
 
-    console.log(account.insertedId);
-
     return account;
 }
 
@@ -158,11 +186,9 @@ async function deleteUser(username, password)
     const calendar = dbclient.db("calendarApp");
     const userlist = calendar.collection("users");
 
-    const user = {username: username, password: password};
+    const user = {username: username};
 
-    const account = await userlist.deleteOne(user);
-
-    console.log(account.insertedId);
+    await userlist.deleteOne(user);
 
     return account;
 }
@@ -177,6 +203,12 @@ app.delete('/logout', function (request, response) {
         response.send({ result: 'OK', message: 'Session destroyed' });
     });
 });
+
+
+
+
+app.use('/', router);
+//app.use(express.static('public'));
 
 //
 // Create an HTTP server.
@@ -228,8 +260,6 @@ wss.on('connection', function (ws, request) {
         map.delete(userId);
     });
 });
-
-
 
 //
 // Start the server.
