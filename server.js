@@ -64,10 +64,9 @@ router.post('/login', async (req, res, next) => {
     }
     else
     {
+        console.log("logging in " + user.username)
         users.set(id, user.username);
-        res.status(201)./*cookie('session_id', id, {
-            expires: new Date(Date.now() + 8 * 3600000) // cookie will be removed after 8 hours
-        }).*/redirect('/calendar')
+        res.send({ result: 'OK', message: "OK" });
         //res.send({ result: 'OK', message: "OK" });
         return;
     }
@@ -103,9 +102,30 @@ router.post('/signup', async (req, res, next) => {
 
 });
 
+router.post('/logout', async (req, res, next) => {
+    if (users.get(req.session.userId) != null)
+    {
+        console.log("logging out " + users.get(req.session.userId))
+        users.delete(req.session.userId);
+        req.session.userId = null;
+        res.send({ result: 'OK', message: "OK" });
+    }
+})
+
 const path = require('path')
 
 const options = {root: path.join(__dirname, 'public')}
+
+router.use('/calendar', (req, res, next) => {
+    if (users.get(req.session.userId) != null)
+    {
+        res.sendFile(req.url, {root: path.join(__dirname, 'public/calendar')})
+    }
+    else
+    {
+        next()
+    }
+})
 
 router.use('/', (req, res, next) => {
     //console.log(req.cookies.session_id)
@@ -118,7 +138,10 @@ router.use('/', (req, res, next) => {
     if(users.get(req.session.userId) == null && !req.url.startsWith("/login")) //if user is not logged in and not on login page redirect to login page
     {
         res.redirect('/login')
-        //next()
+    }
+    else if (users.get(req.session.userId) != null)
+    {
+        res.redirect('/calendar')
     }
     else
     {
@@ -128,14 +151,6 @@ router.use('/', (req, res, next) => {
 
 router.use('/login/', (req, res, next) => {
     res.sendFile(req.url, {root: path.join(__dirname, 'public/login')})
-})
-
-router.use('/calendar', (req, res, next) => {
-    if (users.get(req.session.userId) != null)
-    {
-        console.log("sending calendar page to " + users.get(req.session.userId))
-        res.sendFile(req.url, {root: path.join(__dirname, 'public/calendar')})
-    }
 })
 
 async function findUser(username, password)
