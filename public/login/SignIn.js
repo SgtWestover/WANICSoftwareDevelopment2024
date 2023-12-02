@@ -88,17 +88,17 @@ function signIn()
         }
         else if (message.message == "OK")
         {
-            window.location.href = '/calendar.html';
+            window.location.href = '/index.html';
         }
     })
     /*users = JSON.parse(localStorage.getItem('users')) || {};
     if (users[username])
     {
-        //if successful, go to calendar.html, where the actual calendar is
+        //if successful, go to index.html, where the actual calendar is
         if (users[username] === password)
         {
             clearFields(); //clear fields for security
-            window.location.href = 'calendar.html';
+            window.location.href = 'index.html';
         }
         //otherwise, if incorrect, alert and clear
         else
