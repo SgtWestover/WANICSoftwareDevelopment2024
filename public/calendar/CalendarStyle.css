@@ -87,6 +87,7 @@ td
   user-select: none;
   transition: color 250ms ease-in-out;
   color: white;
+  cursor: pointer;
 }
 
 #prev-month
