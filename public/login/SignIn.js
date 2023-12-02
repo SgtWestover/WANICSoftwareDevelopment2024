@@ -88,7 +88,7 @@ function signIn()
         }
         else if (message.message == "OK")
         {
-            window.location.href = '/index.html';
+            window.location.href = '/calendar';
         }
     })
     /*users = JSON.parse(localStorage.getItem('users')) || {};
@@ -166,11 +166,8 @@ return;
     }
 }
 
-function logout()
-{
-    // Redirect to the login/signup page
-    window.location.href = 'index.html';
-}
+
+
 document.addEventListener('DOMContentLoaded', function()
 {
     // Check if authForm exists before attaching event listener
