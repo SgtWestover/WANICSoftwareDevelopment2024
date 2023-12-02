@@ -35,9 +35,6 @@ let endTime = 24;
 let dayContainer;
 
 
-
-
-
 //Generates the HTML elements for the schedule menu
 function generateSchedule() 
 {
@@ -215,6 +212,13 @@ function navigateDay(delta)
     let newDate = new Date(currentPopupDate);
     newDate.setDate(currentPopupDate.getDate() + delta);
 
+    // Check if the month has changed
+    if (newDate.getMonth() !== currentPopupDate.getMonth()) 
+    {
+        // Update currentDate to the new date and re-render the calendar
+        renderCalendar(newDate);
+    }
+
     let today = new Date();
     today.setHours(0, 0, 0, 0); // Reset time to midnight for accurate comparison
     let isToday = newDate.toDateString() === today.toDateString();
@@ -224,6 +228,5 @@ function navigateDay(delta)
         date: newDate,
         isToday: isToday
     };
-
     updatePopupHeader(eventDetail);
 }
