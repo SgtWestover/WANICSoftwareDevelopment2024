@@ -43,6 +43,7 @@ function clearFields()
 function isValidUsername(username)
 {
     const usernameRegex = /^[A-Za-z\d_-]{4,}$/; //wizardry
+    console.log(passwordRegex.test(password));
     return usernameRegex.test(username);
 }
 
@@ -55,6 +56,7 @@ function isValidPassword(password, username)
     }
     // Regex to check for at least 8 characters, 1 uppercase, 1 lowercase, 1 number, and 1 special character
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[ -\/:-@\[-`\{-~])[A-Za-z\d -\/:-@\[-`\{-~]{8,}$/;
+    console.log(passwordRegex.test(password));
     return passwordRegex.test(password);
 }
 
