@@ -62,19 +62,47 @@ td
 {
     background-color: #181a1b; 
     color: #fff;
-    
+    transition: background-color 50ms ease-in-out;
 }
+
 .calendar-cell:hover 
 {
   background-color: rgb(255, 0, 0);
-  cursor: pointer; 
+  cursor: pointer;
 }
+
+
 .today 
 {
     background-color: #4CAF50;
     color: #fff;
 }
 
+#prev-month, #next-month
+{
+  position: fixed;
+  font-size: 40px;
+  font-weight: bolder;
+  top: 35px;
+  user-select: none;
+  transition: color 250ms ease-in-out;
+  color: white;
+}
+
+#prev-month
+{
+  left: calc(50% - 170px);
+}
+
+#next-month
+{
+  left: calc(50% + 170px);
+}
+
+#prev-month:hover, #next-month:hover
+{
+  color: #4CAF50;
+}
 
 /* SideBar ----------------------------------------- */
 
@@ -122,10 +150,7 @@ td
   color: #fff;
 }
 
-#prev-month:hover, #next-month:hover
-{
-  background-color: #4CAF50;
-}
+
 
   /* Active/current link */
   .sidebar a.active 

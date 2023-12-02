@@ -88,7 +88,7 @@ function signIn()
         }
         else if (message.message == "OK")
         {
-            window.location.href = '/index.html';
+            window.location.href = '/calendar';
         }
     })
     /*users = JSON.parse(localStorage.getItem('users')) || {};
@@ -121,21 +121,28 @@ function signUp()
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
 
-    if(isValidUsername(username), isValidPassword(username,))
+    if(isValidUsername(username), isValidPassword(username, password))
+    {
+        console.log("login " + username + " " + password)
+        var data = new FormData();
+        var json = JSON.stringify({username: username, password: password});
+        let response = fetch('/signup', { method: 'POST', credentials: 'same-origin', headers:{
+                'Content-Type': 'application/json'
+            }, body: json})
+        response.then(function (response) {
+            return response.ok
+                ? response.json().then((data))
+                : Promise.reject(new Error('Unexpected response'));
+        }).then(function (message) {
+            document.getElementById("status").textContent = "Account created"
+        })
+    }
+    else
+    {
+        document.getElementById("status").textContent = "Kaelin does not approve of your username and/or password";
+    }
 
-    console.log("login " + username + " " + password)
-    var data = new FormData();
-    var json = JSON.stringify({username: username, password: password});
-    let response = fetch('/signup', { method: 'POST', credentials: 'same-origin', headers:{
-            'Content-Type': 'application/json'
-        }, body: json})
-    response.then(function (response) {
-        return response.ok
-            ? response.json().then((data))
-            : Promise.reject(new Error('Unexpected response'));
-    }).then(function (message) {
-        console.log(message);
-    })
+
 return;
 
     users = JSON.parse(localStorage.getItem('users')) || {}; //get the saved list from local storage
@@ -166,11 +173,8 @@ return;
     }
 }
 
-function logout()
-{
-    // Redirect to the login/signup page
-    window.location.href = 'index.html';
-}
+
+
 document.addEventListener('DOMContentLoaded', function()
 {
     // Check if authForm exists before attaching event listener

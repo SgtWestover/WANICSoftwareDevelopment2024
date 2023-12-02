@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendar</title>
-    <link rel="stylesheet" href="CalendarStyle.css">
+    <link rel="stylesheet" href="calendar/CalendarStyle.css">
 </head>
 <body>
 
@@ -21,11 +21,25 @@
   </div>
 
     <div class="button-container">
-        <button id="prev-month">Previous Month</button>
-        <button id="next-month">Next Month</button>
+        <a id="prev-month">&lt;</a>
+        <a id="next-month">&gt;</a>
     </div>
 
-    <button id="logout" style="position: absolute; top: 10px; right: 10px; z-index: 9;">Logout</button>
+    <button id="logout" style="position: absolute; top: 10px; right: 10px; z-index: 9;" onclick="logout()">Logout</button>
+
+    <script type="text/javascript">
+        function logout()
+        {
+            let response = fetch('/logout', { method: 'POST', credentials: 'same-origin', headers:{'Content-Type': 'application/json'}})
+            response.then(function (response) {
+                return response.ok
+                    ? response.json().then()
+                    : Promise.reject(new Error('Unexpected response'));
+            }).then(function (message) {
+                window.location.href = "/login"
+            })
+        }
+    </script>
 
     <!-- Day Popup box -->
     <div id="popup1" class="overlay">
@@ -38,7 +52,7 @@
                 <div id= "scheduleBody" class="schedule-body"> </div>
                 <div id="lineTimeText" class="lineTimeText"></div>
                 <div id="line" class="line"></div>
-                
+
             </div>
         </div>
     </div>
@@ -62,8 +76,8 @@
         </tbody>
     </table>
   </div>
-    <script type='text/javascript' language='javascript' src='CalendarFormat.js'> </script>
-    <script type='text/javascript' language='javascript' src='SignIn.js'> </script>
-    <script type='text/javascript' src='DayScheduleFormat.js'></script> 
+    <script type='text/javascript' language='javascript' src='calendar/CalendarFormat.js'> </script>
+    <script type='text/javascript' language='javascript' src='login/SignIn.js'> </script>
+    <script type='text/javascript' src='calendar/DayScheduleFormat.js'></script>
 </body>
 </html>
