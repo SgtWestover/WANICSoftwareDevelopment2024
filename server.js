@@ -115,9 +115,9 @@ router.post('/logout', async (req, res, next) => {
 router.post('/deleteaccount/', async (req, res, next) => {
     if (users.get(req.session.userId) != null) {
 
-        if (findUser(users.get(req.session.userId), req.body.password) != null)
+        if ((await findUser(users.get(req.session.userId), req.body.password)) != null)
         {
-            console.log("logging out " + users.get(req.session.userId))
+            console.log("deleting " + users.get(req.session.userId))
 
             await deleteUser(users.get(req.session.userId));
             users.delete(req.session.userId);
