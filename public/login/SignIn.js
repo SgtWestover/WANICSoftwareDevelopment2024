@@ -148,32 +148,32 @@ function signUp()
 
 return;
 
-    users = JSON.parse(localStorage.getItem('users')) || {}; //get the saved list from local storage
-    //if username is not valid, alert
-    if (!isValidUsername(username))
-    {
-        alert("Username must be at least 4 characters long and can only contain letters, numbers, underscores, and dashes.");
-        return;
-    }
-    //if password is not valid, alert
-    if (!isValidPassword(password, username))
-    {
-        alert("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character. It cannot match your username");
-        return;
-    }
-    //if the username is already occupied, alert
-    if (users[username])
-    {
-        alert("Username already exists!");
-    }
-    //otherwise, sign up successfully
-    else
-    {
-        users[username] = password;
-        localStorage.setItem('users', JSON.stringify(users));
-        alert("Sign up successful!");
-        clearFields(); // Clear fields after successful sign-up
-    }
+    // users = JSON.parse(localStorage.getItem('users')) || {}; //get the saved list from local storage
+    // //if username is not valid, alert
+    // if (!isValidUsername(username))
+    // {
+    //     alert("Username must be at least 4 characters long and can only contain letters, numbers, underscores, and dashes.");
+    //     return;
+    // }
+    // //if password is not valid, alert
+    // if (!isValidPassword(password, username))
+    // {
+    //     alert("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character. It cannot match your username");
+    //     return;
+    // }
+    // //if the username is already occupied, alert
+    // if (users[username])
+    // {
+    //     alert("Username already exists!");
+    // }
+    // //otherwise, sign up successfully
+    // else
+    // {
+    //     users[username] = password;
+    //     localStorage.setItem('users', JSON.stringify(users));
+    //     alert("Sign up successful!");
+    //     clearFields(); // Clear fields after successful sign-up
+    // }
 }
 
 

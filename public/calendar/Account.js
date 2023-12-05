@@ -10,12 +10,41 @@ function logout()
     })
 }
 
-function deleteAccount()
+function deleteAccount() 
 {
-    const password = prompt("Please enter your password to delete your account");
+    showModal();
+}
 
+function showModal() 
+{
+    var modal = document.getElementById("passwordModal");
+    var span = document.getElementsByClassName("close")[0];
 
+    modal.style.display = "block";
 
+    span.onclick = function() 
+    {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function(event) 
+    {
+        if (event.target === modal) 
+        {
+            modal.style.display = "none";
+        }
+    }
+
+    document.getElementById("submitPassword").onclick = function() 
+    {
+        const password = document.getElementById("passwordInput").value;
+        modal.style.display = "none";
+        confirmPassword(password);
+    }
+}
+
+function confirmPassword(password) 
+{
     if (window.confirm("Are you sure you want to delete your account?"))
     {
         let response = fetch('/deleteaccount', { method: 'POST', credentials: 'same-origin', headers:{'Content-Type': 'application/json'}, body: JSON.stringify({password: password})})
@@ -35,3 +64,12 @@ function deleteAccount()
         })
     }
 }
+
+// Toggle Password Visibility
+document.getElementById("togglePassword").addEventListener('click', function (e) 
+{
+    var passwordInput = document.getElementById("passwordInput");
+    var type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+    this.classList.toggle('fa-eye-slash');
+});

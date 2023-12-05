@@ -27,6 +27,16 @@
 
     <button id="logout" style="position: fixed; top: 10px; right: 10px; z-index: 9;" onclick="logout()">Logout</button>
     <button id ="deleteaccount" style = "position:fixed; top: 40px; right: 10px; z-index: 9;" onclick="deleteAccount()">Delete Account</button>
+        <!-- Custom Password Modal -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p>Please enter your password to delete your account</p>
+            <input type="password" id="passwordInput" class="password-input">
+            <i id="togglePassword" class="fa fa-eye"></i>
+            <button id="submitPassword">Submit</button>
+        </div>
+    </div>
 
 
 
@@ -69,5 +79,6 @@
     <script type='text/javascript' language='javascript' src='login/SignIn.js'> </script>
     <script type='text/javascript' src='calendar/DayScheduleFormat.js'></script>
     <script type="text/javascript" src="calendar/Account.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </body>
 </html>
