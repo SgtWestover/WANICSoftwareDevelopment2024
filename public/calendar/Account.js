@@ -1,8 +1,8 @@
 // Function to handle logout
 function logout() {
     let response = fetch('/logout', {
-        method: 'POST', 
-        credentials: 'same-origin', 
+        method: 'POST',
+        credentials: 'same-origin',
         headers: {'Content-Type': 'application/json'}
     });
     response.then(function (response) {
@@ -26,19 +26,19 @@ function showModal() {
 
     modal.style.display = "block";
 
-    span.onclick = function() {
+    span.onclick = function () {
         modal.style.display = "none";
     };
 
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         if (event.target === modal) {
             modal.style.display = "none";
         }
     };
 
-    document.getElementById("submitPassword").onclick = function() {
+    document.getElementById("submitPassword").onclick = function () {
         const password = document.getElementById("passwordInput").value;
-        validatePassword(password, function(isValid) {
+        validatePassword(password, function (isValid) {
             if (isValid) {
                 modal.style.display = "none";
                 confirmPassword();
@@ -50,26 +50,43 @@ function showModal() {
 }
 
 // Function to validate password
-function validatePassword(password, callback) 
-{
+function validatePassword(password, callback) {
     // Implement server request to validate password here
     // For example, using fetch to a server endpoint that validates the password
     // ...
 
+
     // This is a placeholder for the response from the server
     // Replace with actual server response logic
     let isValid = true; // Assume password is valid for this example
+    let response = fetch('/checkpassword', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({password: password})
+    });
+    response.then(function (response) {
+        return response.ok
+            ? response.json().then()
+            : Promise.reject(new Error('Unexpected response'));
+    }).then(function (message) {
+        if (message.message == "OK") {
+            isValid = true;
+        } else {
+            isValid = false;
+        }
+    });
     callback(isValid);
 }
 
 // Function to show confirmation modal for account deletion
 function confirmPassword() {
     showModalConfirmation();
-    document.getElementById("confirmDelete").onclick = function() {
+    document.getElementById("confirmDelete").onclick = function () {
         closeModalConfirmation();
         deleteAccountConfirmed();
     };
-    document.getElementById("cancelDelete").onclick = function() {
+    document.getElementById("cancelDelete").onclick = function () {
         closeModalConfirmation();
     };
 }
@@ -80,11 +97,11 @@ function showModalConfirmation() {
     modal.style.display = "block";
 
     var span = modal.getElementsByClassName("close")[0];
-    span.onclick = function() {
+    span.onclick = function () {
         modal.style.display = "none";
     };
 
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         if (event.target === modal) {
             modal.style.display = "none";
         }
@@ -100,8 +117,8 @@ function closeModalConfirmation() {
 // Function handling the actual account deletion process
 function deleteAccountConfirmed() {
     let response = fetch('/deleteaccount', {
-        method: 'POST', 
-        credentials: 'same-origin', 
+        method: 'POST',
+        credentials: 'same-origin',
         headers: {'Content-Type': 'application/json'}
         // No need to send password again as it's already validated
     });

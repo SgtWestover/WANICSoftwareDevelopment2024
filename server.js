@@ -131,6 +131,16 @@ router.post('/deleteaccount/', async (req, res, next) => {
     res.send({result: 'OK', message: "NOT_OK"});
 });
 
+router.post('/checkpassword/', async (req, res, next) => {
+    if (users.get(req.session.userId) != null) {
+
+        if ((await findUser(users.get(req.session.userId), req.body.password)) != null) {
+            res.send({result: 'OK', message: "OK"});
+        }
+    }
+    res.send({result: 'OK', message: "NOT_OK"});
+})
+
 const path = require('path')
 
 const options = {root: path.join(__dirname, 'public')}
