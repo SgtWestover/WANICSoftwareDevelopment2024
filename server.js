@@ -103,14 +103,33 @@ router.post('/signup', async (req, res, next) => {
 });
 
 router.post('/logout', async (req, res, next) => {
-    if (users.get(req.session.userId) != null)
-    {
+    if (users.get(req.session.userId) != null) {
+
         console.log("logging out " + users.get(req.session.userId))
         users.delete(req.session.userId);
         req.session.userId = null;
         res.send({ result: 'OK', message: "OK" });
     }
 })
+
+router.post('/deleteaccount/', async (req, res, next) => {
+    if (users.get(req.session.userId) != null) {
+
+        if (findUser(users.get(req.session.userId), req.body.password) != null)
+        {
+            console.log("logging out " + users.get(req.session.userId))
+
+            await deleteUser(users.get(req.session.userId));
+            users.delete(req.session.userId);
+
+            req.session.userId = null;
+            res.send({result: 'OK', message: "OK"});
+            return;
+        }
+
+    }
+    res.send({result: 'OK', message: "NOT_OK"});
+});
 
 const path = require('path')
 
@@ -196,7 +215,7 @@ async function addUser(username, password)
     return account;
 }
 
-async function deleteUser(username, password)
+async function deleteUser(username)
 {
     const calendar = dbclient.db("calendarApp");
     const userlist = calendar.collection("users");
@@ -204,8 +223,6 @@ async function deleteUser(username, password)
     const user = {username: username};
 
     await userlist.deleteOne(user);
-
-    return account;
 }
 
 app.delete('/logout', function (request, response) {
@@ -283,7 +300,7 @@ server.listen(8080, function () {
     console.log('Listening on http://localhost:8080');
 });
 
-app.get('/', (req, res) => 
+app.get('/', (req, res) =>
 {
     res.sendFile('calendar.html', { root: 'public' });
   });

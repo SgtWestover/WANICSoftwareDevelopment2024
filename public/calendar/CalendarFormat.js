@@ -8,11 +8,11 @@ Desc: Handles the main calendar page and formatting
 let currentDate = new Date();
 
 // When the DOM content is fully loaded, initialize the calendar
-document.addEventListener('DOMContentLoaded', function () 
+document.addEventListener('DOMContentLoaded', function ()
 {
-    if (window.location.hash === '#popup1') 
+    if (window.location.hash === '#popup1')
     {
-        window.location.href = 'calendar.html';
+        window.location.href = 'index.html';
         return; // Exit the function to prevent further execution
     }
     addNavigationEventListeners();
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function ()
  * Renders the calendar for a given date.
  * @param {Date} date - The date for which to render the calendar.
  */
-function renderCalendar(date) 
+function renderCalendar(date)
 {
     // Clear previous calendar content
     let calendarBody = document.getElementById('calendar-body');
@@ -42,7 +42,7 @@ function renderCalendar(date)
 
     // Initialize the day counter
     let dayOfMonth = 1;
-    
+
     // Set rows based on starting day, and total number of days
     let numRows = 5;
 
@@ -50,26 +50,26 @@ function renderCalendar(date)
     let today = new Date(); // Today's date
     today.setHours(0, 0, 0, 0); // Reset time to midnight for accurate comparison
     // Create rows for each week
-    for (let i = 0; i < numRows; i++) 
+    for (let i = 0; i < numRows; i++)
     {
         let row = document.createElement('tr');
 
         // Create cells for each day of the week
-        for (let j = 0; j < 7; j++) 
+        for (let j = 0; j < 7; j++)
         {
             let cell = document.createElement('td');
 
             // Use an IIFE to capture the current state of 'dayOfMonth'
-            (function(currentDay) 
+            (function(currentDay)
             {
                 // Fill cells with the day number or leave them blank
-                if ((i === 0 && j < startingDay) || currentDay > monthDays) 
+                if ((i === 0 && j < startingDay) || currentDay > monthDays)
                 {
                     cell.innerText = '';
-                } 
-                else 
+                }
+                else
                 {
-                    cell.classList.add('calendar-cell'); 
+                    cell.classList.add('calendar-cell');
                     cell.innerText = currentDay;
                     cell.style.cursor = 'pointer';
 
@@ -89,18 +89,18 @@ function renderCalendar(date)
 
                     // Highlight the current day
                     let cellDate = new Date(date.getFullYear(), date.getMonth(), currentDay);
-                    if (cellDate.getTime() === today.getTime()) 
+                    if (cellDate.getTime() === today.getTime())
                     {
                         cell.classList.add('selected-day');
                     }
                 }
             })(dayOfMonth); // Pass 'dayOfMonth' to the IIFE
 
-            if ((i === 0 && j < startingDay) || dayOfMonth > monthDays) 
+            if ((i === 0 && j < startingDay) || dayOfMonth > monthDays)
             {
                 // Skip incrementing 'dayOfMonth' if the cell is empty
-            } 
-            else 
+            }
+            else
             {
                 // Increment the day of the month
                 dayOfMonth++;
@@ -115,39 +115,39 @@ function renderCalendar(date)
     }
 }
 
-document.querySelector('.popup .close').addEventListener('click', function() 
+document.querySelector('.popup .close').addEventListener('click', function()
 {
     document.getElementById('popupHeader').innerHTML = '';
 });
 
-function addNavigationEventListeners() 
+function addNavigationEventListeners()
 {
     // Navigate to the previous month
-    document.getElementById('prev-month').addEventListener('click', function() 
+    document.getElementById('prev-month').addEventListener('click', function()
     {
         changeMonth(-1);
     });
 
     // Navigate to the next month
-    document.getElementById('next-month').addEventListener('click', function() 
+    document.getElementById('next-month').addEventListener('click', function()
     {
         changeMonth(1);
     });
 }
 
 //changes the month based on a delta int
-function changeMonth(delta) 
+function changeMonth(delta)
 {
     // Adjust the month
     let newMonth = currentDate.getMonth() + delta;
     let newYear = currentDate.getFullYear();
     //if the new month exceeds the months of the current year, switch to the new year,
-    if (newMonth > 11) 
+    if (newMonth > 11)
     {
         newMonth = 0;
         newYear++;
-    } 
-    else if (newMonth < 0) 
+    }
+    else if (newMonth < 0)
     {
         newMonth = 11;
         newYear--;
@@ -155,10 +155,10 @@ function changeMonth(delta)
 
     // Get the last day of the new month
     let lastDayNewMonth = new Date(newYear, newMonth + 1, 0).getDate();
-    
+
     // If the current day is greater than the last day of the new month, adjust the day
     let newDay = currentDate.getDate();
-    if (newDay > lastDayNewMonth) 
+    if (newDay > lastDayNewMonth)
     {
         newDay = lastDayNewMonth; // Set to the last day of the new month
     }

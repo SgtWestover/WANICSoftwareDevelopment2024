@@ -124,7 +124,7 @@ function signUp()
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
 
-    if(isValidUsername(username), isValidPassword(username, password))
+    if(isValidUsername(username), isValidPassword(password, username))
     {
         console.log("login " + username + " " + password)
         var data = new FormData();

@@ -26,21 +26,9 @@
     </div>
 
     <button id="logout" style="position: fixed; top: 10px; right: 10px; z-index: 9;" onclick="logout()">Logout</button>
-    <button id ="deleteaccount" style = "position:fixed; top: 40px; right: 10px; z-index: 9;">Delete Account</button>
+    <button id ="deleteaccount" style = "position:fixed; top: 40px; right: 10px; z-index: 9;" onclick="deleteAccount()">Delete Account</button>
 
-    <script type="text/javascript">
-        function logout()
-        {
-            let response = fetch('/logout', { method: 'POST', credentials: 'same-origin', headers:{'Content-Type': 'application/json'}})
-            response.then(function (response) {
-                return response.ok
-                    ? response.json().then()
-                    : Promise.reject(new Error('Unexpected response'));
-            }).then(function (message) {
-                window.location.href = "/login"
-            })
-        }
-    </script>
+
 
     <!-- Day Popup box -->
     <div id="popup1" class="overlay">
@@ -80,5 +68,6 @@
     <script type='text/javascript' language='javascript' src='calendar/CalendarFormat.js'> </script>
     <script type='text/javascript' language='javascript' src='login/SignIn.js'> </script>
     <script type='text/javascript' src='calendar/DayScheduleFormat.js'></script>
+    <script type="text/javascript" src="calendar/Account.js"></script>
 </body>
 </html>
