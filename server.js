@@ -136,6 +136,7 @@ router.post('/checkpassword/', async (req, res, next) => {
 
         if ((await findUser(users.get(req.session.userId), req.body.password)) != null) {
             res.send({result: 'OK', message: "OK"});
+            return;
         }
     }
     res.send({result: 'OK', message: "NOT_OK"});
@@ -191,14 +192,20 @@ async function findUser(username, password)
 
     const account = await userlist.findOne(query);
 
-    if (account != null)
-    {
-        const result =  await bcrypt.compare(password, account.password);
+    if (account != null) {
+        try {
 
-        if (result)
+            const result = await bcrypt.compare(password, account.password);
+
+            if (result)
+            {
+                return account;
+            }
+        } catch (error)
         {
-            return account;
+            console.log("Idk what went wrong")
         }
+
     }
     else
     {
