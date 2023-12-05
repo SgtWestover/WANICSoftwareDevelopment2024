@@ -38,17 +38,36 @@ function showModal() {
 
     document.getElementById("submitPassword").onclick = function() {
         const password = document.getElementById("passwordInput").value;
-        modal.style.display = "none";
-        confirmPassword(password);
+        validatePassword(password, function(isValid) {
+            if (isValid) {
+                modal.style.display = "none";
+                confirmPassword();
+            } else {
+                alert("Your password is wrong");
+            }
+        });
     };
 }
 
+// Function to validate password
+function validatePassword(password, callback) 
+{
+    // Implement server request to validate password here
+    // For example, using fetch to a server endpoint that validates the password
+    // ...
+
+    // This is a placeholder for the response from the server
+    // Replace with actual server response logic
+    let isValid = true; // Assume password is valid for this example
+    callback(isValid);
+}
+
 // Function to show confirmation modal for account deletion
-function confirmPassword(password) {
+function confirmPassword() {
     showModalConfirmation();
     document.getElementById("confirmDelete").onclick = function() {
         closeModalConfirmation();
-        deleteAccountConfirmed(password);
+        deleteAccountConfirmed();
     };
     document.getElementById("cancelDelete").onclick = function() {
         closeModalConfirmation();
@@ -79,12 +98,12 @@ function closeModalConfirmation() {
 }
 
 // Function handling the actual account deletion process
-function deleteAccountConfirmed(password) {
+function deleteAccountConfirmed() {
     let response = fetch('/deleteaccount', {
         method: 'POST', 
         credentials: 'same-origin', 
-        headers: {'Content-Type': 'application/json'}, 
-        body: JSON.stringify({password: password})
+        headers: {'Content-Type': 'application/json'}
+        // No need to send password again as it's already validated
     });
     response.then(function (response) {
         return response.ok
@@ -94,7 +113,7 @@ function deleteAccountConfirmed(password) {
         if (message.message == "OK") {
             window.location.href = "/login";
         } else {
-            alert("Your password is wrong");
+            alert("An error occurred during account deletion");
         }
     });
 }
