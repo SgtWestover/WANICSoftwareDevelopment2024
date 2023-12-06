@@ -83,19 +83,15 @@ async function validatePassword(password) {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({password: password})
         });
-        console.log(response.status);
-        //test
-        // Handling non-OK responses
-        if (response.status === 200) 
-        {
-            let message = await response.json();
-            isValid = message.message == "OK";
-        } else if (response.status === 401) {
+
+        // Assuming the response is always 200 OK, but the message varies
+        let message = await response.json();
+
+        if (message.result === 'OK') {
+            isValid = message.message === "OK";
+        } else {
             // Handle the case where the password is incorrect
             console.log("Password is incorrect");
-        } else {
-            // Handle other types of responses
-            console.log("Unhandled response status: " + response.status);
         }
     } catch (error) {
         console.error('Error:', error);
@@ -103,6 +99,7 @@ async function validatePassword(password) {
     
     return isValid;
 }
+
 
 // Function to show confirmation modal for account deletion
 function confirmPassword() 
