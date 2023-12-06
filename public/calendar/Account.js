@@ -15,12 +15,14 @@ function logout() {
 }
 
 // Function to initiate account deletion process
-function deleteAccount() {
+function deleteAccount() 
+{
     showModal();
 }
 
 // Function to show modal for password confirmation
-async function showModal() {
+async function showModal() 
+{
     var modal = document.getElementById("passwordModal");
     var span = document.getElementsByClassName("close")[0];
     var passwordError = document.getElementById("passwordError"); // Element to display error message
@@ -30,14 +32,17 @@ async function showModal() {
     passwordError.textContent = ''; // Clear any previous error messages
 
     // Close the modal when the 'x' is clicked
-    span.onclick = function () {
+    span.onclick = function () 
+    {
         modal.style.display = "none";
         passwordError.textContent = ''; // Clear error message when modal is closed
     };
 
     // Close the modal if clicked outside of it
-    window.onclick = function (event) {
-        if (event.target === modal) {
+    window.onclick = function (event) 
+    {
+        if (event.target === modal) 
+        {
             modal.style.display = "none";
             passwordError.textContent = ''; // Clear error message when modal is closed
         }
@@ -67,27 +72,31 @@ async function showModal() {
 var pass;
 
 // Modified function to validate password
-async function validatePassword(password) 
-{
+async function validatePassword(password) {
     pass = password;
     let isValid = false;
 
     try {
-        let response = await fetch('/checkpassword', 
-        {
+        let response = await fetch('/checkpassword', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({password: password})
         });
-
-        if (response.ok) 
+        console.log(response.status);
+        // Handling non-OK responses
+        if (response.status === 200) 
         {
             let message = await response.json();
             isValid = message.message == "OK";
+        } else if (response.status === 401) {
+            // Handle the case where the password is incorrect
+            console.log("Password is incorrect");
+        } else {
+            // Handle other types of responses
+            console.log("Unhandled response status: " + response.status);
         }
-    } catch (error) 
-    {
+    } catch (error) {
         console.error('Error:', error);
     }
     
