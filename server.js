@@ -121,9 +121,9 @@ router.post('/deleteaccount/', async (req, res, next) => {
 
             await deleteUser(users.get(req.session.userId));
             users.delete(req.session.userId);
+            res.send({result: 'OK', message: "OK"});
 
             req.session.userId = null;
-            res.send({result: 'OK', message: "OK"});
             return;
         }
 
@@ -139,7 +139,10 @@ router.post('/checkpassword/', async (req, res, next) => {
             return;
         }
     }
-    res.send({result: 'OK', message: "NOT_OK"});
+    else
+    {
+        res.send({result: 'OK', message: "NOT_OK"});
+    }
 })
 
 const path = require('path')
@@ -193,6 +196,7 @@ async function findUser(username, password)
     const account = await userlist.findOne(query);
 
     if (account != null) {
+        console.log(username + " " + password + " " + account.password)
         try {
 
             const result = await bcrypt.compare(password, account.password);
