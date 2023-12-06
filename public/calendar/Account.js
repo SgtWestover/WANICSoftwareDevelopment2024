@@ -20,29 +20,37 @@ function deleteAccount() {
 }
 
 // Function to show modal for password confirmation
-function showModal() {
+function showModal() 
+{
     var modal = document.getElementById("passwordModal");
     var span = document.getElementsByClassName("close")[0];
 
     modal.style.display = "block";
 
-    span.onclick = function () {
+    span.onclick = function () 
+    {
         modal.style.display = "none";
     };
 
-    window.onclick = function (event) {
-        if (event.target === modal) {
+    window.onclick = function (event) 
+    {
+        if (event.target === modal) 
+        {
             modal.style.display = "none";
         }
     };
 
     document.getElementById("submitPassword").onclick = function () {
         const password = document.getElementById("passwordInput").value;
-        validatePassword(password, function (isValid) {
-            if (isValid) {
+        validatePassword(password, function (isValid) 
+        {
+            if (isValid) 
+            {
                 modal.style.display = "none";
                 confirmPassword();
-            } else {
+            }
+            else 
+            {
                 alert("Your password is wrong");
             }
         });
@@ -50,7 +58,8 @@ function showModal() {
 }
 
 // Function to validate password
-function validatePassword(password, callback) {
+function validatePassword(password, callback) 
+{
     // Implement server request to validate password here
     // For example, using fetch to a server endpoint that validates the password
     // ...
@@ -59,20 +68,26 @@ function validatePassword(password, callback) {
     // This is a placeholder for the response from the server
     // Replace with actual server response logic
     let isValid = true; // Assume password is valid for this example
-    let response = fetch('/checkpassword', {
+    let response = fetch('/checkpassword', 
+    {
         method: 'POST',
         credentials: 'same-origin',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({password: password})
     });
-    response.then(function (response) {
+    response.then(function (response) 
+    {
         return response.ok
             ? response.json().then()
             : Promise.reject(new Error('Unexpected response'));
-    }).then(function (message) {
-        if (message.message == "OK") {
+    }).then(function (message) 
+    {
+        if (message.message == "OK") 
+        {
             isValid = true;
-        } else {
+        } 
+        else 
+        {
             isValid = false;
         }
     });
