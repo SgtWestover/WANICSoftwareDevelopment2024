@@ -48,10 +48,15 @@ async function showModal() {
         const password = document.getElementById("passwordInput").value;
         passwordError.textContent = ''; // Clear error message before validation
         const isValid = await validatePassword(password);
-        if (isValid) {
+        if (isValid) 
+        {
             modal.style.display = "none";
+            console.log("correct password");
             confirmPassword(); // Proceed to confirmation if the password is correct
-        } else {
+        } 
+        else 
+        {
+            console.log("incorrect password");
             passwordError.textContent = "Your password is incorrect"; // Display error message if password is wrong
         }
     };
@@ -66,14 +71,16 @@ async function validatePassword(password)
     let isValid = false;
 
     try {
-        let response = await fetch('/checkpassword', {
+        let response = await fetch('/checkpassword', 
+        {
             method: 'POST',
             credentials: 'same-origin',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({password: password})
         });
 
-        if (response.ok) {
+        if (response.ok) 
+        {
             let message = await response.json();
             isValid = message.message == "OK";
         }
@@ -86,19 +93,23 @@ async function validatePassword(password)
 }
 
 // Function to show confirmation modal for account deletion
-function confirmPassword() {
+function confirmPassword() 
+{
     showModalConfirmation();
-    document.getElementById("confirmDelete").onclick = function () {
+    document.getElementById("confirmDelete").onclick = function () 
+    {
         closeModalConfirmation();
         deleteAccountConfirmed(pass);
     };
-    document.getElementById("cancelDelete").onclick = function () {
+    document.getElementById("cancelDelete").onclick = function () 
+    {
         closeModalConfirmation();
     };
 }
 
 // Function to display the custom confirmation modal
-function showModalConfirmation() {
+function showModalConfirmation() 
+{
     var modal = document.getElementById("confirmationModal");
     modal.style.display = "block";
 
