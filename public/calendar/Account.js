@@ -23,28 +23,36 @@ function deleteAccount() {
 async function showModal() {
     var modal = document.getElementById("passwordModal");
     var span = document.getElementsByClassName("close")[0];
+    var passwordError = document.getElementById("passwordError"); // Element to display error message
 
+    // Show the modal
     modal.style.display = "block";
+    passwordError.textContent = ''; // Clear any previous error messages
 
+    // Close the modal when the 'x' is clicked
     span.onclick = function () {
         modal.style.display = "none";
+        passwordError.textContent = ''; // Clear error message when modal is closed
     };
 
+    // Close the modal if clicked outside of it
     window.onclick = function (event) {
         if (event.target === modal) {
             modal.style.display = "none";
+            passwordError.textContent = ''; // Clear error message when modal is closed
         }
     };
 
+    // Handling the password submission
     document.getElementById("submitPassword").onclick = async function () {
         const password = document.getElementById("passwordInput").value;
-        // Validate password and then decide whether to show confirmation
+        passwordError.textContent = ''; // Clear error message before validation
         const isValid = await validatePassword(password);
         if (isValid) {
             modal.style.display = "none";
-            confirmPassword();
+            confirmPassword(); // Proceed to confirmation if the password is correct
         } else {
-            alert("Your password is wrong");
+            passwordError.textContent = "Your password is incorrect"; // Display error message if password is wrong
         }
     };
 }
@@ -69,7 +77,8 @@ async function validatePassword(password)
             let message = await response.json();
             isValid = message.message == "OK";
         }
-    } catch (error) {
+    } catch (error) 
+    {
         console.error('Error:', error);
     }
     
