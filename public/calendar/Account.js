@@ -84,6 +84,7 @@ async function validatePassword(password) {
             body: JSON.stringify({password: password})
         });
         console.log(response.status);
+        //test
         // Handling non-OK responses
         if (response.status === 200) 
         {
