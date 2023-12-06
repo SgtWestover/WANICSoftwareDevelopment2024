@@ -44,10 +44,12 @@ async function showModal() {
     };
 
     // Handling the password submission
-    document.getElementById("submitPassword").onclick = async function () {
+    document.getElementById("submitPassword").onclick = async function () 
+    {
         const password = document.getElementById("passwordInput").value;
         passwordError.textContent = ''; // Clear error message before validation
         const isValid = await validatePassword(password);
+        console.log("input validated");
         if (isValid) 
         {
             modal.style.display = "none";
