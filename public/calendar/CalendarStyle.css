@@ -14,7 +14,7 @@ body
     height: auto;
 }
 
-header 
+header
 {
     position: absolute;
     background-color: #333;
@@ -182,12 +182,13 @@ td
   top: 70px; /* Height of the header */
   left: 0;
   right: 0;
-  z-index: -10;
+  z-index: 10;
   margin: auto; /* Auto margins for horizontal centering */
   width: 100%; /* Set a specific width if necessary */
   text-align: center; /* Ensures content inside is centered */
   padding: 10px;
   background-color: #333; /* Optional: to match the header background */
+  opacity: 0%;
   /* Add more styling as needed */
 }
 
