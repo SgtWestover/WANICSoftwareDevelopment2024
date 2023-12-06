@@ -20,80 +20,60 @@ function deleteAccount() {
 }
 
 // Function to show modal for password confirmation
-function showModal() 
-{
+async function showModal() {
     var modal = document.getElementById("passwordModal");
     var span = document.getElementsByClassName("close")[0];
 
     modal.style.display = "block";
 
-    span.onclick = function () 
-    {
+    span.onclick = function () {
         modal.style.display = "none";
     };
 
-    window.onclick = function (event) 
-    {
-        if (event.target === modal) 
-        {
+    window.onclick = function (event) {
+        if (event.target === modal) {
             modal.style.display = "none";
         }
     };
 
-    document.getElementById("submitPassword").onclick = function () {
+    document.getElementById("submitPassword").onclick = async function () {
         const password = document.getElementById("passwordInput").value;
-        validatePassword(password, function (isValid) 
-        {
-            if (isValid) 
-            {
-                modal.style.display = "none";
-                confirmPassword();
-            }
-            else 
-            {
-                alert("Your password is wrong");
-            }
-        });
+        // Validate password and then decide whether to show confirmation
+        const isValid = await validatePassword(password);
+        if (isValid) {
+            modal.style.display = "none";
+            confirmPassword();
+        } else {
+            alert("Your password is wrong");
+        }
     };
 }
 
 var pass;
 
-// Function to validate password
-function validatePassword(password, callback) 
+// Modified function to validate password
+async function validatePassword(password) 
 {
-    // Implement server request to validate password here
-    // For example, using fetch to a server endpoint that validates the password
-    // ...
     pass = password;
+    let isValid = false;
 
-    // This is a placeholder for the response from the server
-    // Replace with actual server response logic
-    let isValid = true; // Assume password is valid for this example
-    let response = fetch('/checkpassword', 
-    {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({password: password})
-    });
-    response.then(function (response) 
-    {
-        return response.ok
-            ? response.json().then()
-            : Promise.reject(new Error('Unexpected response'));
-    }).then(function (message) 
-    {
-        if (message.message == "OK") 
-        {
-            isValid = true;
-        } 
-        else 
-        {
-            isValid = false;
+    try {
+        let response = await fetch('/checkpassword', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({password: password})
+        });
+
+        if (response.ok) {
+            let message = await response.json();
+            isValid = message.message == "OK";
         }
-    });
-    callback(isValid);
+    } catch (error) {
+        console.error('Error:', error);
+    }
+    
+    return isValid;
 }
 
 // Function to show confirmation modal for account deletion
