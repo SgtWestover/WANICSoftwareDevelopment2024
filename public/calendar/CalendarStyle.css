@@ -182,7 +182,7 @@ td
   top: 70px; /* Height of the header */
   left: 0;
   right: 0;
-  z-index: 10;
+  z-index: -10;
   margin: auto; /* Auto margins for horizontal centering */
   width: 100%; /* Set a specific width if necessary */
   text-align: center; /* Ensures content inside is centered */
