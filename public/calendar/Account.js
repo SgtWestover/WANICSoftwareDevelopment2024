@@ -49,12 +49,14 @@ function showModal() {
     };
 }
 
+var pass;
+
 // Function to validate password
 function validatePassword(password, callback) {
     // Implement server request to validate password here
     // For example, using fetch to a server endpoint that validates the password
     // ...
-
+    pass = password;
 
     // This is a placeholder for the response from the server
     // Replace with actual server response logic
@@ -84,7 +86,7 @@ function confirmPassword() {
     showModalConfirmation();
     document.getElementById("confirmDelete").onclick = function () {
         closeModalConfirmation();
-        deleteAccountConfirmed();
+        deleteAccountConfirmed(pass);
     };
     document.getElementById("cancelDelete").onclick = function () {
         closeModalConfirmation();
@@ -115,12 +117,12 @@ function closeModalConfirmation() {
 }
 
 // Function handling the actual account deletion process
-function deleteAccountConfirmed() {
+function deleteAccountConfirmed(password) {
     let response = fetch('/deleteaccount', {
         method: 'POST',
         credentials: 'same-origin',
-        headers: {'Content-Type': 'application/json'}
-        // No need to send password again as it's already validated
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({password: password})
     });
     response.then(function (response) {
         return response.ok
