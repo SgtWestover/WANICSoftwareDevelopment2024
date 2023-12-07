@@ -68,14 +68,39 @@ function signIn() {
     .catch(error => console.error('Error:', error));
 }
 
-function pull()
-{
+function pull() {
     fetch('/pull', {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' }
     })
+    .then(response => {
+        if (!response.ok) 
+        {
+            // This means the HTTP response status is not a success status (e.g., 200, 201, etc.)
+            throw new Error('Network response was not ok');
+        }
+        return response.json(); // Assuming the server response is in JSON format
+    })
+    .then(data => {
+        // Process the data received from the server
+        if (data.success) {
+            console.log('Successfully pulled: ', data.message);
+            // Here, you can implement additional actions for successful pull, like UI notifications
+        } else if (data.mergeError) {
+            console.warn('Merge error: ', data.message);
+            // Implement actions for merge error
+        } else {
+            console.warn('Pull failed: ', data.message);
+            // Implement actions for other types of failures
+        }
+    })
+    .catch(error => {
+        // This catches network errors and errors thrown from response processing
+        console.error('There was a problem with the fetch operation: ', error.message);
+    });
 }
+
 
 function restart()
 {
