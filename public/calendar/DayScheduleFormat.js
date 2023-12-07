@@ -189,7 +189,7 @@ function updatePopupHeader(eventDetail)
     {
         headerText += " (Today)";
     }
-
+    //test
     document.getElementById('popupHeader').innerText = headerText;
     document.getElementById('popupHeader').setAttribute('data-date', newDate.toISOString().split('T')[0]);
 }
