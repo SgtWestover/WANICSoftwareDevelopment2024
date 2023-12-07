@@ -55,7 +55,6 @@ async function showModal()
         passwordError.textContent = ''; // Clear error message before validation
         const isValid = await validatePassword(password);
         console.log("input validated");
-        console.log(isValid);
         if (isValid) 
         {
             modal.style.display = "none";
