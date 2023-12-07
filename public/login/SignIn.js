@@ -98,6 +98,7 @@ function pull()
         // This catches network errors and errors thrown from response processing
         console.error('There was a problem with the fetch operation: ', error.message);
     });
+    //test
 }
 
 
