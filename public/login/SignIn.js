@@ -5,12 +5,6 @@ Last Edit: 12/6/2023
 Desc: Handles log-ins
 */
 
-// Sets the action, whether sign up or sign in, based on which button is clicked
-function setAction(action)
-{
-    document.getElementById('action').value = action;
-}
-
 // Clears the password field
 function clearPassword()
 {

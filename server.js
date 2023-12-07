@@ -82,7 +82,7 @@ router.post('/signup', async (req, res, next) => {
     {
         const user = await addUser(req.body.username, req.body.password);
 
-        console.log("creating " + user.username + " " + req.body.username)
+        console.log("creating " + user.username)
 
         res.send({ result: 'OK', message: "Account created" });
         return;
