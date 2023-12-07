@@ -68,7 +68,9 @@ function signIn() {
     .catch(error => console.error('Error:', error));
 }
 
-function pull() {
+function pull() 
+{
+    console.log('executing pull');
     fetch('/pull', {
         method: 'POST',
         credentials: 'same-origin',
