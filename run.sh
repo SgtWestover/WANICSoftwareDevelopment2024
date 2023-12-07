@@ -1,0 +1,1 @@
+while true; do echo "starting server"; node ./server.js; echo "server stopped, restarting"; done

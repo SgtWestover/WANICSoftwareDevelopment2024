@@ -48,9 +48,9 @@ function signIn() {
 
     let json = JSON.stringify({ username: username, password: password });
     fetch('/login', {
-        method: 'POST', 
-        credentials: 'same-origin', 
-        headers: { 'Content-Type': 'application/json' }, 
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
         body: json
     })
     .then(response => response.json())
@@ -61,6 +61,24 @@ function signIn() {
         }
     })
     .catch(error => console.error('Error:', error));
+}
+
+function pull()
+{
+    fetch('/pull', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' }
+    })
+}
+
+function restart()
+{
+    fetch('/restart', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' }
+    })
 }
 
 // Sign up function
@@ -75,9 +93,9 @@ function signUp() {
 
     let json = JSON.stringify({ username: username, password: password });
     fetch('/signup', {
-        method: 'POST', 
-        credentials: 'same-origin', 
-        headers: { 'Content-Type': 'application/json' }, 
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
         body: json
     })
     .then(response => response.json())
@@ -88,11 +106,11 @@ function signUp() {
 }
 
 // Event listener for the authentication form
-document.addEventListener('DOMContentLoaded', function() 
+document.addEventListener('DOMContentLoaded', function()
 {
     let authForm = document.getElementById('authForm');
     if (authForm) {
-        authForm.addEventListener('submit', function(event) 
+        authForm.addEventListener('submit', function(event)
         {
             event.preventDefault();
             const action = document.getElementById('action').value;
@@ -110,3 +128,5 @@ document.addEventListener('DOMContentLoaded', function()
         logoutButton.addEventListener('click', logout); //on click to the logout button (if it exists), log out
     }
 });
+
+
