@@ -5,10 +5,6 @@ Last Edit: 12/6/2023
 Desc: Handles log-ins
 */
 
-function setAction(action)
-{
-    document.getElementById('action').value = action;
-}
 
 // Clears the password field
 function clearPassword()
@@ -119,23 +115,6 @@ function signUp()
 // Event listener for the authentication form
 document.addEventListener('DOMContentLoaded', function()
 {
-    let authForm = document.getElementById('authForm');
-    if (authForm)
-    {
-        authForm.addEventListener('submit', function(event)
-        {
-            event.preventDefault();
-            const action = document.getElementById('action').value;
-
-            if (action === 'signIn')
-            {
-                signIn();
-            } else if (action === 'signUp')
-            {
-                signUp();
-            }
-        });
-    }
     let logoutButton = document.getElementById('logout');
     if (logoutButton)
     {
