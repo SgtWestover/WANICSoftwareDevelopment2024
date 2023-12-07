@@ -82,6 +82,8 @@ router.post('/signup', async (req, res, next) => {
     {
         const user = await addUser(req.body.username, req.body.password);
 
+        console.log("creating " + user.username)
+
         res.send({ result: 'OK', message: "Account created" });
         return;
 
@@ -142,17 +144,42 @@ router.post('/checkpassword/', async (req, res, next) => {
             res.send({result: 'OK', message: "NOT_OK"});
         }
     }
-    else
-    {
-        res.send({result: 'NOT_OK'})
-    }
+})
+
+const { exec } = require('child_process');
+
+router.post('/pull/', async (req, res, next) => {
+    console.log("git pull")
+    exec('git pull', (error, stdout, stderr) => {
+        console.log(stdout);
+        console.log(stderr);
+        if (error) {
+            console.log(`exec error: ${error}`);
+            if (stderr.includes('CONFLICT')) {
+                res.send({ result: 'ERROR', message: 'Merge error occurred' });
+            } else {
+                res.send({ result: 'ERROR', message: 'Git pull failed' });
+            }
+        } else {
+            res.send({ result: 'OK', message: 'Git pull successful' });
+        }
+    });
+});
+
+router.post('/restart/', async (req, res, next) => {
+    res.send({result: 'OK', message: "OK"});
+    process.exit()
 })
 
 const path = require('path')
 
 const options = {root: path.join(__dirname, 'public')}
 
-router.use('/calendar', (req, res, next) => {
+const readFile = require('fs')
+const util = require('util')
+const {readFileSync} = require("fs");
+
+router.use('/calendar', async (req, res, next) => {
     if (users.get(req.session.userId) != null)
     {
         res.sendFile(req.url, {root: path.join(__dirname, 'public/calendar')})
@@ -199,7 +226,7 @@ async function findUser(username, password)
     const account = await userlist.findOne(query);
 
     if (account != null) {
-        console.log(username + " " + password + " " + account.password)
+        //console.log(username + " " + password + " " + account.password)
         try {
 
             const result = await bcrypt.compare(password, account.password);
