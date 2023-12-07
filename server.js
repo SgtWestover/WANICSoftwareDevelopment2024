@@ -136,12 +136,11 @@ router.post('/checkpassword/', async (req, res, next) => {
 
         if ((await findUser(users.get(req.session.userId), req.body.password)) != null) {
             res.send({result: 'OK', message: "OK"});
-            return;
         }
-    }
-    else
-    {
-        res.send({result: 'OK', message: "NOT_OK"});
+        else
+        {
+            res.send({result: 'OK', message: "NOT_OK"});
+        }
     }
 })
 
