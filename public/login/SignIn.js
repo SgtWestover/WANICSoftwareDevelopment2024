@@ -5,6 +5,11 @@ Last Edit: 12/6/2023
 Desc: Handles log-ins
 */
 
+function setAction(action)
+{
+    document.getElementById('action').value = action;
+}
+
 // Clears the password field
 function clearPassword()
 {
