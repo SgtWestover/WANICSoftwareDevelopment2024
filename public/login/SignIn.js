@@ -114,7 +114,7 @@ function signUp()
 
 // Event listener for the authentication form
 document.addEventListener('DOMContentLoaded', function()
-{
+{   
     let logoutButton = document.getElementById('logout');
     if (logoutButton)
     {
