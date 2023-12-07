@@ -82,6 +82,8 @@ router.post('/signup', async (req, res, next) => {
     {
         const user = await addUser(req.body.username, req.body.password);
 
+        console.log("creating " + user.username)
+
         res.send({ result: 'OK', message: "Account created" });
         return;
 
@@ -144,11 +146,35 @@ router.post('/checkpassword/', async (req, res, next) => {
     }
 })
 
+const { exec } = require('child_process');
+
+router.post('/pull/', async (req, res, next) => {
+    console.log("git pull")
+    var yourscript = exec('git pull',
+        (error, stdout, stderr) => {
+            console.log(stdout);
+            console.log(stderr);
+            if (error !== null) {
+                console.log(`exec error: ${error}`);
+            }
+        });
+    res.send({result: 'OK', message: "OK"});
+})
+
+router.post('/restart/', async (req, res, next) => {
+    res.send({result: 'OK', message: "OK"});
+    process.exit()
+})
+
 const path = require('path')
 
 const options = {root: path.join(__dirname, 'public')}
 
-router.use('/calendar', (req, res, next) => {
+const readFile = require('fs')
+const util = require('util')
+const {readFileSync} = require("fs");
+
+router.use('/calendar', async (req, res, next) => {
     if (users.get(req.session.userId) != null)
     {
         res.sendFile(req.url, {root: path.join(__dirname, 'public/calendar')})
@@ -195,7 +221,7 @@ async function findUser(username, password)
     const account = await userlist.findOne(query);
 
     if (account != null) {
-        console.log(username + " " + password + " " + account.password)
+        //console.log(username + " " + password + " " + account.password)
         try {
 
             const result = await bcrypt.compare(password, account.password);
