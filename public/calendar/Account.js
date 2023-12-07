@@ -59,12 +59,10 @@ async function showModal()
         if (isValid) 
         {
             modal.style.display = "none";
-            console.log("correct password");
             confirmPassword(); // Proceed to confirmation if the password is correct
         } 
         else 
         {
-            console.log("incorrect password");
             passwordError.textContent = "Your password is incorrect"; // Display error message if password is wrong
         }
     };
@@ -87,14 +85,15 @@ async function validatePassword(password) {
 
         // Assuming the response is always 200 OK, but the message varies
         let message = await response.json();
-        console.log(message.result);
         if (message.result === 'OK') {
             isValid = message.message === "OK";
-        } else {
+        } 
+        else {
             // Handle the case where the password is incorrect
-            console.log("Password is incorrect");
+            console.log("something went wrong");
         }
-    } catch (error) {
+    } catch (error) 
+    {
         console.error('Error:', error);
     }
     return isValid;
