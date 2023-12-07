@@ -153,15 +153,17 @@ router.post('/pull/', async (req, res, next) => {
     exec('git pull', (error, stdout, stderr) => {
         console.log(stdout);
         console.log(stderr);
+        res.send({ result: 'ERROR', message: stdout });
+        return;
         if (error) {
             console.log(`exec error: ${error}`);
             if (stderr.includes('CONFLICT')) {
-                res.send({ result: 'ERROR', message: 'Merge error occurred' });
+                res.send({ result: 'ERROR', message: 'ME' });
             } else {
-                res.send({ result: 'ERROR', message: 'Git pull failed' });
+                res.send({ result: 'ERROR', message: 'FAIL' });
             }
         } else {
-            res.send({ result: 'OK', message: 'Git pull successful' });
+            res.send({ result: 'OK', message: 'OK' });
         }
     });
 });

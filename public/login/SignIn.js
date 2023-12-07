@@ -68,7 +68,7 @@ function signIn() {
     .catch(error => console.error('Error:', error));
 }
 
-function pull() 
+function pull()
 {
     console.log("executing pull")
     fetch('/pull', {
@@ -76,28 +76,13 @@ function pull()
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' }
     })
-    .then(response => {
-        if (!response.ok) 
+        .then(response => response.json())
+        .then(message =>
         {
-            throw new Error('Network response was not ok');
-        }
-        return response.json(); // Assuming the server response is in JSON format
-    })
-    .then(data => {
-        if (data.success) {
-            console.log('Successfully pulled: ', data.message);
-        } else if (data.mergeError) {
-            console.warn('Merge error: ', data.message);
-            // Implement actions for merge error
-        } else {
-            console.warn('Pull failed: ', data.message);
-            // Implement actions for other types of failures
-        }
-    })
-    .catch(error => {
-        // This catches network errors and errors thrown from response processing
-        console.error('There was a problem with the fetch operation: ', error.message);
-    });
+            console.log(message.message)
+            document.getElementById("status").textContent = message.message;
+        })
+        .catch(error => console.error('Error:', error));
 }
 
 
@@ -138,7 +123,7 @@ function signUp()
 
 // Event listener for the authentication form
 document.addEventListener('DOMContentLoaded', function()
-{   
+{
     let logoutButton = document.getElementById('logout');
     if (logoutButton)
     {
