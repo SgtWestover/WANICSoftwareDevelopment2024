@@ -55,6 +55,7 @@ async function showModal()
         passwordError.textContent = ''; // Clear error message before validation
         const isValid = await validatePassword(password);
         console.log("input validated");
+        console.log(isValid);
         if (isValid) 
         {
             modal.style.display = "none";
@@ -86,7 +87,7 @@ async function validatePassword(password) {
 
         // Assuming the response is always 200 OK, but the message varies
         let message = await response.json();
-
+        console.log(message.result);
         if (message.result === 'OK') {
             isValid = message.message === "OK";
         } else {
@@ -96,7 +97,6 @@ async function validatePassword(password) {
     } catch (error) {
         console.error('Error:', error);
     }
-    
     return isValid;
 }
 
