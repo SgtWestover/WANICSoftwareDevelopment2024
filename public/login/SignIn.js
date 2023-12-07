@@ -119,7 +119,7 @@ function signUp()
 // Event listener for the authentication form
 document.addEventListener('DOMContentLoaded', function()
 {
-    /*let authForm = document.getElementById('authForm');
+    let authForm = document.getElementById('authForm');
     if (authForm)
     {
         authForm.addEventListener('submit', function(event)
@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', function()
                 signUp();
             }
         });
-    }*/
+    }
     let logoutButton = document.getElementById('logout');
     if (logoutButton)
     {
