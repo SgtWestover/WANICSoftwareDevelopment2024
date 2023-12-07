@@ -150,16 +150,21 @@ const { exec } = require('child_process');
 
 router.post('/pull/', async (req, res, next) => {
     console.log("git pull")
-    var yourscript = exec('git pull',
-        (error, stdout, stderr) => {
-            console.log(stdout);
-            console.log(stderr);
-            if (error !== null) {
-                console.log(`exec error: ${error}`);
+    exec('git pull', (error, stdout, stderr) => {
+        console.log(stdout);
+        console.log(stderr);
+        if (error) {
+            console.log(`exec error: ${error}`);
+            if (stderr.includes('CONFLICT')) {
+                res.send({ result: 'ERROR', message: 'Merge error occurred' });
+            } else {
+                res.send({ result: 'ERROR', message: 'Git pull failed' });
             }
-        });
-    res.send({result: 'OK', message: "OK"});
-})
+        } else {
+            res.send({ result: 'OK', message: 'Git pull successful' });
+        }
+    });
+});
 
 router.post('/restart/', async (req, res, next) => {
     res.send({result: 'OK', message: "OK"});
