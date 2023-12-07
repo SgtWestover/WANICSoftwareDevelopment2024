@@ -70,7 +70,7 @@ function signIn() {
 
 function pull() 
 {
-    console.log('executing pull');
+    console.log("executing pull")
     fetch('/pull', {
         method: 'POST',
         credentials: 'same-origin',
@@ -98,7 +98,6 @@ function pull()
         // This catches network errors and errors thrown from response processing
         console.error('There was a problem with the fetch operation: ', error.message);
     });
-    //test
 }
 
 
