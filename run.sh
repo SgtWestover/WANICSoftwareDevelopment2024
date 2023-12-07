@@ -1,1 +1,1 @@
-while true; do echo "starting server"; node ./server.js; echo "server stopped, restarting"; done
+while true; do echo "[${date}] starting server"; node ./server.js; done
