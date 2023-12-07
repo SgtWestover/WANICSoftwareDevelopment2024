@@ -1,35 +1,41 @@
 /*
-Name: Kaelin Wang Hu
+Name: Kaelin Wang Hu and Jason Leech
 Date: 11/21/2023
 Last Edit: 11/22/2023
 Desc: Handles log-ins
 */
 
 // Sets the action, whether sign up or sign in, based on which button is clicked
-function setAction(action) {
+function setAction(action) 
+{
     document.getElementById('action').value = action;
 }
 
 // Clears the password field
-function clearPassword() {
+function clearPassword() 
+{
     document.getElementById('password').value = '';
 }
 
 // Clears both fields
-function clearFields() {
+function clearFields() 
+{
     document.getElementById('username').value = '';
     document.getElementById('password').value = '';
 }
 
 // Tests whether the username is valid (>3 characters, doesn't contain special characters except for underscore dash)
-function isValidUsername(username) {
+function isValidUsername(username) 
+{
     const usernameRegex = /^[A-Za-z\d_-]{4,}$/; // Regex for username validation
     return usernameRegex.test(username);
 }
 
 // Tests whether the password is valid
-function isValidPassword(password, username) {
-    if (password.toLowerCase() === username.toLowerCase()) {
+function isValidPassword(password, username) 
+{
+    if (password.toLowerCase() === username.toLowerCase()) 
+    {
         return false;
     }
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[ -\/:-@\[-`\{-~])[A-Za-z\d -\/:-@\[-`\{-~]{8,}$/;
@@ -41,22 +47,26 @@ function signIn() {
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
 
-    if (!isValidUsername(username) || !isValidPassword(password, username)) {
+    if (!isValidUsername(username) || !isValidPassword(password, username)) 
+    {
         document.getElementById("status").textContent = "Invalid username or password format.";
         return;
     }
 
     let json = JSON.stringify({ username: username, password: password });
-    fetch('/login', {
+    fetch('/login', 
+    {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
         body: json
     })
     .then(response => response.json())
-    .then(message => {
+    .then(message => 
+        {
         document.getElementById("status").textContent = message.message;
-        if (message.message === "OK") {
+        if (message.message === "OK") 
+        {
             window.location.href = '/calendar'; // Redirect to calendar page on successful login
         }
     })
@@ -82,11 +92,13 @@ function restart()
 }
 
 // Sign up function
-function signUp() {
+function signUp() 
+{
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
 
-    if (!isValidUsername(username) || !isValidPassword(password, username)) {
+    if (!isValidUsername(username) || !isValidPassword(password, username)) 
+    {
         document.getElementById("status").textContent = "Invalid username or password format.";
         return;
     }
@@ -109,15 +121,18 @@ function signUp() {
 document.addEventListener('DOMContentLoaded', function()
 {
     let authForm = document.getElementById('authForm');
-    if (authForm) {
+    if (authForm) 
+    {
         authForm.addEventListener('submit', function(event)
         {
             event.preventDefault();
             const action = document.getElementById('action').value;
 
-            if (action === 'signIn') {
+            if (action === 'signIn') 
+            {
                 signIn();
-            } else if (action === 'signUp') {
+            } else if (action === 'signUp') 
+            {
                 signUp();
             }
         });
