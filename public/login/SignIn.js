@@ -49,6 +49,8 @@ function signIn()
         return;
     }
 
+    json = stringify({_name: username, _password: password});
+
     fetch('/login',
     {
         method: 'POST',
@@ -108,7 +110,6 @@ function signUp()
     }
     let newUser = new User(username, password);
     let json = JSON.stringify(newUser);
-    //let json = JSON.stringify({ username: username, password: password });
     fetch('/signup', {
         method: 'POST',
         credentials: 'same-origin',
