@@ -38,7 +38,8 @@ function isValidPassword(password, username)
 }
 
 // Sign in function
-function signIn() {
+function signIn() 
+{
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
 
