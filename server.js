@@ -3,6 +3,8 @@ const express = require('express');
 const http = require('http');
 const uuid = require('uuid');
 
+require('serverData')
+
 const bcrypt = require("bcrypt")
 
 const { WebSocketServer } = require('ws');
@@ -82,7 +84,7 @@ router.post('/signup', async (req, res, next) => {
     {
         const user = await addUser(req.body.username, req.body.password);
 
-        console.log("creating " + user.username)
+        console.log("creating " + req.body.username)
 
         res.send({ result: 'OK', message: "Account created" });
         return;
@@ -330,6 +332,15 @@ server.on('upgrade', function (request, socket, head) {
 wss.on('connection', function (ws, request) {
     const userId = request.session.userId;
 
+    if (users.get(userId) == null)
+    {
+        ws.terminate();
+    }
+
+
+
+    ws.send(getEventsForUser(findUser()))
+
     map.set(userId, ws);
 
     ws.on('error', console.error);
@@ -338,7 +349,13 @@ wss.on('connection', function (ws, request) {
         //
         // Here we can now use session parameters.
         //
-        console.log(`Received message ${message} from user ${userId}`);
+        let data = JSON.parse(message);
+        console.log("Message from " + users.get(userId) + ": " + data.type);
+
+        if (data.type == "addEvent")
+        {
+            addEvent(data, dbclient)
+        }
     });
 
     ws.on('close', function () {
