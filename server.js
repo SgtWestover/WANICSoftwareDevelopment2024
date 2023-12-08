@@ -374,4 +374,3 @@ app.get('/', (req, res) =>
 {
     res.sendFile('calendar.html', { root: 'public' });
   });
-

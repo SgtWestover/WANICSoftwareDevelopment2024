@@ -1,17 +1,21 @@
 // Function to handle logout
 function logout() {
-    let response = fetch('/logout', {
+    fetch('/logout', {
         method: 'POST',
         credentials: 'same-origin',
         headers: {'Content-Type': 'application/json'}
-    });
-    response.then(function (response) {
-        return response.ok
-            ? response.json().then()
-            : Promise.reject(new Error('Unexpected response'));
-    }).then(function (message) {
-        window.location.href = "/login";
-    });
+    })
+    .then(response => response.json())
+    .then(message => {
+        if (message.result === 'OK') {
+            // Clear any client-side storage or state that references the user
+            localStorage.removeItem('userId');
+            window.location.href = "/login";
+        } else {
+            console.error('Logout failed:', message);
+        }
+    })
+    .catch(error => console.error('Error:', error));
 }
 
 // Function to initiate account deletion process
@@ -88,7 +92,6 @@ async function validatePassword(password) {
             isValid = message.message === "OK";
         } 
         else {
-            // Handle the case where the password is incorrect
             console.log("something went wrong");
         }
     } catch (error) 
@@ -140,25 +143,24 @@ function closeModalConfirmation() {
 
 // Function handling the actual account deletion process
 function deleteAccountConfirmed(password) {
-    let response = fetch('/deleteaccount', {
+    const userId = localStorage.getItem('userId');
+    fetch('/deleteaccount', {
         method: 'POST',
         credentials: 'same-origin',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({password: password})
-    });
-    response.then(function (response) {
-        return response.ok
-            ? response.json().then()
-            : Promise.reject(new Error('Unexpected response'));
-    }).then(function (message) {
-        if (message.message == "OK") {
+        body: JSON.stringify({ userId, password })
+    })
+    .then(response => response.json())
+    .then(message => {
+        if (message.result === 'OK') {
+            localStorage.removeItem('userId');
             window.location.href = "/login";
         } else {
-            alert("An error occurred during account deletion");
+            alert("Failed to delete account");
         }
-    });
+    })
+    .catch(error => console.error('Error:', error));
 }
-
 // Function to toggle password visibility
 document.getElementById("togglePassword").addEventListener('click', function (e) {
     var passwordInput = document.getElementById("passwordInput");

@@ -157,15 +157,16 @@ class Team
 //general user class
 class User 
 {
-    constructor(name, password, events = null, teams = null, settings = null, friends = null, id = null) 
+    constructor(name, password, events = null, teams = null, settings = null, friends = null, id = null, timezone = null) 
     {
         this.name = name;
         this.password = password;
-        this.events = events;
-        this.teams = teams;
+        this.events = events; //array of event classes
+        this.teams = teams; //array of team classes
         this.settings = settings;
-        this.friends = friends;
+        this.friends = friends; //array of users
         this.id = id;
+        this.timezone = timezone;
     }
     // Getter for name
     get name() 

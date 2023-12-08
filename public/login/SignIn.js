@@ -49,7 +49,7 @@ function signIn()
         return;
     }
 
-    json = stringify({_name: username, _password: password});
+    json = JSON.stringify({_name: username, _password: password});
 
     fetch('/login',
     {
@@ -64,6 +64,8 @@ function signIn()
         document.getElementById("status").textContent = message.message;
         if (message.message === "OK")
         {
+            localStorage.setItem('isLoggedIn', true);
+            document.dispatchEvent(new CustomEvent('userLoggedIn'));
             window.location.href = '/calendar'; // Redirect to calendar page on successful login
         }
     })
@@ -111,7 +113,6 @@ function signUp()
     let newUser = new User(username, password);
     let json = JSON.stringify(newUser);
     console.log(json)
-    //let json = JSON.stringify({ username: username, password: password });
     fetch('/signup', {
         method: 'POST',
         credentials: 'same-origin',
