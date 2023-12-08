@@ -157,7 +157,7 @@ class Team
 //general user class
 class User 
 {
-    constructor(name, password, events = undefined, teams = undefined, settings = undefined, friends = undefined, id = undefined) 
+    constructor(name, password, events = null, teams = null, settings = null, friends = null, id = null) 
     {
         this.name = name;
         this.password = password;
