@@ -22,7 +22,7 @@ function clearFields()
 // Tests whether the username is valid (>3 characters, doesn't contain special characters except for underscore dash)
 function isValidUsername(username)
 {
-    const usernameRegex = /^[A-Za-z\d_-]{4,}$/; // Regex for username validation
+    const usernameRegex = /^[A-Za-z\d_-]{4,16}$/; // Regex for username validation
     return usernameRegex.test(username);
 }
 
@@ -33,7 +33,7 @@ function isValidPassword(password, username)
     {
         return false;
     }
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[ -\/:-@\[-`\{-~])[A-Za-z\d -\/:-@\[-`\{-~]{8,}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[ -\/:-@\[-`\{-~])[A-Za-z\d -\/:-@\[-`\{-~]{8,32}$/;
     return passwordRegex.test(password);
 }
 
