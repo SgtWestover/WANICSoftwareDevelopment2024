@@ -38,7 +38,7 @@ function isValidPassword(password, username)
 }
 
 // Sign in function
-function signIn() 
+function signIn()
 {
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
@@ -110,6 +110,8 @@ function signUp()
     }
     let newUser = new User(username, password);
     let json = JSON.stringify(newUser);
+    console.log(json)
+    //let json = JSON.stringify({ username: username, password: password });
     fetch('/signup', {
         method: 'POST',
         credentials: 'same-origin',
