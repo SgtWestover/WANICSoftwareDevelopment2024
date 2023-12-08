@@ -5,6 +5,8 @@ Last Edit: 11/29/2023
 Desc: Handles the formatting for the day schedule
 */
 
+let currentTimeLine;
+let currentTimeInterval;
 
 //Generate things
 
@@ -109,6 +111,7 @@ window.onload = function()
     endTime = 24;
     //initializeInputListeners();
     generateSchedule();
+    initializeCurrentTimeLine();
 };
 
 //Handles the line that follows the mouse to indicate the user what time they have selected
@@ -187,7 +190,17 @@ function updatePopupHeader(eventDetail)
 
     if (isToday) 
     {
+        currentTimeLine.style.display = 'block';
+        updateCurrentTimeLine();
+        // Clear any existing interval and set a new one
+        if (currentTimeInterval) clearInterval(currentTimeInterval);
+        currentTimeInterval = setInterval(updateCurrentTimeLine, 1000); //does this every second
         headerText += " (Today)";
+    } 
+    else 
+    {
+        currentTimeLine.style.display = 'none';
+        if (currentTimeInterval) clearInterval(currentTimeInterval);
     }
     //test
     document.getElementById('popupHeader').innerText = headerText;
@@ -232,4 +245,27 @@ function navigateDay(delta)
         isToday: isToday
     };
     updatePopupHeader(eventDetail);
+}
+
+//i have to do it in here because the fucking day container is null otherwise and is created here. WHY?
+//html and css should not mix with js, refactor perhaps???
+function initializeCurrentTimeLine() 
+{
+    currentTimeLine = document.createElement('div');
+    currentTimeLine.classList.add('current-time-line');
+    currentTimeLine.style.backgroundColor = 'red';
+    currentTimeLine.style.height = '100%';
+    currentTimeLine.style.width = '3px';
+    currentTimeLine.style.position = 'absolute';
+    currentTimeLine.style.display = 'none'; // Hidden by default unless the current day is selected
+    dayContainer.appendChild(currentTimeLine);
+}
+
+//updates the current timeline based on the current time
+function updateCurrentTimeLine() 
+{
+    let now = new Date();
+    let hours = now.getHours() + now.getMinutes() / 60;
+    let leftPosition = (hours - startTime) * (dayContainer.offsetWidth / (endTime - startTime));
+    currentTimeLine.style.left = `${leftPosition}px`;
 }

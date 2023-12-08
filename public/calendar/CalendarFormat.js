@@ -86,8 +86,7 @@ function renderCalendar(date)
                     cell.addEventListener('click', function() // Click on day
                     {
                         let clickedDate = new Date(date.getFullYear(), date.getMonth(), currentDay);
-                        console.log(clickedDate);
-
+                        // console.log(clickedDate);
                         let isToday = (clickedDate.toDateString() === today.toDateString());
 
                         // Emit custom event with the selected date
@@ -106,16 +105,12 @@ function renderCalendar(date)
                 }
             })(dayOfMonth); // Pass 'dayOfMonth' to the IIFE
 
-            if ((i === 0 && j < startingDay) || dayOfMonth > monthDays)
-            {
-                // Skip incrementing 'dayOfMonth' if the cell is empty
-            }
-            else
+            // Check if the cell should contain a day of the month
+            if (!(i === 0 && j < startingDay) && dayOfMonth <= monthDays)
             {
                 // Increment the day of the month
                 dayOfMonth++;
             }
-
             // Append the cell to the row
             row.appendChild(cell);
         }

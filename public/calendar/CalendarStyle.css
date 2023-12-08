@@ -338,7 +338,15 @@ td
     padding: 1px 16px;
     height: 750px
   }
-
+  .current-time-line 
+  {
+    background-color: red;
+    height: 100%;
+    width: 2px;
+    position: absolute;
+    display: none; /* Hidden by default */
+    z-index: 900; /* Set z-index to ensure it's above other elements if necessary */
+  }
   .nav-button
   {
     position: absolute;
