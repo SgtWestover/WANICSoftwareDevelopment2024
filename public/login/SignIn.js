@@ -48,8 +48,8 @@ function signIn()
         document.getElementById("status").textContent = "Invalid username or password format.";
         return;
     }
-
-    let json = JSON.stringify({ username: username, password: password });
+    let newUser = new User(username, password);
+    let json = JSON.stringify(newUser);
     fetch('/login',
     {
         method: 'POST',
