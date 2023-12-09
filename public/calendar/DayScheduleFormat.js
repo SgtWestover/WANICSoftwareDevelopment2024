@@ -281,7 +281,7 @@ function dayContainerClick(event)
 {
     document.getElementById('eventPopup').style.display = 'block';
 
-    createEvent(event);
+    //createEvent(event);
     return;
 }
 
@@ -322,7 +322,7 @@ function createEvent(event, name, startDate, endDate, users, description = null,
     eventElement.classList.add('schedule-event');
     eventElement.innerHTML = ""//make it the description or smth we can add more later
     //set element width
-    let eventWidth = ((parseInt(dayContainer.offsetWidth)) / (endTime - startTime))//TODO: make this mean something 
+    let eventWidth = ((hourLength * parseInt(dayContainer.offsetWidth)) / (endTime - startTime))//TODO: make this mean something 
     eventElement.style.width = `${eventWidth}px`
     //set position
 
