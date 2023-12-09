@@ -204,6 +204,10 @@ router.use('/calendar', async (req, res, next) => {
     }
 })
 
+router.use('/data', (req, res, next) => {
+    res.sendFile(req.url, {root: path.join(__dirname, 'public/data')})
+})
+
 router.use('/', (req, res, next) => {
     //console.log(req.cookies.session_id)
 
