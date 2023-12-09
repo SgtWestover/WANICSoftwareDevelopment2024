@@ -49,7 +49,7 @@ function signIn()
         return;
     }
 
-    json = JSON.stringify({_name: username, _password: password});
+    let json = JSON.stringify({_name: username, _password: password});
 
     fetch('/login',
     {
@@ -122,6 +122,7 @@ function signUp()
     .then(response => response.json())
     .then(message => {
         document.getElementById("status").textContent = message.message;
+        console.log("status: " + message.message);
     })
     .catch(error => console.error('Error:', error));
 }
