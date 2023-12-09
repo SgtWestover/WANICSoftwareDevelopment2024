@@ -49,7 +49,7 @@ function signIn()
         return;
     }
 
-    json = JSON.stringify({_name: username, _password: password});
+    let json = JSON.stringify({_name: username, _password: password});
 
     fetch('/login',
     {
