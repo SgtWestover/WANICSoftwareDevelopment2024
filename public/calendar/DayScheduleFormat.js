@@ -322,7 +322,7 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     // Validation
     if (startDate < endDate) {
         // Valid input, create event and hide error message
-        createEvent(event, eventName, startDate, endDate, null, eventDesc);
+        createEvent(e, eventName, startDate, endDate, null, eventDesc);
         document.getElementById('eventPopup').style.display = 'none';
         document.getElementById('errorMessage').style.display = 'none';
         resetEventForm();
@@ -336,7 +336,7 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
 });
 
 //handles creating an event in the schedule, and displaying it correctly
-function createEvent(event, name, startDate, endDate, users, description = null, teams = null)
+function createEvent(event, name, startDate, endDate, users, description, teams = null)
 {
     console.log("Created an event yipee");
     //html stuff first bcs idk how anything else works
@@ -344,27 +344,22 @@ function createEvent(event, name, startDate, endDate, users, description = null,
     //create event element
     let eventElement = document.createElement("div");
     eventElement.classList.add('schedule-event');
-    eventElement.innerHTML = ""//make it the description or smth we can add more later
+    eventElement.innerHTML = name//make it the description or smth we can add more later
     //set element width
-    let eventWidth = ((hourLength * parseInt(dayContainer.offsetWidth)) / (endTime - startTime))//TODO: make this mean something 
+    let hourLength = (endDate.getHours() * 60 + endDate.getMinutes()) - (startDate.getHours() * 60 + startDate.getMinutes());
+    console.log(endDate.getHours() + "HOUR AAAAAAAHHH");
+    let eventWidth = ((hourLength * parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))//TODO: make this mean something 
     eventElement.style.width = `${eventWidth}px`
     //set position
 
-    let Left = line.parentElement.getBoundingClientRect().left;
-
     //Gets the selected time based on mouse position
-    let current = event.clientX - Left;
-    let max = parseInt(dayContainer.offsetWidth);
-    let percent = Math.floor((current / max) * 100) + 1;
-    let selectedHour = ((endTime - startTime) * percent / 100) + startTime;
-    selectedHour = Math.floor(selectedHour * 4) / 4;
+    selectedHour = (startDate.getHours() * 60 + startDate.getMinutes());
 
     
-    eventElement.style.left = `${selectedHour * ((parseInt(dayContainer.offsetWidth)) / (endTime - startTime)) + 1.5}px`;
+    eventElement.style.left = `${selectedHour * ((parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60)) + 1.5}px`;
          
     // let calendarEvent = new CalendarEvent(name, date, users, description, teams);
     // send the 
     dayContainer.appendChild(eventElement);
     
 }
-
