@@ -302,7 +302,7 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
         var currentDate = getDateFromAttribute(currentPopupDateAttr);
 
         // Create event
-        createEvent(event, eventName, new Date(currentDate.setHours(startTime)), new Date(currentDate.setHours(endTime)), null, eventDesc);
+        createEvent(e, eventName, new Date(currentDate.setHours(startTime)), new Date(currentDate.setHours(endTime)), null, eventDesc);
 
         // Close popup
         document.getElementById('eventPopup').style.display = 'none';
