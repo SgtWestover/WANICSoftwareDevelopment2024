@@ -3,7 +3,7 @@ const express = require('express');
 const http = require('http');
 const uuid = require('uuid');
 
-require('serverData')
+//require('serverData.js')
 
 const bcrypt = require("bcrypt")
 
@@ -66,8 +66,8 @@ router.post('/login', async (req, res, next) => {
     }
     else
     {
-        console.log("logging in " + user.username)
-        users.set(id, user.username);
+        console.log("logging in " + user._username)
+        users.set(id, user._username);
         res.send({ result: 'OK', message: "OK" });
         //res.send({ result: 'OK', message: "OK" });
         return;
@@ -80,11 +80,21 @@ router.post('/signup', async (req, res, next) => {
     //
     //const id = uuid.v4();
     //req.session.userId = id;
-    if (await findUser(req.body.username, req.body.password) == null)
-    {
-        const user = await addUser(req.body.username, req.body.password);
 
-        console.log("creating " + req.body.username)
+    console.log("signup: " + req.body)
+
+    if (req.body._username == null || req.body._password == null)
+    {
+        res.send({ result: 'OK', message: "Missing username or password" });
+        return;
+    }
+
+
+    if (await findUser(req.body._username, req.body._password) == null)
+    {
+        const user = await addUser(req.body);
+
+        console.log("creating " + req.body._username)
 
         res.send({ result: 'OK', message: "Account created" });
         return;
@@ -254,14 +264,16 @@ async function findUser(username, password)
 
 }
 
-async function addUser(username, password)
+async function addUser(data)
 {
     const calendar = dbclient.db("calendarApp");
     const userlist = calendar.collection("users");
 
-    const hash = await bcrypt.hash(password, 10);
+    const hash = await bcrypt.hash(data._password, 10);
 
-    const user = {username: username, password: hash};
+    const user = data;
+
+    user._password = hash;
 
 
 
@@ -339,7 +351,7 @@ wss.on('connection', function (ws, request) {
 
 
 
-    ws.send(getEventsForUser(findUser()))
+//    ws.send(getEventsForUser(findUser()))
 
     map.set(userId, ws);
 
@@ -354,7 +366,7 @@ wss.on('connection', function (ws, request) {
 
         if (data.type == "addEvent")
         {
-            addEvent(data, dbclient)
+            //addEvent(data, dbclient)
         }
     });
 
