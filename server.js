@@ -314,7 +314,7 @@ async function deleteUser(username)
     const calendar = dbclient.db("calendarApp");
     const userlist = calendar.collection("users");
 
-    const user = {username: username};
+    const user = {_user: username};
 
     await userlist.deleteOne(user);
 }
