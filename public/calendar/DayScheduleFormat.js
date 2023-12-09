@@ -280,34 +280,57 @@ function updateCurrentTimeLine()
 function dayContainerClick(event)
 {
     document.getElementById('eventPopup').style.display = 'block';
-
     createEvent(event);
     return;
+}
+
+function resetEventForm() 
+{
+    document.getElementById('eventForm').reset();
+    document.getElementById('errorMessage').style.display = 'none'; // Hide error message if visible
+}
+
+function closeEventForm()
+{
+    document.getElementById('eventPopup').style.display = 'none';
 }
 
 document.getElementById('eventForm').addEventListener('submit', function(e) 
 {
     e.preventDefault();
+
     // Get form values
     var eventName = document.getElementById('eventName').value;
-    var startTime = parseFloat(document.getElementById('startTime').value);
-    var endTime = parseFloat(document.getElementById('endTime').value);
+    var startTime = document.getElementById('startTime').value;
+    var endTime = document.getElementById('endTime').value;
     var eventDesc = document.getElementById('eventDesc').value;
 
+    // Convert time to Date objects
+    var currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
+    var currentDate = getDateFromAttribute(currentPopupDateAttr);
+    var startDate = new Date(currentDate);
+    var endDate = new Date(currentDate);
+
+    // Parse hours and minutes
+    var [startHours, startMinutes] = startTime.split(':').map(Number);
+    var [endHours, endMinutes] = endTime.split(':').map(Number);
+
+    startDate.setHours(startHours, startMinutes);
+    endDate.setHours(endHours, endMinutes);
+
     // Validation
-    if (startTime >= 0 && startTime < 24 && endTime > 0 && endTime <= 24 && startTime < endTime) 
-    {
-        // Get current selected date
-        var currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
-        var currentDate = getDateFromAttribute(currentPopupDateAttr);
-
-        // Create event
-        createEvent(e, eventName, new Date(currentDate.setHours(startTime)), new Date(currentDate.setHours(endTime)), null, eventDesc);
-
-        // Close popup
+    if (startDate < endDate) {
+        // Valid input, create event and hide error message
+        createEvent(event, eventName, startDate, endDate, null, eventDesc);
         document.getElementById('eventPopup').style.display = 'none';
+        document.getElementById('errorMessage').style.display = 'none';
+        resetEventForm();
+        
     } else {
-        alert("Invalid start or end time.");
+        // Invalid input, show error message
+        var errorMessageDiv = document.getElementById('errorMessage');
+        errorMessageDiv.textContent = "Invalid start and end times";
+        errorMessageDiv.style.display = 'block';
     }
 });
 
