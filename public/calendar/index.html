@@ -55,7 +55,7 @@
     <div id="popup1" class="overlay">
         <div class="popup">
             <h2 id="popupHeader"></h2>
-            <a class="close" href="#">&times;</a>
+            <a class="close" href="#" onclick="closeEventForm()">&times;</a> <!--should be general later, dont have time now-->
             <a id="prev-day" class="nav-button">&lt;</a>
             <a id="next-day" class="nav-button">&gt;</a>
             <div class="popup-content">
@@ -64,21 +64,22 @@
                 <div id="line" class="line"></div>
             </div>
         </div>
-    </div>
-    <div id="eventPopup" style="display:none; position:fixed; left:50%; top:50%; transform:translate(-50%, -50%); background-color:white; padding:20px; border-radius:5px; box-shadow:0px 0px 10px rgba(0,0,0,0.5);">
-        <h2>Create Event</h2>
-        <form id="eventForm">
-            <label for="eventName">Event Name:</label><br>
-            <input type="text" id="eventName" name="eventName" required><br>
-            <label for="startTime">Start Time (0-24):</label><br>
-            <input type="number" id="startTime" name="startTime" min="0" max="24" required><br>
-            <label for="endTime">End Time (0-24):</label><br>
-            <input type="number" id="endTime" name="endTime" min="0" max="24" required><br>
-            <label for="eventDesc">Description:</label><br>
-            <textarea id="eventDesc" name="eventDesc"></textarea><br>
-            <input type="submit" value="Create Event">
-            <button type="button" onclick="document.getElementById('eventPopup').style.display='none'">Cancel</button>
-        </form>
+        <div id="eventPopup" style="display:none; position:fixed; left:50%; top:50%; transform:translate(-50%, -50%); background-color:white; padding:20px; border-radius:5px; box-shadow:0px 0px 10px rgba(0,0,0,0.5); z-index: 20;">
+            <h2>Create Event</h2>
+            <form id="eventForm">
+                <label for="eventName">Event Name:</label><br>
+                <input type="text" id="eventName" name="eventName" required><br>
+                <label for="startTime">Start Time:</label><br>
+                <input type="time" id="startTime" name="startTime" step="60" required><br>
+                <label for="endTime">End Time:</label><br>
+                <input type="time" id="endTime" name="endTime" step="60" required><br>
+                <label for="eventDesc">Description:</label><br>
+                <textarea id="eventDesc" name="eventDesc"></textarea><br>
+                <input type="submit" value="Create Event">
+                <div id="errorMessage" style="color: red; display: none;"></div> <!-- Error message element -->
+                <button type="button" onclick="document.getElementById('eventPopup').style.display='none'">Cancel</button>
+            </form>
+        </div>
     </div>
   <!-- Page content -->
   <div class="content">

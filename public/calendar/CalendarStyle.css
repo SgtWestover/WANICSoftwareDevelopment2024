@@ -425,7 +425,7 @@ td
 .line
 {
     position: absolute;
-    z-index: 100;
+    z-index: 12;
     width: 3.5px;
     height: 400px;
     background-color: black;
