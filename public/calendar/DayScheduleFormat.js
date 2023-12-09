@@ -253,7 +253,7 @@ function navigateDay(delta)
     updatePopupHeader(eventDetail);
 }
 
-//i have to do it in here because the fucking day container is null otherwise and is created here. WHY?
+//i have to do it in here because the day container is null otherwise and is created here. WHY?
 //html and css should not mix with js, refactor perhaps???
 function initializeCurrentTimeLine() 
 {
