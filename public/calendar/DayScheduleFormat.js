@@ -347,7 +347,7 @@ function createEvent(event, name, startDate, endDate, users, description, teams 
     eventElement.innerHTML = name//make it the description or smth we can add more later
     //set element width
     let hourLength = (endDate.getHours() * 60 + endDate.getMinutes()) - (startDate.getHours() * 60 + startDate.getMinutes());
-    console.log(endDate.getHours() + "HOUR AAAAAAAHHH");
+    console.log(endDate.getHours() + "Hour");
     let eventWidth = ((hourLength * parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))//TODO: make this mean something 
     eventElement.style.width = `${eventWidth}px`
     //set position
