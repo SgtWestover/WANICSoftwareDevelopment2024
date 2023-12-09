@@ -22,7 +22,7 @@ const users = new Map();
 const { MongoClient } = require("mongodb");
 
 // Replace the uri string with your connection string.
-const uri = "mongodb://127.0.0.1";
+const uri = "mongodb://127.0.0.1/WANICSoft";
 
 const dbclient = new MongoClient(uri);
 
@@ -65,7 +65,7 @@ router.post('/login', async (req, res, next) => {
         console.log("account " + req.body._name + " does not exist");
 
 
-        res.send({ result: 'OK', message: "ANF" });
+        res.send({ result: 'OK', message: "Account Not Found" });
         return;
     }
     else
@@ -412,4 +412,4 @@ server.listen(8080, function () {
 app.get('/', (req, res) =>
 {
     res.sendFile('calendar.html', { root: 'public' });
-  });
+});
