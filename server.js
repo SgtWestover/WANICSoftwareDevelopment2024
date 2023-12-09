@@ -54,11 +54,15 @@ router.post('/login', async (req, res, next) => {
     const id = uuid.v4();
     req.session.userId = id;
 
-    const user = await findUser(req.body.username, req.body.password);
+    console.log(req.body)
+
+    const user = await findUser(req.body._name, req.body._password);
+
+
 
     if (user == null)
     {
-        console.log("account " + req.body.username + " does not exist");
+        console.log("account " + req.body._name + " does not exist");
 
 
         res.send({ result: 'OK', message: "ANF" });
@@ -66,8 +70,8 @@ router.post('/login', async (req, res, next) => {
     }
     else
     {
-        console.log("logging in " + user._username)
-        users.set(id, user._username);
+        console.log("logging in " + user._name)
+        users.set(id, user._name);
         res.send({ result: 'OK', message: "OK" });
         //res.send({ result: 'OK', message: "OK" });
         return;
@@ -81,20 +85,20 @@ router.post('/signup', async (req, res, next) => {
     //const id = uuid.v4();
     //req.session.userId = id;
 
-    console.log("signup: " + req.body)
+    console.log("signup: " + JSON.stringify(req.body) + " _name: ")
 
-    if (req.body._username == null || req.body._password == null)
+    if (req.body._name == null || req.body._password == null)
     {
         res.send({ result: 'OK', message: "Missing username or password" });
         return;
     }
 
 
-    if (await findUser(req.body._username, req.body._password) == null)
+    if (await findUser(req.body._name, req.body._password) == null)
     {
         const user = await addUser(req.body);
 
-        console.log("creating " + req.body._username)
+        console.log("creating " + req.body._name)
 
         res.send({ result: 'OK', message: "Account created" });
         return;
@@ -148,7 +152,7 @@ router.post('/deleteaccount/', async (req, res, next) => {
 router.post('/checkpassword/', async (req, res, next) => {
     if (users.get(req.session.userId) != null) {
 
-        if ((await findUser(users.get(req.session.userId), req.body.password)) != null) {
+        if ((await findUser(users.get(req.session.userId), req.body._password)) != null) {
             res.send({result: 'OK', message: "OK"});
         }
         else
@@ -161,6 +165,8 @@ router.post('/checkpassword/', async (req, res, next) => {
 const { exec } = require('child_process');
 
 router.post('/pull/', async (req, res, next) => {
+    res.send({ result: 'OK', message: 'OK' });
+    return;
     console.log("git pull")
     exec('git pull', (error, stdout, stderr) => {
         console.log(stdout);
@@ -180,9 +186,16 @@ router.post('/pull/', async (req, res, next) => {
     });
 });
 
+router.post('/getData/', async (req, res, next) => {
+    if (users.get(req.session.userId) != null) {
+        let user = await getUser(users.get(req.session.userId));
+        res.send({ result: 'OK', message: JSON.stringify(await getUser(users.get(req.session.userId))) })
+    }
+});
+
 router.post('/restart/', async (req, res, next) => {
     res.send({result: 'OK', message: "OK"});
-    process.exit()
+    //process.exit()
 })
 
 const path = require('path')
@@ -234,20 +247,30 @@ router.use('/login/', (req, res, next) => {
     res.sendFile(req.url, {root: path.join(__dirname, 'public/login')})
 })
 
+async function getUser(username)
+{
+    const calendar = dbclient.db("calendarApp");
+    const userlist = calendar.collection("users");
+
+    const query = {_name: username};
+
+    return await userlist.findOne(query);
+}
+
 async function findUser(username, password)
 {
     const calendar = dbclient.db("calendarApp");
     const userlist = calendar.collection("users");
 
-    const query = {username: username};
+    const query = {_name: username};
 
     const account = await userlist.findOne(query);
 
-    if (account != null) {
+    if (account != null && account._password != null && password != null) {
         //console.log(username + " " + password + " " + account.password)
         try {
 
-            const result = await bcrypt.compare(password, account.password);
+            const result = await bcrypt.compare(password, account._password);
 
             if (result)
             {
@@ -255,7 +278,7 @@ async function findUser(username, password)
             }
         } catch (error)
         {
-            console.log("Idk what went wrong")
+            console.log(error)
         }
 
     }
