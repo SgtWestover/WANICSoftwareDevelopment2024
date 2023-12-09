@@ -7,7 +7,7 @@ Desc: Handles the main calendar page and formatting
 // Global variable for the current date
 let currentDate = new Date();
 
-let ws = new WebSocket("ws://" + window.location.host);
+//let ws = new WebSocket("ws://" + window.location.host);
 
 // When the DOM content is fully loaded, initialize the calendar
 document.addEventListener('DOMContentLoaded', function ()
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function ()
     addNavigationEventListeners();
     renderCalendar(currentDate);
 });
-
+/*
 ws.addEventListener("open", (event) => {
     ws.send(JSON.stringify({type: "connected"}))
 });
@@ -28,7 +28,7 @@ ws.addEventListener("open", (event) => {
 ws.addEventListener("message", (event) => {
     console.log("Message from server ", event.data);
 });
-
+*/
 /**
  * Renders the calendar for a given date.
  * @param {Date} date - The date for which to render the calendar.
@@ -124,11 +124,6 @@ document.querySelector('.popup .close').addEventListener('click', function()
 {
     document.getElementById('popupHeader').innerHTML = '';
 });
-
-function createEvent()
-{
-
-}
 
 function addNavigationEventListeners()
 {

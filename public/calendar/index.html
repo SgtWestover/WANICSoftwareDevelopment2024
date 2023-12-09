@@ -65,7 +65,21 @@
             </div>
         </div>
     </div>
-
+    <div id="eventPopup" style="display:none; position:fixed; left:50%; top:50%; transform:translate(-50%, -50%); background-color:white; padding:20px; border-radius:5px; box-shadow:0px 0px 10px rgba(0,0,0,0.5);">
+        <h2>Create Event</h2>
+        <form id="eventForm">
+            <label for="eventName">Event Name:</label><br>
+            <input type="text" id="eventName" name="eventName" required><br>
+            <label for="startTime">Start Time (0-24):</label><br>
+            <input type="number" id="startTime" name="startTime" min="0" max="24" required><br>
+            <label for="endTime">End Time (0-24):</label><br>
+            <input type="number" id="endTime" name="endTime" min="0" max="24" required><br>
+            <label for="eventDesc">Description:</label><br>
+            <textarea id="eventDesc" name="eventDesc"></textarea><br>
+            <input type="submit" value="Create Event">
+            <button type="button" onclick="document.getElementById('eventPopup').style.display='none'">Cancel</button>
+        </form>
+    </div>
   <!-- Page content -->
   <div class="content">
     <table id="calendar">
@@ -84,13 +98,14 @@
         </tbody>
     </table>
   </div>
+    <script type="text/javascript" src="/data/UserData.js"></script>
+    <script type="text/javascript" src="/../data/UserData.js"></script>
     <script type='text/javascript' language='javascript' src='calendar/CalendarFormat.js'> </script>
     <script type='text/javascript' language='javascript' src='CalendarFormat.js'> </script>
     <script type='text/javascript' src='calendar/DayScheduleFormat.js'></script>
     <script type='text/javascript' src='DayScheduleFormat.js'></script>
     <script type="text/javascript" src="calendar/Account.js"></script>
     <script type="text/javascript" src="Account.js"></script>
-    <script type="text/javascript" src="/data/UserData.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </body>
 </html>

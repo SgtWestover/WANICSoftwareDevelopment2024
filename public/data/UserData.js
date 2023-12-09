@@ -4,16 +4,17 @@
 //Desc: Handles user data
 
 //Event class for an event on the calendar
-class Event 
+class CalendarEvent 
 {
-    constructor(name, date, location, description, teams, users) 
+    constructor(name, startDate = null, endDate = null, users = null, description = null, teams = null)
     {
         this.name = name;
-        this.date = date;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.users = users;
         this.location = location;
         this.description = description;
         this.teams = teams;
-        this.users = users;
     }
 
     // Getter for name

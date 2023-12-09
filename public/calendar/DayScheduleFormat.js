@@ -54,6 +54,12 @@ function generateSchedule()
     {
         lineFollow(event);
     });
+    dayContainer.addEventListener("click", function(event) 
+    {
+        dayContainerClick(event);
+    });
+
+
     let line = document.getElementById('line');
     dayContainer.appendChild(line);
 
@@ -269,3 +275,72 @@ function updateCurrentTimeLine()
     let leftPosition = (hours - startTime) * (dayContainer.offsetWidth / (endTime - startTime));
     currentTimeLine.style.left = `${leftPosition}px`;
 }
+
+//handles creating events when the day container is clicked
+function dayContainerClick(event)
+{
+    document.getElementById('eventPopup').style.display = 'block';
+
+    createEvent(event);
+    return;
+}
+
+document.getElementById('eventForm').addEventListener('submit', function(e) 
+{
+    e.preventDefault();
+    // Get form values
+    var eventName = document.getElementById('eventName').value;
+    var startTime = parseFloat(document.getElementById('startTime').value);
+    var endTime = parseFloat(document.getElementById('endTime').value);
+    var eventDesc = document.getElementById('eventDesc').value;
+
+    // Validation
+    if (startTime >= 0 && startTime < 24 && endTime > 0 && endTime <= 24 && startTime < endTime) 
+    {
+        // Get current selected date
+        var currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
+        var currentDate = getDateFromAttribute(currentPopupDateAttr);
+
+        // Create event
+        createEvent(event, eventName, new Date(currentDate.setHours(startTime)), new Date(currentDate.setHours(endTime)), null, eventDesc);
+
+        // Close popup
+        document.getElementById('eventPopup').style.display = 'none';
+    } else {
+        alert("Invalid start or end time.");
+    }
+});
+
+//handles creating an event in the schedule, and displaying it correctly
+function createEvent(event, name, startDate, endDate, users, description = null, teams = null)
+{
+    console.log("Created an event yipee");
+    //html stuff first bcs idk how anything else works
+    
+    //create event element
+    let eventElement = document.createElement("div");
+    eventElement.classList.add('schedule-event');
+    eventElement.innerHTML = ""//make it the description or smth we can add more later
+    //set element width
+    let eventWidth = ((parseInt(dayContainer.offsetWidth)) / (endTime - startTime))//TODO: make this mean something 
+    eventElement.style.width = `${eventWidth}px`
+    //set position
+
+    let Left = line.parentElement.getBoundingClientRect().left;
+
+    //Gets the selected time based on mouse position
+    let current = event.clientX - Left;
+    let max = parseInt(dayContainer.offsetWidth);
+    let percent = Math.floor((current / max) * 100) + 1;
+    let selectedHour = ((endTime - startTime) * percent / 100) + startTime;
+    selectedHour = Math.floor(selectedHour * 4) / 4;
+
+    
+    eventElement.style.left = `${selectedHour * ((parseInt(dayContainer.offsetWidth)) / (endTime - startTime)) + 1.5}px`;
+         
+    // let calendarEvent = new CalendarEvent(name, date, users, description, teams);
+    // send the 
+    dayContainer.appendChild(eventElement);
+    
+}
+
