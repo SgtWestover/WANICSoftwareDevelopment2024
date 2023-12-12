@@ -22,7 +22,7 @@ const users = new Map();
 const { MongoClient } = require("mongodb");
 
 // Replace the uri string with your connection string.
-const uri = "mongodb://127.0.0.1/WANICSoft";
+const uri = "mongodb://127.0.0.1/";
 
 const dbclient = new MongoClient(uri);
 
