@@ -9,6 +9,7 @@ const { WebSocketServer } = require('ws');
 const { MongoClient } = require("mongodb");
 const cookieParser = require("cookie-parser");
 const path = require('path');
+const { User } = require('./shared/UserData');
 
 // Initialize Express application
 const app = express();
@@ -41,6 +42,8 @@ function onSocketError(err)
 
 // Serve static files from 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
+// server.js
+app.use('/scripts', express.static(path.join(__dirname, 'shared')));
 
 // Redirect to login page if user not logged in and not on login page
 app.use((req, res, next) => 

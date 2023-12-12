@@ -245,3 +245,5 @@ class User
         this._id = value;
     }
 }
+
+module.exports = { User };
