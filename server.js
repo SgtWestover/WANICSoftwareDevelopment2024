@@ -45,12 +45,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Redirect to login page if user not logged in and not on login page
 app.use((req, res, next) => 
 {
-    if (!req.session.userId && !req.url.startsWith("/login")) 
+    if (!req.session.userId && !['/login', '/signup'].includes(req.path)) 
     {
         res.redirect('/login');
     } 
-    else 
-    {
+    else {
         next();
     }
 });
