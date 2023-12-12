@@ -126,7 +126,7 @@ function sendRequest(endpoint, data)
         {
             throw new Error('Network response was not ok');
         }
-        console.log(response.json());
+        console.log(response);
         return response.json();  // Assuming the response is always JSON.
     });
 }
