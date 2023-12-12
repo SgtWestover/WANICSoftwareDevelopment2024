@@ -92,6 +92,7 @@ router.post('/signup', async (req, res) =>
     {
         // Create a new user instance and add to database
         const newUser = new User(req.body._name, req.body._password);
+        console.log(newUser);
         await addUser(newUser);
         console.log("Account created for " + newUser._name);
         res.send({ result: 'OK', message: "Account created" });
