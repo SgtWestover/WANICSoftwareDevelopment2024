@@ -335,26 +335,26 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     }
 });
 
-//handles creating an event element in the schedule, and displaying it correctly in the html
-//TODO: fix params
-//TODO: store events related to day, and only display them when viewing that day
+// handles creating an event element in the schedule, and displaying it correctly in the html
+// TODO: fix params
+// TODO: store events related to day, and only display them when viewing that day
 function createEvent(event, name, startDate, endDate, users, description, teams = null)
 {    
-    //create event element
+    // create event element
     let eventElement = document.createElement("div");
     eventElement.classList.add('schedule-event');
     eventElement.innerHTML = name //TODO: make it the description or something we can add more later
-    //set element width
+    // set element width
     let hourLength = (endDate.getHours() * 60 + endDate.getMinutes()) - (startDate.getHours() * 60 + startDate.getMinutes());
     let eventWidth = ((hourLength * parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))
     eventElement.style.width = `${eventWidth}px`
-    //Gets the selected time based on mouse position
+    // Gets the selected time based on mouse position
     selectedHour = (startDate.getHours() * 60 + startDate.getMinutes());    
-    //set position
+    // set position
     eventElement.style.left = `${selectedHour * ((parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))}px`;
     // let calendarEvent = new CalendarEvent(name, date, users, description, teams);
 
-    //TODO: On click event
+    // TODO: on click event
 
     dayContainer.appendChild(eventElement);   
 }
