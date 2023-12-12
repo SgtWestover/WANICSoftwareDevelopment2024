@@ -99,6 +99,7 @@ function signUp()
     }
     // Create new user object and send sign-up request
     let newUser = new User(username, password);
+    console.log(newUser);
     sendRequest('/signup', newUser)
         .then(message => updateStatus(message.message))
         .catch(error => console.error('Error:', error));
