@@ -258,4 +258,3 @@
         exports.User = User;
     }
 }) (typeof window === 'undefined' ? module.exports : window);
-module.exports = { User };
