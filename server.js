@@ -17,6 +17,9 @@ const app = express();
 // Map to track active WebSocket connections
 const map = new Map();
 
+//Map for tracking users
+const users = new Map();
+
 // MongoDB Client setup with connection string
 const uri = "mongodb://127.0.0.1/"; // This should be secured and not hardcoded
 const dbclient = new MongoClient(uri);
