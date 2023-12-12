@@ -5,6 +5,10 @@ Last Edited: 11/22/2023
 Desc: style for index
 */
 
+
+/*#region Main calendar formatting*/
+
+
 body 
 {
     font-family: Arial, sans-serif;
@@ -150,10 +154,11 @@ td
 {
   cursor: pointer;
 }
+/*#endregion*/
 
 
 /* SideBar ----------------------------------------- */
-
+/*#region Sidebar*/
 
  /* The side navigation menu */
  .sidebar 
@@ -246,9 +251,11 @@ td
   } 
 
 
+/*#endregion*/
 
-  /* Pop-up box thing (goofy) --------------------------------------------------*/
-  
+
+/* Pop-up box thing (goofy) --------------------------------------------------*/
+/*#region Popup box*/
   .box 
   {
     width: 150px;
@@ -338,6 +345,7 @@ td
     padding: 1px 16px;
     height: 750px
   }
+  
   .current-time-line 
   {
     background-color: red;
@@ -385,8 +393,11 @@ td
       width: 70%;
     }
   }
+/*#endregion*/
 
-  /* Day Schedule ---------------------------------------*/
+
+/* Day Schedule ---------------------------------------*/
+/*#region Day Schedule*/
 
 .day-container 
 {
@@ -414,7 +425,7 @@ td
 .line
 {
     position: absolute;
-    z-index: 100;
+    z-index: 12;
     width: 3.5px;
     height: 400px;
     background-color: black;
@@ -445,3 +456,19 @@ td
   text-align: center;
   line-height: 75px;
 }
+
+/*#endregion*/
+
+
+/* Events ---------------------------------------*/
+/*#region Events*/
+
+.schedule-event
+{
+  background-color: rgb(4, 75, 182);
+  height: 100%;
+  position: absolute;
+  border-radius: 12px;
+}
+
+/*#endregion*/

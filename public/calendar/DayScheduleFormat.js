@@ -54,6 +54,12 @@ function generateSchedule()
     {
         lineFollow(event);
     });
+    dayContainer.addEventListener("click", function(event) 
+    {
+        dayContainerClick(event);
+    });
+
+
     let line = document.getElementById('line');
     dayContainer.appendChild(line);
 
@@ -247,7 +253,7 @@ function navigateDay(delta)
     updatePopupHeader(eventDetail);
 }
 
-//i have to do it in here because the fucking day container is null otherwise and is created here. WHY?
+//i have to do it in here because the day container is null otherwise and is created here. WHY?
 //html and css should not mix with js, refactor perhaps???
 function initializeCurrentTimeLine() 
 {
@@ -268,4 +274,87 @@ function updateCurrentTimeLine()
     let hours = now.getHours() + now.getMinutes() / 60;
     let leftPosition = (hours - startTime) * (dayContainer.offsetWidth / (endTime - startTime));
     currentTimeLine.style.left = `${leftPosition}px`;
+}
+
+//handles creating events when the day container is clicked
+function dayContainerClick(event)
+{
+    document.getElementById('eventPopup').style.display = 'block';
+
+    //createEvent(event);
+    return;
+}
+
+function resetEventForm() 
+{
+    document.getElementById('eventForm').reset();
+    document.getElementById('errorMessage').style.display = 'none'; // Hide error message if visible
+}
+
+function closeEventForm()
+{
+    document.getElementById('eventPopup').style.display = 'none';
+}
+
+document.getElementById('eventForm').addEventListener('submit', function(e) 
+{
+    e.preventDefault();
+
+    // Get form values
+    var eventName = document.getElementById('eventName').value;
+    var startTime = document.getElementById('startTime').value;
+    var endTime = document.getElementById('endTime').value;
+    var eventDesc = document.getElementById('eventDesc').value;
+
+    // Convert time to Date objects
+    var currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
+    var currentDate = getDateFromAttribute(currentPopupDateAttr);
+    var startDate = new Date(currentDate);
+    var endDate = new Date(currentDate);
+
+    // Parse hours and minutes
+    var [startHours, startMinutes] = startTime.split(':').map(Number);
+    var [endHours, endMinutes] = endTime.split(':').map(Number);
+
+    startDate.setHours(startHours, startMinutes);
+    endDate.setHours(endHours, endMinutes);
+
+    // Validation
+    if (startDate < endDate) {
+        // Valid input, create event and hide error message
+        createEvent(e, eventName, startDate, endDate, null, eventDesc);
+        document.getElementById('eventPopup').style.display = 'none';
+        document.getElementById('errorMessage').style.display = 'none';
+        resetEventForm();
+        
+    } else {
+        // Invalid input, show error message
+        var errorMessageDiv = document.getElementById('errorMessage');
+        errorMessageDiv.textContent = "Invalid start and end times";
+        errorMessageDiv.style.display = 'block';
+    }
+});
+
+//handles creating an event element in the schedule, and displaying it correctly in the html
+//TODO: fix params
+//TODO: store events related to day, and only display them when viewing that day
+function createEvent(event, name, startDate, endDate, users, description, teams = null)
+{    
+    //create event element
+    let eventElement = document.createElement("div");
+    eventElement.classList.add('schedule-event');
+    eventElement.innerHTML = name //TODO: make it the description or something we can add more later
+    //set element width
+    let hourLength = (endDate.getHours() * 60 + endDate.getMinutes()) - (startDate.getHours() * 60 + startDate.getMinutes());
+    let eventWidth = ((hourLength * parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))
+    eventElement.style.width = `${eventWidth}px`
+    //Gets the selected time based on mouse position
+    selectedHour = (startDate.getHours() * 60 + startDate.getMinutes());    
+    //set position
+    eventElement.style.left = `${selectedHour * ((parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))}px`;
+    // let calendarEvent = new CalendarEvent(name, date, users, description, teams);
+
+    //TODO: On click event
+
+    dayContainer.appendChild(eventElement);   
 }
