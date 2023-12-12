@@ -68,7 +68,6 @@ function updateStatus(message)
     document.getElementById("status").textContent = message;
 }
 
-
 /**
  * Handles the server response for the login request.
  * @param {Object} message - The server response message.

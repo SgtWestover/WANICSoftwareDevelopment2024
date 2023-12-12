@@ -182,8 +182,6 @@ router.post('/getData/', async (req, res) =>
     }
 });
 
-const path = require('path')
-
 router.use('/', (req, res, next) => 
 {
     if(users.get(req.session.userId) == null && !req.url.startsWith("/login")) //if user is not logged in and not on login page redirect to login page
