@@ -81,15 +81,18 @@ router.post('/login', async (req, res) =>
  */
 router.post('/signup', async (req, res) => 
 {
+    console.log("checkpoint 0");
     // Check if username and password are provided
     if (!req.body._name || !req.body._password) 
     {
+        console.log("checkpoint 1");
         res.send({ result: 'OK', message: "Missing username or password" });
         return;
     }
     // Check if user already exists
     if (await findUser(req.body._name, req.body._password) == null) 
     {
+        console.log("checkpoint 2");
         // Create a new user instance and add to database
         const newUser = new User(req.body._name, req.body._password);
         console.log(newUser);
