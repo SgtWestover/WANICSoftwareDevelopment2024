@@ -335,31 +335,26 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     }
 });
 
-//handles creating an event in the schedule, and displaying it correctly
+//handles creating an event element in the schedule, and displaying it correctly in the html
+//TODO: fix params
+//TODO: store events related to day, and only display them when viewing that day
 function createEvent(event, name, startDate, endDate, users, description, teams = null)
-{
-    console.log("Created an event yipee");
-    //html stuff first bcs idk how anything else works
-    
+{    
     //create event element
     let eventElement = document.createElement("div");
     eventElement.classList.add('schedule-event');
-    eventElement.innerHTML = name//make it the description or smth we can add more later
+    eventElement.innerHTML = name //TODO: make it the description or something we can add more later
     //set element width
     let hourLength = (endDate.getHours() * 60 + endDate.getMinutes()) - (startDate.getHours() * 60 + startDate.getMinutes());
-    console.log(endDate.getHours() + "Hour");
-    let eventWidth = ((hourLength * parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))//TODO: make this mean something 
+    let eventWidth = ((hourLength * parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))
     eventElement.style.width = `${eventWidth}px`
-    //set position
-
     //Gets the selected time based on mouse position
-    selectedHour = (startDate.getHours() * 60 + startDate.getMinutes());
-
-    
-    eventElement.style.left = `${selectedHour * ((parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60)) + 1.5}px`;
-         
+    selectedHour = (startDate.getHours() * 60 + startDate.getMinutes());    
+    //set position
+    eventElement.style.left = `${selectedHour * ((parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))}px`;
     // let calendarEvent = new CalendarEvent(name, date, users, description, teams);
-    // send the 
-    dayContainer.appendChild(eventElement);
-    
+
+    //TODO: On click event
+
+    dayContainer.appendChild(eventElement);   
 }
