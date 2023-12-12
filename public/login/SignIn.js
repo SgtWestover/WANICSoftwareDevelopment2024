@@ -91,14 +91,12 @@ function signUp()
 {
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
-
     // Validate username and password format
     if (!isValidUsername(username) || !isValidPassword(password, username)) 
     {
         updateStatus("Invalid username or password format.");
         return;
     }
-
     // Create new user object and send sign-up request
     let newUser = new User(username, password);
     sendRequest('/signup', newUser)
@@ -114,13 +112,20 @@ function signUp()
  */
 function sendRequest(endpoint, data) 
 {
-    return fetch(endpoint, {
+    return fetch(endpoint, 
+    {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     })
-    .then(response => response.json());
+    .then(response => 
+    {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();  // Assuming the response is always JSON.
+    });
 }
 
 // Event listener for the authentication form
