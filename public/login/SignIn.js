@@ -37,94 +37,91 @@ function isValidPassword(password, username)
     return passwordRegex.test(password);
 }
 
-// Sign in function
-function signIn()
+/**
+ * Attempts to sign in a user with provided credentials.
+ * Validates username and password, and sends a request to the server.
+ */
+function signIn() 
 {
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
 
-    if (!isValidUsername(username) || !isValidPassword(password, username))
+    // Validate username and password format
+    if (!isValidUsername(username) || !isValidPassword(password, username)) 
     {
-        document.getElementById("status").textContent = "Invalid username or password format.";
+        updateStatus("Invalid username or password format.");
         return;
     }
 
-    let json = JSON.stringify({_name: username, _password: password});
-
-    fetch('/login',
-    {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: json
-    })
-    .then(response => response.json())
-    .then(message =>
-        {
-        document.getElementById("status").textContent = message.message;
-        if (message.message === "OK")
-        {
-            localStorage.setItem('isLoggedIn', true);
-            document.dispatchEvent(new CustomEvent('userLoggedIn'));
-            window.location.href = '/calendar'; // Redirect to calendar page on successful login
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
-
-function pull()
-{
-    console.log("executing pull")
-    fetch('/pull', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' }
-    })
-        .then(response => response.json())
-        .then(message =>
-        {
-            console.log(message.message)
-            document.getElementById("status").textContent = message.message;
-        })
+    // Prepare and send login request
+    sendRequest('/login', { _name: username, _password: password })
+        .then(message => handleLoginResponse(message))
         .catch(error => console.error('Error:', error));
 }
 
-
-function restart()
+/**
+ * Updates the status message on the page.
+ * @param {string} message - The message to display.
+ */
+function updateStatus(message) 
 {
-    fetch('/restart', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' }
-    })
+    document.getElementById("status").textContent = message;
 }
 
-// Sign up function
-function signUp()
+
+/**
+ * Handles the server response for the login request.
+ * @param {Object} message - The server response message.
+ */
+function handleLoginResponse(message) 
+{
+    updateStatus(message.message);
+    if (message.message === "OK") {
+        localStorage.setItem('isLoggedIn', true);
+        localStorage.setItem('userId', message.userId); // Assuming the server returns userId
+        document.dispatchEvent(new CustomEvent('userLoggedIn'));
+        window.location.href = '/calendar'; // Redirect to calendar page on successful login
+    }
+}
+
+/**
+ * Attempts to sign up a new user with provided credentials.
+ * Validates username and password, and sends a request to the server.
+ */
+function signUp() 
 {
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
 
-    if (!isValidUsername(username) || !isValidPassword(password, username))
+    // Validate username and password format
+    if (!isValidUsername(username) || !isValidPassword(password, username)) 
     {
-        document.getElementById("status").textContent = "Invalid username or password format.";
+        updateStatus("Invalid username or password format.");
         return;
     }
+
+    // Create new user object and send sign-up request
     let newUser = new User(username, password);
-    let json = JSON.stringify(newUser);
-    console.log(json)
-    fetch('/signup', {
+    sendRequest('/signup', newUser)
+        .then(message => updateStatus(message.message))
+        .catch(error => console.error('Error:', error));
+}
+
+/**
+ * Sends an HTTP POST request to the specified endpoint with the provided data.
+ * @param {string} endpoint - The endpoint to send the request to.
+ * @param {Object} data - The data to send in the request.
+ * @returns {Promise<Object>} The response from the server.
+ */
+function sendRequest(endpoint, data) 
+{
+    return fetch(endpoint, {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
-        body: json
+        body: JSON.stringify(data)
     })
-    .then(response => response.json())
-    .then(message => {
-        document.getElementById("status").textContent = message.message;
-        console.log("status: " + message.message);
-    })
-    .catch(error => console.error('Error:', error));
+    .then(response => response.json());
 }
 
 // Event listener for the authentication form
