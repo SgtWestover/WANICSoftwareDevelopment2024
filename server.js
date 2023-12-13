@@ -21,13 +21,13 @@ const map = new Map();
 const users = new Map();
 
 // MongoDB Client setup with connection string
-const uri = "mongodb://127.0.0.1/"; // This should be secured and not hardcoded
+const uri = "mongodb://127.0.0.1/"; // This should be secured and not hardcoded, but that's fine
 const dbclient = new MongoClient(uri);
 
 // Session parser setup for Express
 const sessionParser = session({
     saveUninitialized: false,
-    secret: '$eCuRiTy', // This should be secured and not hardcoded
+    secret: '$eCuRiTy', // This should be secured and not hardcoded, but that's fine (again lol)
     resave: false
 });
 
@@ -44,9 +44,9 @@ function onSocketError(err)
 }
 
 // Serve static files from 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '/public')));
 // server.js
-app.use('/scripts', express.static(path.join(__dirname, 'shared')));
+app.use('/scripts', express.static(path.join(__dirname, '/shared')));
 
 // Redirect to login page if user not logged in and not on login page
 app.use((req, res, next) => 
