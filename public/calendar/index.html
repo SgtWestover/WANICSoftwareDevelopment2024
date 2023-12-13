@@ -1,12 +1,36 @@
 <!DOCTYPE html>
-
 <html lang="en">
-<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendar</title>
-    <link rel="stylesheet" href="calendar/CalendarStyle.css">
     <link rel="stylesheet" href="CalendarStyle.css">
+    <script>
+      // Detect if the environment is local or server
+      var isLocal = window.location.hostname === 'localhost' || window.location.hostname.startsWith('192.168');
+      // Set the base path accordingly
+      var basePath = isLocal ? '' : 'calendar/';
+
+      // Function to set the base path for script and link tags
+      function setPath(tagName, attribute) 
+      {
+        var elements = document.getElementsByTagName(tagName);
+        for (var i = 0; i < elements.length; i++) 
+        {
+          var path = elements[i].getAttribute(attribute);
+          if (path) 
+          {
+            elements[i].setAttribute(attribute, basePath + path);
+          }
+        }
+      }
+
+      // Update the paths when the document is fully loaded
+      document.addEventListener('DOMContentLoaded', function() 
+      {
+        setPath('script', 'src');
+        setPath('link', 'href');
+      });
+    </script>
 </head>
 <body>
 
@@ -48,8 +72,6 @@
             <button id="cancelDelete">Cancel</button>
         </div>
     </div>
-
-
 
     <!-- Day Popup box -->
     <div id="popup1" class="overlay">
@@ -100,12 +122,8 @@
     </table>
   </div>
     <script src="/scripts/UserData.js"></script>
-    <script type='text/javascript' language='javascript' src='calendar/CalendarFormat.js'> </script>
-    <script type='text/javascript' language='javascript' src='CalendarFormat.js'> </script>
-    <script type='text/javascript' src='calendar/DayScheduleFormat.js'></script>
-    <script type='text/javascript' src='DayScheduleFormat.js'></script>
-    <script type="text/javascript" src="calendar/Account.js"></script>
-    <script type="text/javascript" src="Account.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-</body>
+    <script src="CalendarFormat.js"></script>
+    <script src="DayScheduleFormat.js"></script>
+    <script src="Account.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></body>
 </html>

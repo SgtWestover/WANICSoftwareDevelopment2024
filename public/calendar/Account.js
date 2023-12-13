@@ -1,17 +1,23 @@
 // Function to handle logout
-function logout() {
-    fetch('/logout', {
+function logout() 
+{
+    fetch('/logout', 
+    {
         method: 'POST',
         credentials: 'same-origin',
         headers: {'Content-Type': 'application/json'}
     })
     .then(response => response.json())
-    .then(message => {
-        if (message.result === 'OK') {
+    .then(message => 
+    {
+        if (message.result === 'OK') 
+        {
             // Clear any client-side storage or state that references the user
             localStorage.removeItem('userId');
             window.location.href = "/login";
-        } else {
+        } 
+        else 
+        {
             console.error('Logout failed:', message);
         }
     })
@@ -58,7 +64,6 @@ async function showModal()
         const password = document.getElementById("passwordInput").value;
         passwordError.textContent = ''; // Clear error message before validation
         const isValid = await validatePassword(password);
-        console.log("input validated");
         if (isValid) 
         {
             modal.style.display = "none";
@@ -74,12 +79,14 @@ async function showModal()
 var pass;
 
 // Modified function to validate password
-async function validatePassword(password) {
+async function validatePassword(password) 
+{
     pass = password;
     let isValid = false;
 
     try {
-        let response = await fetch('/checkpassword', {
+        let response = await fetch('/checkpassword', 
+        {
             method: 'POST',
             credentials: 'same-origin',
             headers: {'Content-Type': 'application/json'},
@@ -88,10 +95,13 @@ async function validatePassword(password) {
 
         // Assuming the response is always 200 OK, but the message varies
         let message = await response.json();
-        if (message.result === 'OK') {
+        console.log(message);
+        if (message.result === 'OK') 
+        {
             isValid = message.message === "OK";
         } 
-        else {
+        else 
+        {
             console.log("something went wrong");
         }
     } catch (error) 
@@ -142,9 +152,11 @@ function closeModalConfirmation() {
 }
 
 // Function handling the actual account deletion process
-function deleteAccountConfirmed(password) {
+function deleteAccountConfirmed(password) 
+{
     const userId = localStorage.getItem('userId');
-    fetch('/deleteaccount', {
+    fetch('/deleteaccount', 
+    {
         method: 'POST',
         credentials: 'same-origin',
         headers: {'Content-Type': 'application/json'},
@@ -152,10 +164,13 @@ function deleteAccountConfirmed(password) {
     })
     .then(response => response.json())
     .then(message => {
-        if (message.result === 'OK') {
+        if (message.result === 'OK') 
+        {
             localStorage.removeItem('userId');
             window.location.href = "/login";
-        } else {
+        } 
+        else 
+        {
             alert("Failed to delete account");
         }
     })
