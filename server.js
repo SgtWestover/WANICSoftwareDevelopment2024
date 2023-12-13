@@ -9,8 +9,7 @@ const { WebSocketServer } = require('ws');
 const { MongoClient } = require("mongodb");
 const cookieParser = require("cookie-parser");
 const path = require('path');
-const { User } = require('./shared/UserData');
-const { ObjectId } = require('mongodb');
+const { User, CalendarEvent } = require('./shared/UserData');
 
 // Initialize Express application
 const app = express();
@@ -20,6 +19,9 @@ const map = new Map();
 
 //Map for tracking users
 const users = new Map();
+
+//Map for tracking events
+const events = new Map();
 
 // MongoDB Client setup with connection string
 const uri = "mongodb://127.0.0.1/"; // This should be secured and not hardcoded, but that's fine
@@ -109,6 +111,33 @@ router.post('/signup', async (req, res) =>
     else 
     {
         res.send({ result: 'OK', message: "Account already exists" });
+    }
+});
+
+/**
+ * POST /createEvent - Handles event creation. It creates a new event.
+ */
+router.post('/createEvent', async (req, res) => 
+{
+    // Check if all information is provided
+    if (!req.body._name || !req.body._startDate || !req.body._endDate || !req.body._description) 
+    {
+        res.send({ result: 'OK', message: "Missing information" });
+        return;
+    }
+    // Check if event already exists
+    if (await findEvent(req.body._name, req.body._startDate, req.body._endDate, req.body._description) == null) 
+    {
+        // Create a new event instance and add to database
+        const newEvent = new Event(req.body._name, req.body._startDate, req.body._endDate, req.body._description);
+        console.log(newEvent);
+        await addEvent(newEvent);
+        console.log("event created: " + newEvent);
+        res.send({ result: 'OK', message: "Event Created" });
+    }
+    else 
+    {
+        res.send({ result: 'OK', message: "Event already exists" });
     }
 });
 
@@ -269,6 +298,7 @@ async function findUser(username, password)
 
 }
 
+
 /**
  * Adds a new user to the database.
  * @param {Object} userData - The user data to add. Expected to have _name and _password.
@@ -371,6 +401,86 @@ wss.on('connection', function (ws, request)
         map.delete(userID);
     });
 });
+
+/**
+ * Finds an event by name and date
+ * @param {string} name - The name of the evet
+ * @param {Date} startDate - The starting date of the event
+ * @param {Date} endDate - The ending date of the event
+ * @param {string} description - The description of the event
+ * @returns {Promise<Object|null>} The event object if identical event, otherwise null.
+ */
+async function findEvent(name, startDate, endDate, description)
+{
+    const calendar = dbclient.db("calendarApp");
+    const eventlist = calendar.collection("events");
+    const query = {_name: name};
+    const event = await eventlist.findOne(query);
+    if (event != null && event._startDate != null && startDate != null && event._endDate != null && endDate != null && event._description != null && description != null) 
+    {
+        //console.log(username + " " + password + " " + account.password)
+        //Check name
+        try {
+            const result = await bcrypt.compare(name, event._name);
+            if (result)
+            {
+                //Check endDate
+                try {
+                    const result = await bcrypt.compare(endDate, event._endDate);
+                    if (result)
+                    {
+                        //Check endDate
+                        try {
+                            const result = await bcrypt.compare(endDate, event._endDate);
+                            if (result)
+                            {
+                                //Check description
+                                try {
+                                    const result = await bcrypt.compare(description, event._description);
+                                    if (result)
+                                    {
+                                        return event;
+                                    }
+                                } catch (error)
+                                {
+                                    console.log("Event Check Name: " + error)
+                                }
+                            }
+                        } catch (error)
+                        {
+                            console.log("Event Check Start Date: " + error)
+                        }
+                    }
+                } catch (error)
+                {
+                    console.log("Event Check End Date: " + error)
+                }
+            }
+        } catch (error)
+        {
+            console.log("Event Check Description: " + error)
+        }
+    }
+    else
+    {
+        return null;
+    }
+    return null;
+}
+
+/**
+ * Adds a new event to the database.
+ * @param {Object} eventData - The event data to add. Expected to have _name, _startDate, _endDate and _description.
+ * @returns {Promise<Object>} The result of the insertion operation.
+ */
+async function addEvent(eventData) 
+{
+    const calendarDB = dbclient.db("calendarApp");
+    const userCollection = calendarDB.collection("events");
+    const event = { ...eventData};
+    return await userCollection.insertOne(event);
+}
+
 
 
 /**

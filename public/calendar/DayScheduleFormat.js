@@ -338,7 +338,7 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
 // handles creating an event element in the schedule, and displaying it correctly in the html
 // TODO: fix params
 // TODO: store events related to day, and only display them when viewing that day
-function createEvent(event, name, startDate, endDate, users, description, teams = null)
+function renderEvent(event, name, startDate, endDate, users, description, teams = null)
 {    
     // create event element
     let eventElement = document.createElement("div");
@@ -357,4 +357,37 @@ function createEvent(event, name, startDate, endDate, users, description, teams 
     // TODO: on click event
 
     dayContainer.appendChild(eventElement);   
+}
+
+function sendEventToDatabase(event)
+{
+    //database things
+    sendRequest('/createEvent', event)
+        .then(message => console.log(message.message))
+        .catch(error => console.error('Error:', error));
+}
+
+/**
+ * Sends an HTTP POST request to the specified endpoint with the provided data.
+ * @param {string} endpoint - The endpoint to send the request to.
+ * @param {Object} data - The data to send in the request.
+ * @returns {Promise<Object>} The response from the server.
+ */
+function sendRequest(endpoint, data) 
+{
+    return fetch(endpoint, 
+    {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    })
+    .then(response => 
+    {
+        if (!response.ok) 
+        {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();  // Assuming the response is always JSON.
+    });
 }
