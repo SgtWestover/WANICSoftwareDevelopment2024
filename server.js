@@ -10,6 +10,7 @@ const { MongoClient } = require("mongodb");
 const cookieParser = require("cookie-parser");
 const path = require('path');
 const { User } = require('./shared/UserData');
+const { ObjectId } = require('mongodb');
 
 // Initialize Express application
 const app = express();
@@ -72,9 +73,12 @@ app.use('/', router);
 router.post('/login', async (req, res) => 
 {
     const user = await findUser(req.body._name, req.body._password);
-    if (user == null) {
+    if (user == null) 
+    {
         res.send({ result: 'OK', message: "Account Not Found" });
-    } else {
+    } 
+    else 
+    {
         req.session.userID = user._id; // Use MongoDB's unique ID and send it back
         console.log("logging in " + user._name);
         res.send({ result: 'OK', message: "OK", userID: user._id }); // Send back user ID
@@ -154,11 +158,10 @@ router.post('/deleteaccount/', async (req, res) =>
  */
 async function findUserByID(userID)
 {
-    console.log("userID: " + userID);
+    const userObjectID = new ObjectId(userID);
     const calendarDB = dbclient.db("calendarApp");
     const userCollection = calendarDB.collection("users");
-    console.log("userCollection Find: " + await userCollection.findOne({ _id: userID }));
-    return await userCollection.findOne({ _id: userID });
+    return await userCollection.findOne({ _id: userObjectID });
 }
 
 /**
@@ -169,16 +172,15 @@ router.post('/checkpassword/', async (req, res) =>
     if (req.session.userID) 
     {
         const user = await findUserByID(req.session.userID);
-        console.log("user: " + user);
+        console.log("entered password: " + req.body._password);
+        console.log("stored password" + user._password);
         if (user && await bcrypt.compare(req.body._password, user._password)) 
         {
-            res.send({ result: 'OK', message: "Password correct" });
-        } 
+            res.send({ result: 'OK', message: "CorrectPassword" });
+        }
         else 
         {
-            console.log("stored password: " + req.body._password);
-            console.log("input password: " + user._password);
-            res.send({ result: 'OK', message: "Password incorrect" });
+            res.send({ result: 'OK', message: "IncorrectPassword" });
         }
     } 
     else 
@@ -246,14 +248,15 @@ async function findUser(username, password)
     const account = await userlist.findOne(query);
     if (account != null && account._password != null && password != null) 
     {
-        //console.log(username + " " + password + " " + account.password)
-        try {
+        try 
+        {
             const result = await bcrypt.compare(password, account._password);
             if (result)
             {
                 return account;
             }
-        } catch (error)
+        } 
+        catch (error)
         {
             console.log(error)
         }
