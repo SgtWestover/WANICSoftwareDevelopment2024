@@ -163,14 +163,20 @@ async function findUserById(userId)
  */
 router.post('/checkpassword/', async (req, res) => 
 {
-    if (req.session.userId) {
-        const user = await getUserById(req.session.userId);
-        if (user && await bcrypt.compare(req.body._password, user._password)) {
+    if (req.session.userId) 
+    {
+        const user = await getUserByID(req.session.userId);
+        if (user && await bcrypt.compare(req.body._password, user._password)) 
+        {
             res.send({ result: 'OK', message: "Password correct" });
-        } else {
+        } 
+        else 
+        {
             res.send({ result: 'OK', message: "Password incorrect" });
         }
-    } else {
+    } 
+    else 
+    {
         res.send({ result: 'OK', message: "User not logged in" });
     }
 });
@@ -182,10 +188,13 @@ router.post('/checkpassword/', async (req, res) =>
 router.post('/getData/', async (req, res) => 
 {
     if (req.session.userId) {
-        let user = await getUserById(req.session.userId);
-        if (user) {
+        let user = await getUserByID(req.session.userId);
+        if (user) 
+        {
             res.send({ result: 'OK', message: JSON.stringify(user) });
-        } else {
+        } 
+        else 
+        {
             res.send({ result: 'OK', message: "User not found" });
         }
     } else {
