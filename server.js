@@ -75,7 +75,7 @@ router.post('/login', async (req, res) =>
     if (user == null) {
         res.send({ result: 'OK', message: "Account Not Found" });
     } else {
-        req.session.userId = user._id; // Use MongoDB's unique ID
+        req.session.userId = user._id; // Use MongoDB's unique ID and send it back
         console.log("logging in " + user._name);
         res.send({ result: 'OK', message: "OK", userId: user._id }); // Send back user ID
     }
@@ -151,7 +151,7 @@ router.post('/deleteaccount/', async (req, res) =>
  * @param {string} userId - The unique ID of the user to retrieve.
  * @returns {Promise<Object|null>} The user object if found, otherwise null.
  */
-async function findUserById(userId) 
+async function findUserByID(userId) 
 {
     const calendarDB = dbclient.db("calendarApp");
     const userCollection = calendarDB.collection("users");
@@ -163,14 +163,20 @@ async function findUserById(userId)
  */
 router.post('/checkpassword/', async (req, res) => 
 {
-    if (req.session.userId) {
-        const user = await getUserById(req.session.userId);
+    if (req.session.userId) 
+    {
+        const user = await findUserByID(req.session.userId);
         if (user && await bcrypt.compare(req.body._password, user._password)) {
+            
             res.send({ result: 'OK', message: "Password correct" });
-        } else {
-            res.send({ result: 'OK', message: "Password incorrect" });
+        } 
+        else 
+        {
+            res.send({ result: 'OK', message: "Password incorect" });
         }
-    } else {
+    } 
+    else 
+    {
         res.send({ result: 'OK', message: "User not logged in" });
     }
 });
@@ -181,14 +187,20 @@ router.post('/checkpassword/', async (req, res) =>
  */
 router.post('/getData/', async (req, res) => 
 {
-    if (req.session.userId) {
-        let user = await getUserById(req.session.userId);
-        if (user) {
+    if (req.session.userId) 
+    {
+        let user = await findUserByID(req.session.userId);
+        if (user) 
+        {
             res.send({ result: 'OK', message: JSON.stringify(user) });
-        } else {
+        } 
+        else 
+        {
             res.send({ result: 'OK', message: "User not found" });
         }
-    } else {
+    } 
+    else 
+    {
         res.send({ result: 'OK', message: "User not logged in" });
     }
 });
