@@ -64,8 +64,6 @@ async function showModal()
         const password = document.getElementById("passwordInput").value;
         passwordError.textContent = ''; // Clear error message before validation
         const isValid = await validatePassword(password);
-        console.log("input validated");
-        console.log(isValid);
         if (isValid) 
         {
             modal.style.display = "none";
@@ -100,12 +98,10 @@ async function validatePassword(password)
         console.log(message);
         if (message.result === 'OK') 
         {
-            console.log("successful validation");
             isValid = message.message === "OK";
         } 
         else 
         {
-            console.log("nonsuccessful validation");
             console.log("something went wrong");
         }
     } catch (error) 
