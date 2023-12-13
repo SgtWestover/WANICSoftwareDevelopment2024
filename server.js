@@ -128,7 +128,7 @@ router.post('/logout', async (req, res) =>
 router.post('/deleteaccount/', async (req, res) => 
 {
     if (req.session.userId) {
-        const user = await findUserById(req.session.userId);
+        const user = await findUserByID(req.session.userId);
         if (user && await bcrypt.compare(req.body.password, user._password)) 
         {
             await deleteUser(user._name);
@@ -166,13 +166,13 @@ router.post('/checkpassword/', async (req, res) =>
     if (req.session.userId) 
     {
         const user = await findUserByID(req.session.userId);
-        if (user && await bcrypt.compare(req.body._password, user._password)) {
-            
+        if (user && await bcrypt.compare(req.body._password, user._password)) 
+        {
             res.send({ result: 'OK', message: "Password correct" });
         } 
         else 
         {
-            res.send({ result: 'OK', message: "Password incorect" });
+            res.send({ result: 'OK', message: "Password incorrect" });
         }
     } 
     else 
@@ -187,8 +187,7 @@ router.post('/checkpassword/', async (req, res) =>
  */
 router.post('/getData/', async (req, res) => 
 {
-    if (req.session.userId) 
-    {
+    if (req.session.userId) {
         let user = await findUserByID(req.session.userId);
         if (user) 
         {

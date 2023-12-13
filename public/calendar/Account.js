@@ -1,17 +1,23 @@
 // Function to handle logout
-function logout() {
-    fetch('/logout', {
+function logout() 
+{
+    fetch('/logout', 
+    {
         method: 'POST',
         credentials: 'same-origin',
         headers: {'Content-Type': 'application/json'}
     })
     .then(response => response.json())
-    .then(message => {
-        if (message.result === 'OK') {
+    .then(message => 
+    {
+        if (message.result === 'OK') 
+        {
             // Clear any client-side storage or state that references the user
             localStorage.removeItem('userId');
             window.location.href = "/login";
-        } else {
+        } 
+        else 
+        {
             console.error('Logout failed:', message);
         }
     })
@@ -74,12 +80,14 @@ async function showModal()
 var pass;
 
 // Modified function to validate password
-async function validatePassword(password) {
+async function validatePassword(password) 
+{
     pass = password;
     let isValid = false;
 
     try {
-        let response = await fetch('/checkpassword', {
+        let response = await fetch('/checkpassword', 
+        {
             method: 'POST',
             credentials: 'same-origin',
             headers: {'Content-Type': 'application/json'},
@@ -88,10 +96,12 @@ async function validatePassword(password) {
 
         // Assuming the response is always 200 OK, but the message varies
         let message = await response.json();
-        if (message.result === 'OK') {
+        if (message.result === 'OK') 
+        {
             isValid = message.message === "OK";
         } 
-        else {
+        else 
+        {
             console.log("something went wrong");
         }
     } catch (error) 
