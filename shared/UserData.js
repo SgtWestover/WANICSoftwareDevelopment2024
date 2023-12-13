@@ -6,12 +6,13 @@
 (function(exports)
 {
     //Event class for an event on the calendar
-    class Event 
+    class CalendarEvent 
     {
-        constructor(name, date, location, description, teams, users) 
+        constructor(name, startDate, endDate, location = null, description, teams = null, users = null) 
         {
             this.name = name;
-            this.date = date;
+            this.startDate = startDate;
+            this.endDate = endDate;
             this.location = location;
             this.description = description;
             this.teams = teams;
@@ -28,15 +29,26 @@
             this._name = value;
         }
 
-        // Getter for date
-        get date() 
+        // Getter for start date
+        get startDate() 
         {
-            return this._date;
+            return this._startDate;
         }
-        // Setter for date
-        set date(value) 
+        // Setter for start date
+        set startDate(value) 
         {
-            this._date = value;
+            this._startDate = value;
+        }
+
+        // Getter for end date
+        get endDate() 
+        {
+            return this._endDate;
+        }
+        // Setter for end date
+        set endDate(value) 
+        {
+            this._endDate = value;
         }
 
         // Getter for location
@@ -250,11 +262,12 @@
     if (typeof module !== 'undefined' && module.exports) 
     {
         // Node.js Context
-        module.exports = { User };
+        module.exports = { User, CalendarEvent };
     } 
     else 
     {
         // Browser Context
         exports.User = User;
+        exports.CalendarEvent = CalendarEvent;
     }
 }) (typeof window === 'undefined' ? module.exports : window);
