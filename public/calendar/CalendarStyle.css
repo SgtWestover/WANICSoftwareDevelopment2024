@@ -5,7 +5,7 @@ Last Edited: 11/22/2023
 Desc: style for index
 */
 
-
+/* Main Calendar ------------------------------------------------------------ */
 /*#region Main calendar formatting*/
 
 
@@ -55,6 +55,7 @@ th, td
   width: 14.28%; /* 100% divided by 7 days of the week */
 }
 
+
 th 
 {
     background-color: #333;
@@ -87,13 +88,20 @@ td
   position: fixed;
   font-size: 40px;
   font-weight: bolder;
-  top: 35px;
+  top: 18px;
   user-select: none;
   transition: color 250ms ease-in-out;
   color: white;
   cursor: pointer;
   z-index: 15;
 }
+
+#month-year
+{
+  position: relative;
+  top: -15px;
+}
+
 
 #prev-month
 {
@@ -157,7 +165,7 @@ td
 /*#endregion*/
 
 
-/* SideBar ----------------------------------------- */
+/* SideBar ------------------------------------------------------------------ */
 /*#region Sidebar*/
 
  /* The side navigation menu */
@@ -396,7 +404,7 @@ td
 /*#endregion*/
 
 
-/* Day Schedule ---------------------------------------*/
+/* Day Schedule --------------------------------------------------------------*/
 /*#region Day Schedule*/
 
 .day-container 
@@ -460,7 +468,7 @@ td
 /*#endregion*/
 
 
-/* Events ---------------------------------------*/
+/* Events --------------------------------------------------------------------*/
 /*#region Events*/
 
 .schedule-event
