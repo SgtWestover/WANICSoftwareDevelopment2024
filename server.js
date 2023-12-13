@@ -151,7 +151,7 @@ router.post('/deleteaccount/', async (req, res) =>
  * @param {string} userId - The unique ID of the user to retrieve.
  * @returns {Promise<Object|null>} The user object if found, otherwise null.
  */
-async function findUserByID(userId) 
+async function findUserByID(userId)
 {
     const calendarDB = dbclient.db("calendarApp");
     const userCollection = calendarDB.collection("users");
