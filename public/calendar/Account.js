@@ -65,6 +65,7 @@ async function showModal()
         passwordError.textContent = ''; // Clear error message before validation
         const isValid = await validatePassword(password);
         console.log("input validated");
+        console.log(isValid);
         if (isValid) 
         {
             modal.style.display = "none";
@@ -96,12 +97,15 @@ async function validatePassword(password)
 
         // Assuming the response is always 200 OK, but the message varies
         let message = await response.json();
+        console.log(message);
         if (message.result === 'OK') 
         {
+            console.log("successful validation");
             isValid = message.message === "OK";
         } 
         else 
         {
+            console.log("nonsuccessful validation");
             console.log("something went wrong");
         }
     } catch (error) 
@@ -152,9 +156,11 @@ function closeModalConfirmation() {
 }
 
 // Function handling the actual account deletion process
-function deleteAccountConfirmed(password) {
+function deleteAccountConfirmed(password) 
+{
     const userId = localStorage.getItem('userId');
-    fetch('/deleteaccount', {
+    fetch('/deleteaccount', 
+    {
         method: 'POST',
         credentials: 'same-origin',
         headers: {'Content-Type': 'application/json'},
@@ -162,10 +168,13 @@ function deleteAccountConfirmed(password) {
     })
     .then(response => response.json())
     .then(message => {
-        if (message.result === 'OK') {
+        if (message.result === 'OK') 
+        {
             localStorage.removeItem('userId');
             window.location.href = "/login";
-        } else {
+        } 
+        else 
+        {
             alert("Failed to delete account");
         }
     })
