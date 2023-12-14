@@ -318,8 +318,10 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     var [startHours, startMinutes] = startTime.split(':').map(Number);
     var [endHours, endMinutes] = endTime.split(':').map(Number);
 
-    startDate.setHours(startHours, startMinutes);
-    endDate.setHours(endHours, endMinutes);
+    startDate.setHours(startHours);
+    startDate.setMinutes(startMinutes);
+    endDate.setHours(endHours);
+    endDate.setMinutes(endMinutes);
 
     // Validation
     if (startDate < endDate) 
