@@ -322,7 +322,7 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     // Validation
     if (startDate < endDate) {
         // Valid input, create event and hide error message
-        newEvent = new CalendarEvent(eventName, startTime, endTime, eventDesc);
+        newEvent = new CalendarEvent(eventName, startDate, endDate, eventDesc);
         console.log(newEvent.getHours());
         sendEventToDatabase(JSON.stringify(newEvent));
         document.getElementById('eventPopup').style.display = 'none';
