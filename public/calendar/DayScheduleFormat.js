@@ -322,6 +322,7 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     startDate.setMinutes(startMinutes);
     endDate.setHours(endHours);
     endDate.setMinutes(endMinutes);
+    console.log(startDate);
 
     // Validation
     if (startDate < endDate) 
