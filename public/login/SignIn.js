@@ -75,9 +75,10 @@ function updateStatus(message)
 function handleLoginResponse(message) 
 {
     updateStatus(message.message);
-    if (message.message === "OK") {
+    if (message.message === "OK") 
+    {
         localStorage.setItem('isLoggedIn', true);
-        localStorage.setItem('userId', message.userId); // Assuming the server returns userId
+        localStorage.setItem('userID', message.userID); // Assuming the server returns userId
         document.dispatchEvent(new CustomEvent('userLoggedIn'));
         window.location.href = '/calendar'; // Redirect to calendar page on successful login
     }
