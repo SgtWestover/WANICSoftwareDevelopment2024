@@ -387,6 +387,8 @@ function sendEventToDatabase(event)
  */
 async function sendRequest(endpoint, data) 
 {
+    console.log(data);
+    console.log(JSON.stringify(data));
     const response = await fetch(endpoint,
         {
             method: 'POST',
