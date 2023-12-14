@@ -309,8 +309,8 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     // Convert time to Date objects
     var currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
     var currentDate = getDateFromAttribute(currentPopupDateAttr);
-    var startDate = new Date(currentDate);
-    var endDate = new Date(currentDate);
+    var startDate = new Date(startTime);
+    var endDate = new Date(endTime);
 
     // Parse hours and minutes
     var [startHours, startMinutes] = startTime.split(':').map(Number);
@@ -322,8 +322,8 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     // Validation
     if (startDate < endDate) {
         // Valid input, create event and hide error message
-        newEvent = new CalendarEvent(eventName, startTime, endTime, eventDesc);
-        console.log(newEvent);
+        newEvent = new CalendarEvent(eventName, startDate, endDate, eventDesc);
+        console.log(newEvent.getHours());
         sendEventToDatabase(JSON.stringify(newEvent));
         document.getElementById('eventPopup').style.display = 'none';
         document.getElementById('errorMessage').style.display = 'none';
