@@ -329,7 +329,7 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     {
         // Valid input, create event and hide error message
         newEvent = new CalendarEvent(eventUsers, eventName, startDate, endDate, eventDesc);
-        console.log(newEvent._startDate.getHours());
+        console.log(newEvent._startDate);
         sendEventToDatabase(newEvent);
         document.getElementById('eventPopup').style.display = 'none';
         document.getElementById('errorMessage').style.display = 'none';
