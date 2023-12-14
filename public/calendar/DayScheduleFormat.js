@@ -5,7 +5,6 @@ Last Edit: 11/29/2023
 Desc: Handles the formatting for the day schedule
 */
 
-
 let currentTimeLine;
 let currentTimeInterval;
 
@@ -324,6 +323,7 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     if (startDate < endDate) {
         // Valid input, create event and hide error message
         newEvent = new CalendarEvent(eventName, startTime, endTime, eventDesc);
+        console.log(newEvent);
         sendEventToDatabase(JSON.stringify(newEvent));
         document.getElementById('eventPopup').style.display = 'none';
         document.getElementById('errorMessage').style.display = 'none';
