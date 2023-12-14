@@ -322,9 +322,9 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     // Validation
     if (startDate < endDate) {
         // Valid input, create event and hide error message
-        newEvent = new CalendarEvent(eventName, startTime, endTime, eventDesc);
-        console.log(newEvent);
-        sendEventToDatabase(JSON.stringify(newEvent));
+        newEvent = new CalendarEvent(eventName, startDate, endDate, eventDesc);
+        console.log(newEvent._startDate.getHours());
+        sendEventToDatabase(newEvent);
         document.getElementById('eventPopup').style.display = 'none';
         document.getElementById('errorMessage').style.display = 'none';
         renderEvent(newEvent);
@@ -376,21 +376,18 @@ function sendEventToDatabase(event)
  * @param {Object} data - The data to send in the request.
  * @returns {Promise<Object>} The response from the server.
  */
-function sendRequest(endpoint, data) 
+async function sendRequest(endpoint, data) 
 {
-    return fetch(endpoint, 
-    {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    })
-    .then(response => 
-    {
-        if (!response.ok) 
+    const response = await fetch(endpoint,
         {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();  // Assuming the response is always JSON.
-    });
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+    if (!response.ok) 
+    {
+        throw new Error('Network response was not ok');
+    }
+    return await response.json();
 }
