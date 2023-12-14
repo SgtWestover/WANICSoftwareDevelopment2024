@@ -324,9 +324,11 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     // Validation
     if (startDate < endDate) {
         // Valid input, create event and hide error message
-        sendEventToDatabase(new CalendarEvent(eventName, startTime, endTime, eventDesc));
+        newEvent = new CalendarEvent(eventName, startTime, endTime, eventDesc);
+        sendEventToDatabase(JSON.stringif(newEvent));
         document.getElementById('eventPopup').style.display = 'none';
         document.getElementById('errorMessage').style.display = 'none';
+        renderEvent(newEvent);
         resetEventForm();
         
     } else {
@@ -340,18 +342,18 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
 // handles creating an event element in the schedule, and displaying it correctly in the html
 // TODO: fix params
 // TODO: store events related to day, and only display them when viewing that day
-function renderEvent(event, name, startDate, endDate, users, description, teams = null)
+function renderEvent(CalendarEvent)
 {    
     // create event element
     let eventElement = document.createElement("div");
     eventElement.classList.add('schedule-event');
-    eventElement.innerHTML = name //TODO: make it the description or something we can add more later
+    eventElement.innerHTML = CalendarEvent._name //TODO: make it the description or something we can add more later
     // set element width
-    let hourLength = (endDate.getHours() * 60 + endDate.getMinutes()) - (startDate.getHours() * 60 + startDate.getMinutes());
+    let hourLength = (CalendarEvent._endDate.getHours() * 60 + CalendarEvent._endDate.getMinutes()) - (CalendarEvent._startDate.getHours() * 60 + CalendarEvent._startDate.getMinutes());
     let eventWidth = ((hourLength * parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))
     eventElement.style.width = `${eventWidth}px`
     // Gets the selected time based on mouse position
-    selectedHour = (startDate.getHours() * 60 + startDate.getMinutes());    
+    selectedHour = (CalendarEvent.startDate.getHours() * 60 + CalendarEvent.startDate.getMinutes());    
     // set position
     eventElement.style.left = `${selectedHour * ((parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))}px`;
     // let calendarEvent = new CalendarEvent(name, date, users, description, teams);
