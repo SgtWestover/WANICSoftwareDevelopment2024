@@ -5,7 +5,6 @@ Last Edit: 11/29/2023
 Desc: Handles the formatting for the day schedule
 */
 
-const { CalendarEvent } = require("../../shared/UserData");
 
 let currentTimeLine;
 let currentTimeInterval;
