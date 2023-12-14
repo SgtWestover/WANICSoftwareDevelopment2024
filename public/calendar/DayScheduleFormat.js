@@ -373,6 +373,7 @@ function renderEvent(CalendarEvent)
 function sendEventToDatabase(event)
 {
     //database things
+    console.log(event._startDate)
     sendRequest('/createEvent', event)
         .then(message => console.log(message.message))
         .catch(error => console.error('Error:', error));
