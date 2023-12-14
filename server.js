@@ -104,7 +104,6 @@ router.post('/signup', async (req, res) =>
     {
         // Create a new user instance and add to database
         const newUser = new User(req.body._name, req.body._password);
-        console.log(newUser);
         await addUser(newUser);
         console.log("Account created for " + newUser._name);
         res.send({ result: 'OK', message: "Account created" });
@@ -120,7 +119,6 @@ router.post('/signup', async (req, res) =>
  */
 router.post('/createEvent', async (req, res) => 
 {
-    console.log(req.body);
     // Check if all information is provided
     if (!req.body._users || !req.body._name || !req.body._startDate || !req.body._endDate || !req.body._description) 
     {
@@ -194,6 +192,20 @@ async function findUserByID(userID)
     const userCollection = calendarDB.collection("users");
     return await userCollection.findOne({ _id: userObjectID });
 }
+
+/**
+ * Retrieves an event by their user ID from the database.
+ * @param {string} userID - The user ID of the event to retrieve.
+ * @returns {Promise<Object|null>} The user object if found, otherwise null.
+ */
+async function findEventsByID(userID)
+{
+    const userObjectID = new ObjectId(userID);
+    const calendarDB = dbclient.db("calendarApp");
+    const userCollection = calendarDB.collection("events");
+    return await userCollection.findOne({ _id: userObjectID });
+}
+
 
 /**
  * POST /checkpassword - Verifies if the provided password is correct for the logged-in user.

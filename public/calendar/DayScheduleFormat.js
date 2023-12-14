@@ -211,6 +211,9 @@ function updatePopupHeader(eventDetail)
     //test
     document.getElementById('popupHeader').innerText = headerText;
     document.getElementById('popupHeader').setAttribute('data-date', newDate.toISOString().split('T')[0]);
+
+    //Update events
+    getUserEvents(localStorage.getItem('userID'));
 }
 
 function getDateFromAttribute(attr) 
@@ -346,6 +349,17 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     }
 });
 
+function getUserEvents(userID)
+{
+    //check database for events that share user id
+    //database things
+    sendRequest('/createEvent', event)
+    .then(message => console.log(message.message))
+    .catch(error => console.error('Error:', error));
+    //render them
+    //done
+}
+
 // handles creating an event element in the schedule, and displaying it correctly in the html
 // TODO: fix params
 // TODO: store events related to day, and only display them when viewing that day
@@ -373,7 +387,6 @@ function renderEvent(CalendarEvent)
 function sendEventToDatabase(event)
 {
     //database things
-    console.log(event._startDate)
     sendRequest('/createEvent', event)
         .then(message => console.log(message.message))
         .catch(error => console.error('Error:', error));
@@ -387,8 +400,6 @@ function sendEventToDatabase(event)
  */
 async function sendRequest(endpoint, data) 
 {
-    console.log(data);
-    console.log(JSON.stringify(data));
     const response = await fetch(endpoint,
         {
             method: 'POST',
