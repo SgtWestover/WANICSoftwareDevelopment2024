@@ -71,7 +71,7 @@ app.use('/', router);
 // #region SignIn/SignUp
 
 /**
- * POST /signin - Handles user login and session creation.
+ * POST /signin - Handles user login and session creation. I still don't fully understand the ID stuff but whatever
  */
 router.post('/signin', async (req, res) => 
 {
@@ -82,7 +82,7 @@ router.post('/signin', async (req, res) =>
     } 
     else 
     {
-        req.session.userID = user._id; // Use MongoDB's unique ID and send it back
+        req.session.userID = user._id; // Use MongoDB's unique ID and sets it for the session for authorization
         console.log("signing in " + user._name);
         res.send({ result: 'OK', message: "OK", userID: user._id }); // Send back user ID
     }
@@ -135,10 +135,53 @@ router.post('/createEvent', async (req, res) =>
     }
     else 
     {
-        res.send({ result: 'OK', message: "Event already exists" });
+        res.send({ result: 'OK', message: "Event Duplicate" });
     }
 });
 
+router.post('/findEvent', async (req, res) => 
+{
+    // Check if all necessary information is provided
+    if (!req.body._users || !req.body._name || !req.body._startDate || !req.body._endDate || !req.body._description) 
+    {
+        res.send({ result: 'ERROR', message: "Missing information" });
+        return;
+    }
+
+    // Find the event
+    const event = await findEvent(req.body._users, req.body._name, req.body._startDate, req.body._endDate, req.body._description);
+
+    // If an event is found, return its ID; otherwise, indicate it was not found
+    if (event) 
+    {
+        res.send({ result: 'OK', eventID: event._id.toString() });
+    } 
+    else 
+    {
+        res.send({ result: 'ERROR', message: "Event not found" });
+    }
+});
+
+router.post('/deleteEvent', async (req, res) => 
+{
+    const eventID = req.body.eventID;
+
+    if (!eventID) 
+    {
+        res.send({ result: 'ERROR', message: "Missing event ID" });
+        return;
+    }
+    try 
+    {
+        await deleteEvent(eventID);
+        res.send({ result: 'OK', message: "Event deleted successfully" });
+    } 
+    catch (error) 
+    {
+        console.error("Error deleting event: ", error);
+        res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
+    }
+});
 
 /**
  * POST /logout - Handles user logout. It removes the user's session.
@@ -156,6 +199,7 @@ router.post('/signout', async (req, res) =>
 /**
  * POST /deleteaccount - Allows a user to delete their account after verifying their password.
  */
+//TODO: Retarded function that needs to have the password stuff removed cuz it's already being checked in Account
 router.post('/deleteaccount/', async (req, res) => 
 {
     if (req.session.userID) 
@@ -164,6 +208,7 @@ router.post('/deleteaccount/', async (req, res) =>
         if (user && await bcrypt.compare(req.body.password, user._password)) 
         {
             await deleteUser(user._name);
+            await deleteUserEvents(req.session.userID); //can only use req.session.userID because user._id is the mongoDB objectID which it expropriated
             req.session.destroy();
             res.send({ result: 'OK', message: "Account deleted" });
         } 
@@ -185,23 +230,50 @@ router.post('/deleteaccount/', async (req, res) =>
  */
 async function findUserByID(userID)
 {
-    const userObjectID = new ObjectId(userID);
+    const userObjectID = new ObjectId(userID); //this is quite retarded because mongoDB appropriates the id to an object string so we have to work with this
     const calendarDB = dbclient.db("calendarApp");
     const userCollection = calendarDB.collection("users");
     return await userCollection.findOne({ _id: userObjectID });
 }
 
 /**
+ * GET /getIserEvemts - Retrieves all events for a user ID.
+ */
+router.get('/getUserEvents/:userID', async (req, res) => 
+{
+    try 
+    {
+        const userID = req.params.userID;
+        const events = await findEventsByUserID(userID);
+        res.json(events); // Sends the array of events as a JSON response
+    } catch (error) 
+    {
+        console.error(error);
+        res.status(500).send({ error: 'Internal Server Error' });
+    }
+});
+
+/**
  * Retrieves an event by their user ID from the database.
- * @param {string} userID - The user ID of the event to retrieve.
+ * @param {string} userID - The user ID of the events to retrieve.
  * @returns {Promise<Object|null>} The user object if found, otherwise null.
  */
-async function findEventsByID(userID)
+async function findEventsByUserID(userID) 
 {
-    const userObjectID = new ObjectId(userID);
     const calendarDB = dbclient.db("calendarApp");
-    const userCollection = calendarDB.collection("events");
-    return await userCollection.findOne({ _id: userObjectID });
+    const eventsCollection = calendarDB.collection("events");
+
+    // Use the $in operator to find events where the _users array contains the userID, using the mongodb array accessors
+    const eventsCursor = eventsCollection.find({ _users: { $in: [userID] } });
+    const userEvents = await eventsCursor.toArray();
+
+    // // Console log each event
+    // userEvents.forEach(event => 
+    // {
+    //     console.log(event);
+    // });
+
+    return userEvents;
 }
 
 
@@ -213,7 +285,6 @@ router.post('/checkpassword/', async (req, res) =>
     if (req.session.userID) 
     {
         const user = await findUserByID(req.session.userID);
-        console.log("entered password: " + req.body._password);
         console.log("stored password: " + user._password);
         if (user && await bcrypt.compare(req.body._password, user._password)) 
         {
@@ -236,7 +307,8 @@ router.post('/checkpassword/', async (req, res) =>
  */
 router.post('/getData/', async (req, res) => 
 {
-    if (req.session.userID) {
+    if (req.session.userID) 
+    {
         let user = await findUserByID(req.session.userID);
         if (user) 
         {
@@ -330,6 +402,7 @@ async function addUser(userData)
  * @param {string} username - The username of the user to delete.
  * @returns {Promise<void>}
  */
+//TODO: PORT OVER TO USERID INSTEAD OF USERNAME. THIS IS A TEMPORARY FIX BECUZ IM TIRED LMAO
 async function deleteUser(username) 
 {
     const calendarDB = dbclient.db("calendarApp");
@@ -337,11 +410,32 @@ async function deleteUser(username)
     await userCollection.deleteOne({ _name: username });
 }
 
+async function deleteEvent(eventID)
+{
+    const calendarDB = dbclient.db("calendarApp");
+    const eventsCollection = calendarDB.collection("events");
+    const eventObjectID = new ObjectId(eventID);
+    console.log("eventObjectID: " + eventObjectID);
+    await eventsCollection.deleteOne({ _id: eventObjectID });
+}
+
+/**
+ * Deletes a user by their username.
+ * @param {string} userID - The user ID of the user to delete.
+ * @returns {Promise<void>}
+ */
+//TODO: Make it so that if userID is the only person it can delete it, otherwise its gonna delete the functions of others
+async function deleteUserEvents(userID)
+{
+    const calendarDB = dbclient.db("calendarApp");
+    const eventsCollection = calendarDB.collection("events");
+    await eventsCollection.deleteMany({ _users: { $in: [userID] } });
+}
+
 app.delete('/logout', function (request, response) 
 {
     const ws = map.get(request.session.userID);
 
-    console.log('Destroying session');
     request.session.destroy(function () 
     {
         if (ws) ws.close();
@@ -441,9 +535,8 @@ async function findEvent(users, name, startDate, endDate, description)
 
         // Find one event that matches the query
         const event = await eventList.findOne(query);
-        console.log("event found: " + JSON.stringify(event));
         // If an event is found, return it; otherwise return null
-        return event;
+        return event ? event._id.toString() : null;
     } 
     catch (error) 
     {

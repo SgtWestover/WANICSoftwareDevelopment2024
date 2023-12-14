@@ -7,11 +7,15 @@ Desc: Handles the formatting for the day schedule
 
 let currentTimeLine;
 let currentTimeInterval;
+let userEvents = [];
 
 //Generate things
 
 document.addEventListener('DOMContentLoaded', function() 
 {
+
+    initializeData();
+
     // Listen for the dateSelected event
     document.addEventListener('dateSelected', function(event) 
     {
@@ -36,6 +40,20 @@ let endTime = 24;
 
 let dayContainer;
 
+function initializeData()
+{
+    const userID = localStorage.getItem('userID'); // Assuming userID is stored in localStorage
+    if (userID) 
+    {
+        getUserEvents(userID).then(fetchedEvents => 
+        {
+            userEvents = fetchedEvents; // Populate the global variable
+        }).catch(error => 
+        {
+            console.error('Error fetching initial events:', error);
+        });
+    }
+}
 
 //Generates the HTML elements for the schedule menu
 function generateSchedule() 
@@ -73,18 +91,19 @@ function generateSchedule()
     window.addEventListener("resize", function(event) 
     {
         generateTimeMeasurements();
-        console.log("Window Resized");
     });
 
     // Add an event listener to the .day-container element
-    dayContainer.addEventListener('mouseover', function () {
+    dayContainer.addEventListener('mouseover', function () 
+    {
         // Select the .lineTimeText element and change its opacity
         let lineTimeText = document.getElementById('lineTimeText');
         lineTimeText.style.opacity = 1;
     });
 
     // Add an event listener to reset the opacity when not hovering
-    dayContainer.addEventListener('mouseout', function () {
+    dayContainer.addEventListener('mouseout', function () 
+    {
         // Select the .lineTimeText element and reset its opacity
         let lineTimeText = document.getElementById('lineTimeText');
         lineTimeText.style.opacity = 0;
@@ -187,12 +206,13 @@ function updatePopupHeader(eventDetail)
 {
     let newDate = eventDetail.date;
     let isToday = eventDetail.isToday;
-
     let dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     let monthName = new Intl.DateTimeFormat('en-US', { month: 'long' }).format(newDate);
     let dayName = dayNames[newDate.getDay()];
     let dayOfMonth = newDate.getDate();
     let headerText = `${dayName}, ${monthName} ${dayOfMonth}`;
+
+    unrenderEvent(newDate); // unrender all events that don't match the newDate
 
     if (isToday) 
     {
@@ -208,12 +228,20 @@ function updatePopupHeader(eventDetail)
         currentTimeLine.style.display = 'none';
         if (currentTimeInterval) clearInterval(currentTimeInterval);
     }
-    //test
     document.getElementById('popupHeader').innerText = headerText;
     document.getElementById('popupHeader').setAttribute('data-date', newDate.toISOString().split('T')[0]);
-
-    //Update events
-    getUserEvents(localStorage.getItem('userID'));
+    //check through events
+    if (userEvents && userEvents.length > 0) 
+    {
+        userEvents.forEach(event => 
+        {
+            let eventDate = new Date(event._startDate);
+            if (eventDate.toISOString().split('T')[0] === newDate.toISOString().split('T')[0]) 
+            {
+                renderEvent(event);
+            }
+        });
+    }
 }
 
 function getDateFromAttribute(attr) 
@@ -283,22 +311,40 @@ function updateCurrentTimeLine()
 function dayContainerClick(event)
 {
     document.getElementById('eventPopup').style.display = 'block';
-
-    //createEvent(event);
     return;
 }
 
+//resets the event form
 function resetEventForm() 
 {
-    document.getElementById('eventForm').reset();
+    const eventForm = document.getElementById('eventForm');
+
+    // Reset form fields
+    eventForm.reset();
     document.getElementById('errorMessage').style.display = 'none'; // Hide error message if visible
+
+    // Reset form state and button text
+    eventForm.removeAttribute('data-editing');
+    eventForm.removeAttribute('data-event-id');
+    document.getElementById('submitEventButton').value = 'Create Event';
+
+    // Remove the delete button if it exists
+    let deleteButton = document.getElementById('deleteEventButton');
+    if (deleteButton) 
+    {
+        deleteButton.remove();
+    }
 }
 
+
+//closes the event form
 function closeEventForm()
 {
+    resetEventForm();
     document.getElementById('eventPopup').style.display = 'none';
 }
 
+//on submission of the event creater form
 document.getElementById('eventForm').addEventListener('submit', function(e) 
 {
     e.preventDefault();
@@ -313,7 +359,7 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
 
     // Convert time to Date objects
     var currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
-    var currentDate = getDateFromAttribute(currentPopupDateAttr);
+    var currentDate = new Date(currentPopupDateAttr);
     var startDate = new Date(currentDate);
     var endDate = new Date(currentDate);
 
@@ -321,75 +367,240 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     var [startHours, startMinutes] = startTime.split(':').map(Number);
     var [endHours, endMinutes] = endTime.split(':').map(Number);
 
-    startDate.setHours(startHours);
-    startDate.setMinutes(startMinutes);
-    endDate.setHours(endHours);
-    endDate.setMinutes(endMinutes);
-    console.log(startDate);
+    // Set start and end date
+    startDate.setHours(startHours, startMinutes);
+    endDate.setHours(endHours, endMinutes);
+
+    // Check if form is in editing mode
+    const eventForm = document.getElementById('eventForm');
+    const isEditing = eventForm.getAttribute('data-editing') === 'true';
+    const eventID = eventForm.getAttribute('data-event-id');
 
     // Validation
-    if (startDate < endDate) 
-    {
-        // Valid input, create event and hide error message
-        newEvent = new CalendarEvent(eventUsers, eventName, startDate, endDate, eventDesc);
-        console.log(newEvent._startDate);
-        sendEventToDatabase(newEvent);
-        document.getElementById('eventPopup').style.display = 'none';
-        document.getElementById('errorMessage').style.display = 'none';
-        renderEvent(newEvent);
-        resetEventForm();
-        
-    } 
-    else 
+    if (startDate >= endDate) 
     {
         // Invalid input, show error message
         var errorMessageDiv = document.getElementById('errorMessage');
         errorMessageDiv.textContent = "Invalid start and end times";
         errorMessageDiv.style.display = 'block';
+        return;
+    }
+
+    // Function to handle event creation or update
+    const handleEventCreationOrUpdate = () => 
+    {
+        newEvent = new CalendarEvent(eventUsers, eventName, startDate, endDate, eventDesc);
+        sendEventToDatabase(newEvent).then(response => 
+        {
+            if (response.message === "Event Created") 
+            {
+                // Event created or updated, handle accordingly
+                document.getElementById('eventPopup').style.display = 'none';
+                document.getElementById('errorMessage').style.display = 'none';
+                renderEvent(newEvent); // might need adjusting
+                resetEventForm();
+            } 
+            else 
+            {
+                // Event already exists or other issue, show error message
+                var errorMessageDiv = document.getElementById('errorMessage');
+                errorMessageDiv.textContent = response.message;
+                errorMessageDiv.style.display = 'block';
+            }
+        }).catch(error => 
+        {
+            // Handle any errors that occurred during the request
+            var errorMessageDiv = document.getElementById('errorMessage');
+            errorMessageDiv.textContent = "Error: " + error;
+            errorMessageDiv.style.display = 'block';
+        });
+    };
+
+    // Edit mode: first delete the existing event, then create/update
+    if (isEditing && eventID) 
+    {
+        deleteEvent(eventID).then(response => 
+        {
+            console.log("Event deleted:", response);
+            handleEventCreationOrUpdate();
+        }).catch(error => 
+        {
+            console.error("Error deleting event:", error);
+        });
+    } 
+    else 
+{
+        // Create mode: just create a new event
+        handleEventCreationOrUpdate();
     }
 });
 
-function getUserEvents(userID)
+// client side function which accesses server side event finder functions. Essentially an abstraction for messy backend stuff
+function getUserEvents(userID) 
 {
-    //check database for events that share user id
-    //database things
-    sendRequest('/createEvent', event)
-    .then(message => console.log(message.message))
-    .catch(error => console.error('Error:', error));
-    //render them
-    //done
+    return fetch(`/getUserEvents/${userID}`)
+        .then(response => 
+        {
+            if (!response.ok) 
+            {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(events =>
+        {
+            userEvents = events.map(eventData => convertCalendarEvent(eventData)); //map each eventData into a new calendar event
+            console.log('Events fetched:', userEvents);
+            return userEvents;
+        });
+}
+
+//the original constructor can't be touched without breaking stuff, so the next best thing is to use an individual function to convert the data
+function convertCalendarEvent(data)
+{
+    return new CalendarEvent
+    (
+        data._users,
+        data._name,
+        new Date(data._startDate),
+        new Date(data._endDate),
+        data._description,
+        data._location,
+        data._teams
+    );
 }
 
 // handles creating an event element in the schedule, and displaying it correctly in the html
-// TODO: fix params
-// TODO: store events related to day, and only display them when viewing that day
-function renderEvent(CalendarEvent)
+function renderEvent(calendarEvent)
 {    
     // create event element
     let eventElement = document.createElement("div");
     eventElement.classList.add('schedule-event');
-    eventElement.innerHTML = CalendarEvent._name //TODO: make it the description or something we can add more later
+    eventElement.innerHTML = calendarEvent._name //TODO: make it the description or something we can add more later
+    let eventDateID = calendarEvent._startDate.toISOString().split('T')[0]; // YYYY-MM-DD format, gives identifiers so it can be more easily removed later
+    eventElement.setAttribute('data-event-date', eventDateID);
+    eventElement.addEventListener('click', function() 
+    {
+        let eventID = findEventID(calendarEvent);
+        console.log("eventID: " + eventID);
+        console.log("calendarEvent: " + calendarEvent);
+        populateEventForm(eventID, calendarEvent);
+        document.getElementById('eventForm').style.display = 'block';
+    });
     // set element width
-    let hourLength = (CalendarEvent._endDate.getHours() * 60 + CalendarEvent._endDate.getMinutes()) - (CalendarEvent._startDate.getHours() * 60 + CalendarEvent._startDate.getMinutes());
+    let hourLength = (calendarEvent._endDate.getHours() * 60 + calendarEvent._endDate.getMinutes()) - (calendarEvent._startDate.getHours() * 60 + calendarEvent._startDate.getMinutes());
     let eventWidth = ((hourLength * parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))
     eventElement.style.width = `${eventWidth}px`
     // Gets the selected time based on mouse position
-    selectedHour = (CalendarEvent.startDate.getHours() * 60 + CalendarEvent.startDate.getMinutes());    
+    selectedHour = (calendarEvent.startDate.getHours() * 60 + calendarEvent.startDate.getMinutes());    
     // set position
     eventElement.style.left = `${selectedHour * ((parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))}px`;
-    // let calendarEvent = new CalendarEvent(name, date, users, description, teams);
-
-    // TODO: on click event
-
     dayContainer.appendChild(eventElement);   
+}
+
+function populateEventForm(eventID, calendarEvent)
+{
+    let startDate = calendarEvent._startDate;
+    let endDate = calendarEvent._endDate;
+
+    document.getElementById('eventName').value = calendarEvent._name;
+    document.getElementById('startTime').value = startDate.toISOString().substring(11, 16); // Format to "HH:MM"
+    document.getElementById('endTime').value = endDate.toISOString().substring(11, 16); // Format to "HH:MM"
+    document.getElementById('eventDesc').value = calendarEvent._description;
+    const eventForm = document.getElementById('eventForm');
+    eventForm.setAttribute('data-editing', 'true');
+    eventForm.setAttribute('data-event-id', eventID);
+
+    document.getElementById('submitEventButton').value = 'Edit Event';
+
+    let deleteButton = document.getElementById('deleteEventButton');
+    if (!deleteButton) 
+    {
+        deleteButton = document.createElement('button');
+        deleteButton.id = 'deleteEventButton';
+        deleteButton.textContent = 'Delete Event';
+        document.getElementById('eventForm').appendChild(deleteButton);
+    }
+    deleteButton.onclick = function() { deleteEvent(eventID); };
+}
+
+function deleteEvent(eventID)
+{
+    return sendRequest('/deleteEvent', eventID)
+        .then(message => 
+        {
+            console.log(message.message);
+            closeEventForm();
+            return message;
+        })
+        .catch(error => 
+        {
+            console.error('Error:', error)
+            throw error;
+    });
+}
+
+//handles deleting the event from local view when it's not the correct date
+function unrenderEvent(currentDate) 
+{
+    let currentDateString = currentDate.toISOString().split('T')[0];
+    let eventElements = document.querySelectorAll('.schedule-event');
+
+    eventElements.forEach(element => 
+    {
+        let eventDate = element.getAttribute('data-event-date');
+        if (eventDate !== currentDateString) 
+        {
+            element.remove(); // Remove the event element from the DOM
+        }
+    });
 }
 
 function sendEventToDatabase(event)
 {
     //database things
-    sendRequest('/createEvent', event)
-        .then(message => console.log(message.message))
-        .catch(error => console.error('Error:', error));
+    return sendRequest('/createEvent', event)
+        .then(message => 
+        {
+            console.log(message.message);
+            return message;
+        })
+        .catch(error => 
+        {
+            console.error('Error:', error)
+            throw error;
+    });
+}
+
+async function findEventID(event) 
+{
+    try 
+    {
+        const response = await sendRequest('/findEvent', 
+        {
+            _users: event._users,
+            _name: event._name,
+            _startDate: event._startDate,
+            _endDate: event._endDate,
+            _description: event._description
+        });
+
+        // Check if the event was found and return the ID
+        if (response.result === 'OK') 
+        {
+            return response.eventID;
+        } 
+        else 
+        {
+            console.error('Event not found:', response.message);
+            return null;
+        }
+    } 
+    catch (error) 
+    {
+        console.error('Error finding event ID:', error);
+        return null;
+    }
 }
 
 /**

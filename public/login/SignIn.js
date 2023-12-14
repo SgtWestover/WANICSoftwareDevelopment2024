@@ -53,9 +53,9 @@ function signIn()
         return;
     }
 
-    // Prepare and send login request
+    // Prepare and send signin request
     sendRequest('/signin', { _name: username, _password: password })
-        .then(message => handleLoginResponse(message))
+        .then(message => handleSigninResponse(message))
         .catch(error => console.error('Error:', error));
 }
 
@@ -69,18 +69,19 @@ function updateStatus(message)
 }
 
 /**
- * Handles the server response for the login request.
+ * Handles the server response for the sign request.
  * @param {Object} message - The server response message.
  */
-function handleLoginResponse(message) 
+function handleSigninResponse(message) 
 {
     updateStatus(message.message);
+    console.log(message);
     if (message.message === "OK") 
     {
         localStorage.setItem('isSignedIn', true);
-        localStorage.setItem('userID', message.userID); // Assuming the server returns userId
+        localStorage.setItem('userID', message.userID);
         document.dispatchEvent(new CustomEvent('userLoggedIn'));
-        window.location.href = '/calendar'; // Redirect to calendar page on successful login
+        window.location.href = '/calendar'; // Redirect to calendar page on successful signin
     }
 }
 
@@ -140,5 +141,3 @@ document.addEventListener('DOMContentLoaded', function()
         logoutButton.addEventListener('click', logout); //on click to the logout button (if it exists), log out
     }
 });
-
-

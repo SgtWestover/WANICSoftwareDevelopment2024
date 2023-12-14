@@ -18,7 +18,7 @@
             this.location = location;
             this.teams = teams;
         }
-
+        
         // Getter for name
         get name() 
         {

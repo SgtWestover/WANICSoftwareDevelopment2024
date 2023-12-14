@@ -125,11 +125,6 @@ document.querySelector('.popup .close').addEventListener('click', function()
     document.getElementById('popupHeader').innerHTML = '';
 });
 
-function createEvent()
-{
-
-}
-
 function addNavigationEventListeners()
 {
     // Navigate to the previous month

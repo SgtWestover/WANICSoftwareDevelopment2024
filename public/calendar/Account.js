@@ -133,19 +133,23 @@ function showModalConfirmation()
     modal.style.display = "block";
 
     var span = modal.getElementsByClassName("close")[0];
-    span.onclick = function () {
+    span.onclick = function () 
+    {
         modal.style.display = "none";
     };
 
-    window.onclick = function (event) {
-        if (event.target === modal) {
+    window.onclick = function (event) 
+    {
+        if (event.target === modal) 
+        {
             modal.style.display = "none";
         }
     };
 }
 
 // Function to close the custom confirmation modal
-function closeModalConfirmation() {
+function closeModalConfirmation() 
+{
     var modal = document.getElementById("confirmationModal");
     modal.style.display = "none";
 }
@@ -153,19 +157,20 @@ function closeModalConfirmation() {
 // Function handling the actual account deletion process
 function deleteAccountConfirmed(password) 
 {
-    const userId = localStorage.getItem('userId');
+    const userID = localStorage.getItem('userID');
     fetch('/deleteaccount', 
     {
         method: 'POST',
         credentials: 'same-origin',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ userId, password })
+        body: JSON.stringify({ userID, password })
     })
     .then(response => response.json())
-    .then(message => {
+    .then(message => 
+    {
         if (message.result === 'OK') 
         {
-            localStorage.removeItem('userId');
+            localStorage.removeItem('userID');
             window.location.href = "/login";
         } 
         else 
