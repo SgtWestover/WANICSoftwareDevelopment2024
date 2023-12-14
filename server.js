@@ -55,7 +55,7 @@ app.use('/scripts', express.static(path.join(__dirname, '/shared')));
 // Redirect to login page if user not logged in and not on login page
 app.use((req, res, next) => 
 {
-    if (!req.session.userID && !['/login', '/signup'].includes(req.path)) 
+    if (!req.session.userID && !['/signin', '/signup'].includes(req.path)) 
     {
         res.redirect('/login');
     } 
@@ -71,9 +71,9 @@ app.use('/', router);
 // #region SignIn/SignUp
 
 /**
- * POST /login - Handles user login and session creation.
+ * POST /signin - Handles user login and session creation.
  */
-router.post('/login', async (req, res) => 
+router.post('/signin', async (req, res) => 
 {
     const user = await findUser(req.body._name, req.body._password);
     if (user == null) 
@@ -83,7 +83,7 @@ router.post('/login', async (req, res) =>
     else 
     {
         req.session.userID = user._id; // Use MongoDB's unique ID and send it back
-        console.log("logging in " + user._name);
+        console.log("signing in " + user._name);
         res.send({ result: 'OK', message: "OK", userID: user._id }); // Send back user ID
     }
 });
@@ -126,13 +126,11 @@ router.post('/createEvent', async (req, res) =>
         return;
     }
     // Check if event already exists
-    if (await findEvent(req.body.users, req.body._name, req.body._startDate, req.body._endDate, req.body._description) == null) 
+    if (await findEvent(req.body._users, req.body._name, req.body._startDate, req.body._endDate, req.body._description) == null) 
     {
         // Create a new event instance and add to database
-        const newEvent = new CalendarEvent(req.body._name, req.body._startDate, req.body._endDate, req.body._description);
-        console.log(newEvent);
+        const newEvent = new CalendarEvent(req.body._users, req.body._name, req.body._startDate, req.body._endDate, req.body._description);
         await addEvent(newEvent);
-        console.log("event created: " + JSON.stringify(newEvent));
         res.send({ result: 'OK', message: "Event Created" });
     }
     else 
@@ -145,13 +143,13 @@ router.post('/createEvent', async (req, res) =>
 /**
  * POST /logout - Handles user logout. It removes the user's session.
  */
-router.post('/logout', async (req, res) => 
+router.post('/signout', async (req, res) => 
 {
     if (req.session.userID) 
     {
         // Remove the user's session and send response
         req.session.destroy();
-        res.send({ result: 'OK', message: "Logged out successfully" });
+        res.send({ result: 'OK', message: "signed out successfully" });
     }
 });
 
@@ -417,70 +415,43 @@ wss.on('connection', function (ws, request)
 });
 
 /**
- * Finds an event by name and date
- * @param {string} name - The name of the evet
+ * Finds an event by name, dates, and description
+ * @param {string} name - The name of the event
  * @param {Date} startDate - The starting date of the event
  * @param {Date} endDate - The ending date of the event
  * @param {string} description - The description of the event
- * @returns {Promise<Object|null>} The event object if identical event, otherwise null.
+ * @returns {Promise<Object|null>} The event object if an identical event is found, otherwise null.
  */
-async function findEvent(name, startDate, endDate, description)
+async function findEvent(users, name, startDate, endDate, description) 
 {
-    const calendar = dbclient.db("calendarApp");
-    const eventlist = calendar.collection("events");
-    const query = {_name: name};
-    const event = await eventlist.findOne(query);
-    if (event != null && event._startDate != null && startDate != null && event._endDate != null && endDate != null && event._description != null && description != null) 
+    try 
     {
-        //console.log(username + " " + password + " " + account.password)
-        //Check name
-        try {
-            const result = await bcrypt.compare(name, event._name);
-            if (result)
-            {
-                //Check endDate
-                try {
-                    const result = await bcrypt.compare(endDate, event._endDate);
-                    if (result)
-                    {
-                        //Check endDate
-                        try {
-                            const result = await bcrypt.compare(endDate, event._endDate);
-                            if (result)
-                            {
-                                //Check description
-                                try {
-                                    const result = await bcrypt.compare(description, event._description);
-                                    if (result)
-                                    {
-                                        return event;
-                                    }
-                                } catch (error)
-                                {
-                                    console.log("Event Check Name: " + error)
-                                }
-                            }
-                        } catch (error)
-                        {
-                            console.log("Event Check Start Date: " + error)
-                        }
-                    }
-                } catch (error)
-                {
-                    console.log("Event Check End Date: " + error)
-                }
-            }
-        } catch (error)
+        const calendar = dbclient.db("calendarApp");
+        const eventList = calendar.collection("events");
+
+        // Create a query to find an event matching all the given criteria
+        const query = 
         {
-            console.log("Event Check Description: " + error)
-        }
-    }
-    else
+            _users: users,
+            _name: name,
+            _startDate: startDate,
+            _endDate: endDate,
+            _description: description
+        };
+
+        // Find one event that matches the query
+        const event = await eventList.findOne(query);
+        console.log("event found: " + JSON.stringify(event));
+        // If an event is found, return it; otherwise return null
+        return event;
+    } 
+    catch (error) 
     {
+        console.error("Error finding event: ", error);
         return null;
     }
-    return null;
 }
+
 
 /**
  * Adds a new event to the database.

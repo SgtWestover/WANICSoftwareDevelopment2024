@@ -8,15 +8,15 @@
     //Event class for an event on the calendar
     class CalendarEvent 
     {
-        constructor(users, name, startDate, endDate, location = null, description, teams = null) 
+        constructor(users, name, startDate, endDate, description, location = null, teams = null) 
         {
+            this.users = users;
             this.name = name;
             this.startDate = startDate;
             this.endDate = endDate;
             this.description = description;
             this.location = location;
             this.teams = teams;
-            this.users = users;
         }
 
         // Getter for name

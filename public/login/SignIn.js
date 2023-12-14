@@ -54,7 +54,7 @@ function signIn()
     }
 
     // Prepare and send login request
-    sendRequest('/login', { _name: username, _password: password })
+    sendRequest('/signin', { _name: username, _password: password })
         .then(message => handleLoginResponse(message))
         .catch(error => console.error('Error:', error));
 }
@@ -77,7 +77,7 @@ function handleLoginResponse(message)
     updateStatus(message.message);
     if (message.message === "OK") 
     {
-        localStorage.setItem('isLoggedIn', true);
+        localStorage.setItem('isSignedIn', true);
         localStorage.setItem('userID', message.userID); // Assuming the server returns userId
         document.dispatchEvent(new CustomEvent('userLoggedIn'));
         window.location.href = '/calendar'; // Redirect to calendar page on successful login

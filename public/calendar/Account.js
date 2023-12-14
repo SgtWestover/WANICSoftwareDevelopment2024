@@ -1,7 +1,7 @@
-// Function to handle logout
-function logout() 
+// Function to handle signout
+function signout() 
 {
-    fetch('/logout', 
+    fetch('/signout', 
     {
         method: 'POST',
         credentials: 'same-origin',
@@ -12,6 +12,8 @@ function logout()
     {
         if (message.result === 'OK') 
         {
+            localStorage.removeItem('userID');
+            localStorage.setItem('isSignedIn', false);
             // Clear any client-side storage or state that references the user
             window.location.href = "/login";
         } 
