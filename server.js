@@ -10,6 +10,7 @@ const { MongoClient } = require("mongodb");
 const cookieParser = require("cookie-parser");
 const path = require('path');
 const { User, CalendarEvent } = require('./shared/UserData');
+const { ObjectId } = require('mongodb');
 
 // Initialize Express application
 const app = express();
@@ -202,7 +203,7 @@ router.post('/checkpassword/', async (req, res) =>
     {
         const user = await findUserByID(req.session.userID);
         console.log("entered password: " + req.body._password);
-        console.log("stored password" + user._password);
+        console.log("stored password: " + user._password);
         if (user && await bcrypt.compare(req.body._password, user._password)) 
         {
             res.send({ result: 'OK', message: "CorrectPassword" });
