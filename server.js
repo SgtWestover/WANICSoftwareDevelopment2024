@@ -121,13 +121,13 @@ router.post('/signup', async (req, res) =>
 router.post('/createEvent', async (req, res) => 
 {
     // Check if all information is provided
-    if (!req.body._name || !req.body._startDate || !req.body._endDate || !req.body._description) 
+    if (!req.body._users || !req.body._name || !req.body._startDate || !req.body._endDate || !req.body._description) 
     {
         res.send({ result: 'OK', message: "Missing information" });
         return;
     }
     // Check if event already exists
-    if (await findEvent(req.body._name, req.body._startDate, req.body._endDate, req.body._description) == null) 
+    if (await findEvent(req.body.users, req.body._name, req.body._startDate, req.body._endDate, req.body._description) == null) 
     {
         // Create a new event instance and add to database
         const newEvent = new Event(req.body._name, req.body._startDate, req.body._endDate, req.body._description);

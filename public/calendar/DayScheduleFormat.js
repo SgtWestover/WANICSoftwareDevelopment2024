@@ -301,6 +301,7 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     e.preventDefault();
 
     // Get form values
+    var eventUsers = localStorage.getItem('userID');
     var eventName = document.getElementById('eventName').value;
     var startTime = document.getElementById('startTime').value;
     var endTime = document.getElementById('endTime').value;
@@ -322,7 +323,7 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     // Validation
     if (startDate < endDate) {
         // Valid input, create event and hide error message
-        newEvent = new CalendarEvent(eventName, startDate, endDate, eventDesc);
+        newEvent = new CalendarEvent(users, eventName, startDate, endDate, eventDesc);
         console.log(newEvent._startDate.getHours());
         sendEventToDatabase(newEvent);
         document.getElementById('eventPopup').style.display = 'none';
