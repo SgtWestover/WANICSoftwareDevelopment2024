@@ -13,8 +13,8 @@
             this.name = name;
             this.startDate = startDate;
             this.endDate = endDate;
-            this.location = location;
             this.description = description;
+            this.location = location;
             this.teams = teams;
             this.users = users;
         }

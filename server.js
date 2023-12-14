@@ -120,6 +120,7 @@ router.post('/signup', async (req, res) =>
  */
 router.post('/createEvent', async (req, res) => 
 {
+    console.log(req.body);
     // Check if all information is provided
     if (!req.body._users || !req.body._name || !req.body._startDate || !req.body._endDate || !req.body._description) 
     {
@@ -130,10 +131,10 @@ router.post('/createEvent', async (req, res) =>
     if (await findEvent(req.body.users, req.body._name, req.body._startDate, req.body._endDate, req.body._description) == null) 
     {
         // Create a new event instance and add to database
-        const newEvent = new Event(req.body._name, req.body._startDate, req.body._endDate, req.body._description);
+        const newEvent = new CalendarEvent(req.body._name, req.body._startDate, req.body._endDate, req.body._description);
         console.log(newEvent);
         await addEvent(newEvent);
-        console.log("event created: " + newEvent);
+        console.log("event created: " + JSON.stringify(newEvent));
         res.send({ result: 'OK', message: "Event Created" });
     }
     else 
