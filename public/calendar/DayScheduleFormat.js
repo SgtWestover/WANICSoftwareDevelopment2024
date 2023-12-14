@@ -301,7 +301,8 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     e.preventDefault();
 
     // Get form values
-    var eventUsers = localStorage.getItem('userID');
+    var userIDString = localStorage.getItem('userID');
+    var eventUsers = userIDString ? [userIDString] : [];
     var eventName = document.getElementById('eventName').value;
     var startTime = document.getElementById('startTime').value;
     var endTime = document.getElementById('endTime').value;
@@ -321,9 +322,10 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     endDate.setHours(endHours, endMinutes);
 
     // Validation
-    if (startDate < endDate) {
+    if (startDate < endDate) 
+    {
         // Valid input, create event and hide error message
-        newEvent = new CalendarEvent(users, eventName, startDate, endDate, eventDesc);
+        newEvent = new CalendarEvent(eventUsers, eventName, startDate, endDate, eventDesc);
         console.log(newEvent._startDate.getHours());
         sendEventToDatabase(newEvent);
         document.getElementById('eventPopup').style.display = 'none';
@@ -331,7 +333,9 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
         renderEvent(newEvent);
         resetEventForm();
         
-    } else {
+    } 
+    else 
+    {
         // Invalid input, show error message
         var errorMessageDiv = document.getElementById('errorMessage');
         errorMessageDiv.textContent = "Invalid start and end times";
