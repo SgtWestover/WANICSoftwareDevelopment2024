@@ -11,6 +11,7 @@ const cookieParser = require("cookie-parser");
 const path = require('path');
 const { User, CalendarEvent } = require('./shared/UserData');
 const { ObjectId } = require('mongodb');
+const { Console } = require('console');
 
 // Initialize Express application
 const app = express();
@@ -120,7 +121,7 @@ router.post('/signup', async (req, res) =>
 router.post('/createEvent', async (req, res) => 
 {
     // Check if all information is provided
-    if (!req.body._users || !req.body._name || !req.body._startDate || !req.body._endDate || !req.body._description) 
+    if (!req.body._users || !req.body._name || !req.body._startDate || !req.body._endDate)
     {
         res.send({ result: 'OK', message: "Missing information" });
         return;
@@ -142,19 +143,17 @@ router.post('/createEvent', async (req, res) =>
 router.post('/findEvent', async (req, res) => 
 {
     // Check if all necessary information is provided
-    if (!req.body._users || !req.body._name || !req.body._startDate || !req.body._endDate || !req.body._description) 
+    if (!req.body._users || !req.body._name || !req.body._startDate || !req.body._endDate)
     {
         res.send({ result: 'ERROR', message: "Missing information" });
         return;
     }
-
     // Find the event
-    const event = await findEvent(req.body._users, req.body._name, req.body._startDate, req.body._endDate, req.body._description);
-
+    const foundEventID = await findEvent(req.body._users, req.body._name, req.body._startDate, req.body._endDate, req.body._description);
     // If an event is found, return its ID; otherwise, indicate it was not found
-    if (event) 
+    if (foundEventID) 
     {
-        res.send({ result: 'OK', eventID: event._id.toString() });
+        res.send({ result: 'OK', eventID: foundEventID });
     } 
     else 
     {
@@ -165,7 +164,6 @@ router.post('/findEvent', async (req, res) =>
 router.post('/deleteEvent', async (req, res) => 
 {
     const eventID = req.body.eventID;
-
     if (!eventID) 
     {
         res.send({ result: 'ERROR', message: "Missing event ID" });
@@ -173,8 +171,23 @@ router.post('/deleteEvent', async (req, res) =>
     }
     try 
     {
+        // Retrieve event details before deletion
+        const eventDetails = await findEventDetails(eventID);
+        console.log("event Details: " + JSON.stringify(eventDetails));
+        if (!eventDetails) 
+        {
+            res.send({ result: 'ERROR', message: "Event not found" });
+            return;
+        }
+        // Delete the event
         await deleteEvent(eventID);
-        res.send({ result: 'OK', message: "Event deleted successfully" });
+
+        // Send back the details of the deleted event
+        res.send
+        ({ 
+            result: 'OK', 
+            message: "Event deleted successfully", 
+        });
     } 
     catch (error) 
     {
@@ -415,7 +428,6 @@ async function deleteEvent(eventID)
     const calendarDB = dbclient.db("calendarApp");
     const eventsCollection = calendarDB.collection("events");
     const eventObjectID = new ObjectId(eventID);
-    console.log("eventObjectID: " + eventObjectID);
     await eventsCollection.deleteOne({ _id: eventObjectID });
 }
 
@@ -545,6 +557,23 @@ async function findEvent(users, name, startDate, endDate, description)
     }
 }
 
+async function findEventDetails(eventID)
+{
+    try 
+    {
+        const calendar = dbclient.db("calendarApp");
+        const eventList = calendar.collection("events");
+        const eventObjectID = new ObjectId(eventID);
+        const query = { _id: eventObjectID };
+        const event = await eventList.findOne(query);
+        return event;
+    } 
+    catch (error) 
+    {
+        console.error("Error finding event: ", error);
+        return null;
+    }
+}
 
 /**
  * Adds a new event to the database.

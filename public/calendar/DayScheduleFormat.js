@@ -8,13 +8,14 @@ Desc: Handles the formatting for the day schedule
 let currentTimeLine;
 let currentTimeInterval;
 let userEvents = [];
+let currentEventElement = null;
 
 //Generate things
 
 document.addEventListener('DOMContentLoaded', function() 
 {
 
-    initializeData();
+    initializeEvents();
 
     // Listen for the dateSelected event
     document.addEventListener('dateSelected', function(event) 
@@ -40,10 +41,10 @@ let endTime = 24;
 
 let dayContainer;
 
-function initializeData()
+function initializeEvents()
 {
     const userID = localStorage.getItem('userID'); // Assuming userID is stored in localStorage
-    if (userID) 
+    if (userID)
     {
         getUserEvents(userID).then(fetchedEvents => 
         {
@@ -318,7 +319,7 @@ function dayContainerClick(event)
 function resetEventForm() 
 {
     const eventForm = document.getElementById('eventForm');
-
+    document.getElementById('eventPopupHeader').textContent = 'Create Event';
     // Reset form fields
     eventForm.reset();
     document.getElementById('errorMessage').style.display = 'none'; // Hide error message if visible
@@ -348,7 +349,6 @@ function closeEventForm()
 document.getElementById('eventForm').addEventListener('submit', function(e) 
 {
     e.preventDefault();
-
     // Get form values
     var userIDString = localStorage.getItem('userID');
     var eventUsers = userIDString ? [userIDString] : [];
@@ -419,9 +419,14 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     // Edit mode: first delete the existing event, then create/update
     if (isEditing && eventID) 
     {
-        deleteEvent(eventID).then(response => 
+        deleteEvent(eventID).then(response =>
         {
-            console.log("Event deleted:", response);
+            console.log(response);
+            if (currentEventElement) 
+            {
+                currentEventElement.remove();
+                currentEventElement = null; // Reset the reference
+            }
             handleEventCreationOrUpdate();
         }).catch(error => 
         {
@@ -429,7 +434,7 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
         });
     } 
     else 
-{
+    {
         // Create mode: just create a new event
         handleEventCreationOrUpdate();
     }
@@ -450,7 +455,6 @@ function getUserEvents(userID)
         .then(events =>
         {
             userEvents = events.map(eventData => convertCalendarEvent(eventData)); //map each eventData into a new calendar event
-            console.log('Events fetched:', userEvents);
             return userEvents;
         });
 }
@@ -478,14 +482,19 @@ function renderEvent(calendarEvent)
     eventElement.classList.add('schedule-event');
     eventElement.innerHTML = calendarEvent._name //TODO: make it the description or something we can add more later
     let eventDateID = calendarEvent._startDate.toISOString().split('T')[0]; // YYYY-MM-DD format, gives identifiers so it can be more easily removed later
+    eventElement.style.zIndex = 20;
     eventElement.setAttribute('data-event-date', eventDateID);
     eventElement.addEventListener('click', function() 
     {
-        let eventID = findEventID(calendarEvent);
-        console.log("eventID: " + eventID);
-        console.log("calendarEvent: " + calendarEvent);
-        populateEventForm(eventID, calendarEvent);
-        document.getElementById('eventForm').style.display = 'block';
+        findEventID(calendarEvent)
+        .then(eventID => 
+        {
+            populateEventForm(eventID, calendarEvent, eventElement);
+        })
+        .catch(error => 
+        {
+            console.error('Error:', error);
+        });
     });
     // set element width
     let hourLength = (calendarEvent._endDate.getHours() * 60 + calendarEvent._endDate.getMinutes()) - (calendarEvent._startDate.getHours() * 60 + calendarEvent._startDate.getMinutes());
@@ -498,46 +507,78 @@ function renderEvent(calendarEvent)
     dayContainer.appendChild(eventElement);   
 }
 
-function populateEventForm(eventID, calendarEvent)
+//TODO: INEFFICIENT FUNCTION, REFACTOR LATER WITH FRAGMENTS
+function populateEventForm(eventID, calendarEvent, eventElement)
 {
     let startDate = calendarEvent._startDate;
     let endDate = calendarEvent._endDate;
+    currentEventElement = eventElement;
 
+    document.getElementById('eventPopupHeader').textContent = 'Edit Event';
     document.getElementById('eventName').value = calendarEvent._name;
-    document.getElementById('startTime').value = startDate.toISOString().substring(11, 16); // Format to "HH:MM"
-    document.getElementById('endTime').value = endDate.toISOString().substring(11, 16); // Format to "HH:MM"
+    document.getElementById('startTime').value = formatToLocalTime(startDate); // Format to "HH:MM"
+    document.getElementById('endTime').value = formatToLocalTime(endDate); // Format to "HH:MM"
     document.getElementById('eventDesc').value = calendarEvent._description;
     const eventForm = document.getElementById('eventForm');
     eventForm.setAttribute('data-editing', 'true');
     eventForm.setAttribute('data-event-id', eventID);
-
     document.getElementById('submitEventButton').value = 'Edit Event';
 
+    let fragment = document.createDocumentFragment();
+    
     let deleteButton = document.getElementById('deleteEventButton');
     if (!deleteButton) 
     {
         deleteButton = document.createElement('button');
         deleteButton.id = 'deleteEventButton';
         deleteButton.textContent = 'Delete Event';
-        document.getElementById('eventForm').appendChild(deleteButton);
+        fragment.appendChild(deleteButton);
     }
-    deleteButton.onclick = function() { deleteEvent(eventID); };
+
+    deleteButton.onclick = function(e) 
+    {
+        e.preventDefault();
+        deleteEvent(eventID); 
+    };
+
+    document.getElementById('eventForm').appendChild(fragment)
+    document.getElementById('eventForm').style.display = 'block'; //inefficent but it works
 }
 
 function deleteEvent(eventID)
 {
-    return sendRequest('/deleteEvent', eventID)
-        .then(message => 
+    currentEventElement.remove();
+    let eventBody = 
+    {
+        eventID: eventID
+    };
+    return sendRequest('/deleteEvent', eventBody)
+        .then(response => 
         {
-            console.log(message.message);
-            closeEventForm();
-            return message;
+            if (response.result === 'OK')
+            {
+                initializeEvents();
+                closeEventForm();
+                return response.message;
+            }
         })
         .catch(error => 
         {
             console.error('Error:', error)
             throw error;
     });
+}
+
+function formatToLocalTime(date) 
+{
+    // Get local hours and minutes
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    // Pad single digit minutes and hours with a leading zero
+    const paddedHours = hours.toString().padStart(2, '0');
+    const paddedMinutes = minutes.toString().padStart(2, '0');
+    // Return the formatted time string
+    return paddedHours + ':' + paddedMinutes;
 }
 
 //handles deleting the event from local view when it's not the correct date
@@ -551,7 +592,7 @@ function unrenderEvent(currentDate)
         let eventDate = element.getAttribute('data-event-date');
         if (eventDate !== currentDateString) 
         {
-            element.remove(); // Remove the event element from the DOM
+            element.remove(); // Rekmove the event element from the DOM
         }
     });
 }
@@ -572,19 +613,18 @@ function sendEventToDatabase(event)
     });
 }
 
-async function findEventID(event) 
+function findEventID(event) 
 {
-    try 
+    return sendRequest('/findEvent', 
     {
-        const response = await sendRequest('/findEvent', 
-        {
-            _users: event._users,
-            _name: event._name,
-            _startDate: event._startDate,
-            _endDate: event._endDate,
-            _description: event._description
-        });
-
+        _users: event._users,
+        _name: event._name,
+        _startDate: event._startDate,
+        _endDate: event._endDate,
+        _description: event._description
+    })
+    .then(response => 
+    {
         // Check if the event was found and return the ID
         if (response.result === 'OK') 
         {
@@ -595,13 +635,13 @@ async function findEventID(event)
             console.error('Event not found:', response.message);
             return null;
         }
-    } 
-    catch (error) 
-    {
+    })
+    .catch(error => {
         console.error('Error finding event ID:', error);
         return null;
-    }
+    });
 }
+
 
 /**
  * Sends an HTTP POST request to the specified endpoint with the provided data.

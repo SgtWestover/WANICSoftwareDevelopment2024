@@ -75,9 +75,9 @@ function updateStatus(message)
 function handleSigninResponse(message) 
 {
     updateStatus(message.message);
-    console.log(message);
     if (message.message === "OK") 
     {
+        console.log("successfully signed in");
         localStorage.setItem('isSignedIn', true);
         localStorage.setItem('userID', message.userID);
         document.dispatchEvent(new CustomEvent('userLoggedIn'));
