@@ -1,9 +1,12 @@
 /*
 Name: Zach Rojas, Kaelin Wang Hu
 Date: 11/27/2023
-Last Edit: 11/29/2023
+Last Edit: 12/14/2023
 Desc: Handles the formatting for the day schedule
 */
+
+//TODO: ORGANIZE PROCEDURAL BLOAT and make it so that the time zones are actually consistent
+//TODO: Documentate better lol
 
 let currentTimeLine;
 let currentTimeInterval;
@@ -49,6 +52,7 @@ function initializeEvents()
         getUserEvents(userID).then(fetchedEvents => 
         {
             userEvents = fetchedEvents; // Populate the global variable
+            console.log("UserEvents: " + JSON.stringify(userEvents));
         }).catch(error => 
         {
             console.error('Error fetching initial events:', error);
@@ -236,6 +240,7 @@ function updatePopupHeader(eventDetail)
     {
         userEvents.forEach(event => 
         {
+            console.log(event);
             let eventDate = new Date(event._startDate);
             if (eventDate.toISOString().split('T')[0] === newDate.toISOString().split('T')[0]) 
             {
@@ -419,6 +424,24 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     // Edit mode: first delete the existing event, then create/update
     if (isEditing && eventID) 
     {
+        const originalEventData = JSON.parse(eventForm.getAttribute('data-original-event'));
+        // Compare current form data with original event data
+        const currentEventData = 
+        {
+            name: document.getElementById('eventName').value,
+            startTime: document.getElementById('startTime').value,
+            endTime: document.getElementById('endTime').value,
+            description: document.getElementById('eventDesc').value
+        };
+        //if they are the exact same, then display an error message
+        if (JSON.stringify(currentEventData) === JSON.stringify(originalEventData)) 
+        {
+            var errorMessageDiv = document.getElementById('errorMessage');
+            errorMessageDiv.textContent = "Event Unchanged";
+            errorMessageDiv.style.display = 'block';
+            return;
+        }
+
         deleteEvent(eventID).then(response =>
         {
             console.log(response);
@@ -534,6 +557,16 @@ function populateEventForm(eventID, calendarEvent, eventElement)
         deleteButton.textContent = 'Delete Event';
         fragment.appendChild(deleteButton);
     }
+
+    const originalEventData = 
+    {
+        name: calendarEvent._name,
+        startTime: formatToLocalTime(calendarEvent._startDate),
+        endTime: formatToLocalTime(calendarEvent._endDate),
+        description: calendarEvent._description
+    };
+
+    eventForm.setAttribute('data-original-event', JSON.stringify(originalEventData));
 
     deleteButton.onclick = function(e) 
     {
