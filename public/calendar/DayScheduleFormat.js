@@ -1,12 +1,13 @@
 /*
 Name: Zach Rojas, Kaelin Wang Hu
 Date: 11/27/2023
-Last Edit: 12/14/2023
+Last Edit: 12/15/2023
 Desc: Handles the formatting for the day schedule
 */
 
 //TODO: ORGANIZE PROCEDURAL BLOAT and make it so that the time zones are actually consistent
 //TODO: Documentate better lol
+//TODO: CalendarEvent probably needs to have a time zone parameter for it to be set to for multiple people/teams
 
 let currentTimeLine;
 let currentTimeInterval;
@@ -240,7 +241,6 @@ function updatePopupHeader(eventDetail)
     {
         userEvents.forEach(event => 
         {
-            console.log(event);
             let eventDate = new Date(event._startDate);
             if (eventDate.toISOString().split('T')[0] === newDate.toISOString().split('T')[0]) 
             {
@@ -366,21 +366,19 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     var currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
     var currentDate = new Date(currentPopupDateAttr);
     var startDate = new Date(currentDate);
-    var endDate = new Date(currentDate);
-
-    // Parse hours and minutes
+    var endDate = new Date(currentDate);    
     var [startHours, startMinutes] = startTime.split(':').map(Number);
     var [endHours, endMinutes] = endTime.split(':').map(Number);
-
-    // Set start and end date
+    var timeOffset = startDate.getTimezoneOffset() * 60000;
+    var dayOffset = 24 * 60 * 60 * 1000;
     startDate.setHours(startHours, startMinutes);
     endDate.setHours(endHours, endMinutes);
+    startDate = new Date(startDate.getTime() - timeOffset + dayOffset); //dunno why but you have to add a day for this to work
+    endDate = new Date(endDate.getTime() - timeOffset + dayOffset);
 
-    // Check if form is in editing mode
     const eventForm = document.getElementById('eventForm');
     const isEditing = eventForm.getAttribute('data-editing') === 'true';
     const eventID = eventForm.getAttribute('data-event-id');
-
     // Validation
     if (startDate >= endDate) 
     {
@@ -403,6 +401,7 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
                 document.getElementById('eventPopup').style.display = 'none';
                 document.getElementById('errorMessage').style.display = 'none';
                 renderEvent(newEvent); // might need adjusting
+                initializeEvents();
                 resetEventForm();
             } 
             else 
@@ -507,6 +506,7 @@ function renderEvent(calendarEvent)
     let eventDateID = calendarEvent._startDate.toISOString().split('T')[0]; // YYYY-MM-DD format, gives identifiers so it can be more easily removed later
     eventElement.style.zIndex = 20;
     eventElement.setAttribute('data-event-date', eventDateID);
+    const timeZoneOffset = calendarEvent._startDate.getTimezoneOffset() / 60;
     eventElement.addEventListener('click', function() 
     {
         findEventID(calendarEvent)
@@ -520,11 +520,11 @@ function renderEvent(calendarEvent)
         });
     });
     // set element width
-    let hourLength = (calendarEvent._endDate.getHours() * 60 + calendarEvent._endDate.getMinutes()) - (calendarEvent._startDate.getHours() * 60 + calendarEvent._startDate.getMinutes());
+    let hourLength = (calendarEvent._endDate.getHours()* 60 + calendarEvent._endDate.getMinutes()) - (calendarEvent._startDate.getHours() * 60 + calendarEvent._startDate.getMinutes());
     let eventWidth = ((hourLength * parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))
     eventElement.style.width = `${eventWidth}px`
     // Gets the selected time based on mouse position
-    selectedHour = (calendarEvent.startDate.getHours() * 60 + calendarEvent.startDate.getMinutes());    
+    selectedHour = ((calendarEvent._startDate.getHours() + timeZoneOffset) * 60 + calendarEvent._startDate.getMinutes());    
     // set position
     eventElement.style.left = `${selectedHour * ((parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))}px`;
     dayContainer.appendChild(eventElement);   
@@ -539,8 +539,8 @@ function populateEventForm(eventID, calendarEvent, eventElement)
 
     document.getElementById('eventPopupHeader').textContent = 'Edit Event';
     document.getElementById('eventName').value = calendarEvent._name;
-    document.getElementById('startTime').value = formatToLocalTime(startDate); // Format to "HH:MM"
-    document.getElementById('endTime').value = formatToLocalTime(endDate); // Format to "HH:MM"
+    document.getElementById('startTime').value = formatToUTCTime(startDate); // Format to "HH:MM"
+    document.getElementById('endTime').value = formatToUTCTime(endDate); // Format to "HH:MM"
     document.getElementById('eventDesc').value = calendarEvent._description;
     const eventForm = document.getElementById('eventForm');
     eventForm.setAttribute('data-editing', 'true');
@@ -561,8 +561,8 @@ function populateEventForm(eventID, calendarEvent, eventElement)
     const originalEventData = 
     {
         name: calendarEvent._name,
-        startTime: formatToLocalTime(calendarEvent._startDate),
-        endTime: formatToLocalTime(calendarEvent._endDate),
+        startTime: formatToUTCTime(calendarEvent._startDate),
+        endTime: formatToUTCTime(calendarEvent._endDate),
         description: calendarEvent._description
     };
 
@@ -602,16 +602,16 @@ function deleteEvent(eventID)
     });
 }
 
-function formatToLocalTime(date) 
+function formatToUTCTime(date) 
 {
-    // Get local hours and minutes
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
+    // Get UTC hours and minutes
+    const hoursUTC = date.getUTCHours();
+    const minutesUTC = date.getUTCMinutes();
     // Pad single digit minutes and hours with a leading zero
-    const paddedHours = hours.toString().padStart(2, '0');
-    const paddedMinutes = minutes.toString().padStart(2, '0');
-    // Return the formatted time string
-    return paddedHours + ':' + paddedMinutes;
+    const paddedHoursUTC = hoursUTC.toString().padStart(2, '0');
+    const paddedMinutesUTC = minutesUTC.toString().padStart(2, '0');
+    // Return the formatted time string in UTC
+    return paddedHoursUTC + ':' + paddedMinutesUTC;
 }
 
 //handles deleting the event from local view when it's not the correct date

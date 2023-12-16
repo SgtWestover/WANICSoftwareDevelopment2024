@@ -1,5 +1,5 @@
 /*
-Name: Zach Rojas, Kaelin Wang Hu, Jason Leech
+Name: Zach Rojas, Kaelin Wang Hu
 Date: 11/21/2023
 Last Edit: 11/27/2023
 Desc: Handles the main calendar page and formatting

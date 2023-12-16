@@ -85,7 +85,7 @@ router.post('/signin', async (req, res) =>
     {
         req.session.userID = user._id; // Use MongoDB's unique ID and sets it for the session for authorization
         console.log("signing in " + user._name);
-        res.send({ result: 'OK', message: "OK", userID: user._id }); // Send back user ID
+        res.send({ result: 'OK', message: "Sign In Successful", userID: user._id }); // Send back user ID
     }
 });
 
@@ -298,7 +298,6 @@ router.post('/checkpassword/', async (req, res) =>
     if (req.session.userID) 
     {
         const user = await findUserByID(req.session.userID);
-        console.log("stored password: " + user._password);
         if (user && await bcrypt.compare(req.body._password, user._password)) 
         {
             res.send({ result: 'OK', message: "CorrectPassword" });

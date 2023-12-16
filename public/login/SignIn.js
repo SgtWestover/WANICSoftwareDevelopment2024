@@ -19,7 +19,7 @@ function clearFields()
     document.getElementById('password').value = '';
 }
 
-// Tests whether the username is valid (>3 characters, doesn't contain special characters except for underscore dash)
+// Tests whether the username is valid (between 4 and 16 characters, doesn't contain spaces special characters except for underscore and dash)
 function isValidUsername(username)
 {
     const usernameRegex = /^[A-Za-z\d_-]{4,16}$/; // Regex for username validation
@@ -45,18 +45,31 @@ function signIn()
 {
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
-
-    // Validate username and password format
-    if (!isValidUsername(username) || !isValidPassword(password, username)) 
-    {
-        updateStatus("Invalid username or password format.");
-        return;
-    }
-
+    if (checkFields(username, password) === false) return;
     // Prepare and send signin request
     sendRequest('/signin', { _name: username, _password: password })
         .then(message => handleSigninResponse(message))
         .catch(error => console.error('Error:', error));
+}
+
+function checkFields(username, password)
+{
+    if (username === '' || password === '') // If either field is empty, do nothing
+    {
+        updateStatus("Please enter a username and password.");
+        return false;
+    }
+    if (!isValidUsername(username))
+    {
+        updateStatus("Invalid username format. Please enter a username between 4 and 16 characters long containing only letters, numbers, underscores, and dashes.");
+        return false;
+    }
+    else if (!isValidPassword(password, username))
+    {
+        updateStatus("Invalid password format. Please enter a password 8 and 32 characters, containing at least one lowercase letter, one uppercase letter, one digit, and one special ASCII character.");
+        return false;
+    }
+    return true;
 }
 
 /**
@@ -75,7 +88,7 @@ function updateStatus(message)
 function handleSigninResponse(message) 
 {
     updateStatus(message.message);
-    if (message.message === "OK") 
+    if (message.message === "Sign In Successful") 
     {
         console.log("successfully signed in");
         localStorage.setItem('isSignedIn', true);
@@ -94,11 +107,7 @@ function signUp()
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
     // Validate username and password format
-    if (!isValidUsername(username) || !isValidPassword(password, username)) 
-    {
-        updateStatus("Invalid username or password format.");
-        return;
-    }
+    if (checkFields(username, password) === false) return;
     // Create new user object and send sign-up request
     let newUser = new User(username, password);
     console.log(newUser);

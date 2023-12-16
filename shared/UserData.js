@@ -1,6 +1,6 @@
 //Name: Zach Rojas and Kaelin Wang Hu
 //Date Created: 12/7/2023
-//Last Modified: 12/7/2023
+//Last Modified: 12/14/2023
 //Desc: Handles user data
 
 (function(exports)
