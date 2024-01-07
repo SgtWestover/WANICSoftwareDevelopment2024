@@ -556,7 +556,7 @@ td
   border: none;
   cursor: pointer;
   position: relative;
-  transition: transform 100ms;
+  transition: transform 100ms ease-out;
   transform: scale(1);
 }
 
