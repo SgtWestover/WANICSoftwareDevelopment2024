@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function ()
     }
     addNavigationEventListeners();
     renderCalendar(currentDate);
+    createYearDropdown(1000,9999)
 });
 
 ws.addEventListener("open", (event) => {
@@ -39,8 +40,9 @@ function renderCalendar(date)
     let calendarBody = document.getElementById('calendar-body');
     calendarBody.innerHTML = '';
 
-    // Set the month and year in the header
-    document.getElementById('month-year').innerText = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(date);
+    // Set the month and year in the header TODO: Fix months
+    document.getElementById('month-button').innerText = new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date);
+    document.getElementById('year-button').innerText = new Intl.DateTimeFormat('en-US', { year: 'numeric'}).format(date);
 
     // Get the first and last day of the month
     let firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -171,4 +173,106 @@ function changeMonth(delta)
     //create the new date and render the new calendar
     currentDate = new Date(newYear, newMonth, newDay);
     renderCalendar(currentDate);
+}
+
+//sets the month based on an int
+function setMonth(month)
+{
+    // Adjust the month
+    let newMonth = month
+    let newYear = currentDate.getFullYear();
+    // Get the last day of the new month
+    let lastDayNewMonth = new Date(newYear, newMonth + 1, 0).getDate();
+
+    // If the current day is greater than the last day of the new month, adjust the day
+    let newDay = currentDate.getDate();
+    if (newDay > lastDayNewMonth)
+    {
+        newDay = lastDayNewMonth; // Set to the last day of the new month
+    }
+
+    //create the new date and render the new calendar
+    currentDate = new Date(newYear, newMonth, newDay);
+    renderCalendar(currentDate);
+}
+
+//sets the month based on an int
+function setYear(year)
+{
+    // Adjust the month
+    let newMonth = currentDate.getMonth();
+    let newYear = year;
+    // Get the last day of the new month
+    let lastDayNewMonth = new Date(newYear, newMonth + 1, 0).getDate();
+
+    // If the current day is greater than the last day of the new month, adjust the day
+    let newDay = currentDate.getDate();
+    if (newDay > lastDayNewMonth)
+    {
+        newDay = lastDayNewMonth; // Set to the last day of the new month
+    }
+
+    //create the new date and render the new calendar
+    currentDate = new Date(newYear, newMonth, newDay);
+    renderCalendar(currentDate);
+}
+
+//displays dropdown to select the month
+function monthHeaderClick()
+{
+    document.getElementById("month-dropdown").classList.toggle("month-show");
+}
+
+// Close the month dropdown menu if the user clicks outside of it
+window.onclick = function(event) 
+{
+    if (!event.target.matches('.month-dropbutton')) 
+    {
+        var dropdowns = document.getElementsByClassName("month-dropdown-content");
+        var i;
+        for (i = 0; i < dropdowns.length; i++) 
+        {
+            var openDropdown = dropdowns[i];
+            if (openDropdown.classList.contains('month-show')) 
+            {
+                openDropdown.classList.remove('month-show');
+            }
+        }
+    }
+    if (!event.target.matches('.year-dropbutton')) 
+    {
+        var dropdowns = document.getElementsByClassName("year-dropdown-content");
+        var i;
+        for (i = 0; i < dropdowns.length; i++) 
+        {
+            var openDropdown = dropdowns[i];
+            if (openDropdown.classList.contains('year-show')) 
+            {
+                openDropdown.classList.remove('year-show');
+            }
+        }
+    }
+}
+
+//displays dropdown to select the year
+function yearHeaderClick()
+{
+    document.getElementById("year-dropdown").classList.toggle("year-show");
+}
+
+//Creates the elements in year dropdown
+function createYearDropdown(minBound, maxBound)
+{
+    let dropdownContent = document.getElementById('year-dropdown');
+    for (let i = minBound; i < maxBound; i++)
+    {
+        element = document.createElement('div');
+        element.innerHTML = `${i}`;
+        element.addEventListener('click', function() // Click on day
+        {
+            setYear(i);
+        });
+        dropdownContent.appendChild(element);
+     //   dropdownContent.appendChild(document.createElement('div').addEventListener('click', function(){setYear(i);}))
+    }
 }

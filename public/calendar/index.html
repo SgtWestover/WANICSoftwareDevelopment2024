@@ -35,7 +35,10 @@
 <body>
 
     <header>
-        <h1 id="month-year"> </h1>
+        <h1>
+          <div id="month-header" onclick="monthHeaderClick()"></div>
+          <div id="year-header" onclick="yearHeaderClick()"></div>  
+        </h1>
     </header>
 
      <!-- The sidebar -->
@@ -113,6 +116,31 @@
         </div>
     </div>
   </div>
+  <!-- Month Dropdown -->
+  <div class="month-dropdown">
+    <button onclick="monthHeaderClick()" class="month-dropbutton" id="month-button">Month</button>
+    <div id="month-dropdown" class="month-dropdown-content">
+      <div onclick="setMonth(0)">January</div>
+      <div onclick="setMonth(1)">February</div>
+      <div onclick="setMonth(2)">March</div>
+      <div onclick="setMonth(3)">April</div>
+      <div onclick="setMonth(4)">May</div>
+      <div onclick="setMonth(5)">June</div>
+      <div onclick="setMonth(6)">July</div>
+      <div onclick="setMonth(7)">Augest</div>
+      <div onclick="setMonth(8)">September</div>
+      <div onclick="setMonth(9)">October</div>
+      <div onclick="setMonth(10)">November</div>
+      <div onclick="setMonth(11)">December</div>
+    </div>
+  </div>
+  <!-- Year Dropdown -->
+  <div class="year-dropdown">
+    <button onclick="yearHeaderClick()" class="year-dropbutton" id="year-button">2024</button>
+    <div id="year-dropdown" class="year-dropdown-content">
+    </div>
+  </div>
+
   <div id="pageOverlay" class="page-overlay" style="display:none;"></div>
   <!-- Page content -->
   <div class="content">
