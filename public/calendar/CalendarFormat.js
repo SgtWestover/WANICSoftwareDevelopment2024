@@ -268,7 +268,7 @@ function createYearDropdown(minBound, maxBound)
     {
         element = document.createElement('div');
         element.innerHTML = `${i}`;
-        element.addEventListener('click', function() // Click on day
+        element.addEventListener('click', function() // Click on year
         {
             setYear(i);
         });
