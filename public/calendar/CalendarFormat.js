@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function ()
     }
     addNavigationEventListeners();
     renderCalendar(currentDate);
+    createYearDropdown(1000,9999)
 });
 
 ws.addEventListener("open", (event) => {
@@ -197,7 +198,7 @@ function setMonth(month)
 //displays dropdown to select the month
 function monthHeaderClick()
 {
-    document.getElementById("month-dropdown").classList.toggle("show");
+    document.getElementById("month-dropdown").classList.toggle("month-show");
 }
 
 // Close the month dropdown menu if the user clicks outside of it
@@ -210,9 +211,22 @@ window.onclick = function(event)
         for (i = 0; i < dropdowns.length; i++) 
         {
             var openDropdown = dropdowns[i];
-            if (openDropdown.classList.contains('show')) 
+            if (openDropdown.classList.contains('month-show')) 
             {
-                openDropdown.classList.remove('show');
+                openDropdown.classList.remove('month-show');
+            }
+        }
+    }
+    if (!event.target.matches('.year-dropbutton')) 
+    {
+        var dropdowns = document.getElementsByClassName("year-dropdown-content");
+        var i;
+        for (i = 0; i < dropdowns.length; i++) 
+        {
+            var openDropdown = dropdowns[i];
+            if (openDropdown.classList.contains('year-show')) 
+            {
+                openDropdown.classList.remove('year-show');
             }
         }
     }
@@ -221,5 +235,22 @@ window.onclick = function(event)
 //displays dropdown to select the year
 function yearHeaderClick()
 {
+    document.getElementById("year-dropdown").classList.toggle("year-show");
+}
 
+//Creates the elements in year dropdown
+function createYearDropdown(minBound, maxBound)
+{
+    let dropdownContent = document.getElementById('year-dropdown');
+    for (let i = minBound; i < maxBound; i++)
+    {
+        element = document.createElement('div');
+        element.innerHTML = `${i}`;
+        element.addEventListener('click', function() // Click on day
+        {
+            setYear(i);
+        });
+        dropdownContent.appendChild(element);
+     //   dropdownContent.appendChild(document.createElement('div').addEventListener('click', function(){setYear(i);}))
+    }
 }
