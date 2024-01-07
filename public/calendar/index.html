@@ -35,7 +35,10 @@
 <body>
 
     <header>
-        <h1 id="month-year"> </h1>
+        <h1>
+          <div id="month-header" onclick="monthHeaderClick()"></div>
+          <div id="year-header" onclick="yearHeaderClick()"></div>  
+        </h1>
     </header>
 
      <!-- The sidebar -->
@@ -113,6 +116,26 @@
         </div>
     </div>
   </div>
+  <!-- Month Dropdown -->
+  <div class="month-dropdown">
+    <button onclick="monthHeaderClick()" class="month-dropbutton">Month</button>
+    <div id="month-dropdown" class="month-dropdown-content">
+      <div onclick="setmonth(1)">January</div>
+      <div onclick="setmonth(2)">February</div>
+      <div onclick="setmonth(3)">March</div>
+      <div onclick="setmonth(4)">April</div>
+      <div onclick="setmonth(5)">May</div>
+      <div onclick="setmonth(6)">June</div>
+      <div onclick="setmonth(7)">July</div>
+      <div onclick="setmonth(8)">Augest</div>
+      <div onclick="setmonth(9)">September</div>
+      <div onclick="setmonth(10)">October</div>
+      <div onclick="setmonth(11)">November</div>
+      <div onclick="setmonth(12)">December</div>
+    </div>
+  </div>
+  <!-- Year Dropdown -->
+
   <div id="pageOverlay" class="page-overlay" style="display:none;"></div>
   <!-- Page content -->
   <div class="content">

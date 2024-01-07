@@ -39,8 +39,8 @@ function renderCalendar(date)
     let calendarBody = document.getElementById('calendar-body');
     calendarBody.innerHTML = '';
 
-    // Set the month and year in the header
-    document.getElementById('month-year').innerText = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(date);
+    // Set the month and year in the header TODO: Fix months
+    //document.getElementById('month-year').innerText = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(date);
 
     // Get the first and last day of the month
     let firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -171,4 +171,34 @@ function changeMonth(delta)
     //create the new date and render the new calendar
     currentDate = new Date(newYear, newMonth, newDay);
     renderCalendar(currentDate);
+}
+
+//displays dropdown to select the month
+function monthHeaderClick()
+{
+    document.getElementById("month-dropdown").classList.toggle("show");
+}
+
+// Close the month dropdown menu if the user clicks outside of it
+window.onclick = function(event) 
+{
+    if (!event.target.matches('.month-dropbutton')) 
+    {
+        var dropdowns = document.getElementsByClassName("month-dropdown-content");
+        var i;
+        for (i = 0; i < dropdowns.length; i++) 
+        {
+            var openDropdown = dropdowns[i];
+            if (openDropdown.classList.contains('show')) 
+            {
+                openDropdown.classList.remove('show');
+            }
+        }
+    }
+}
+
+//displays dropdown to select the year
+function yearHeaderClick()
+{
+
 }
