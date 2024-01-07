@@ -680,10 +680,18 @@ function populateEventsSidebar()
     const eventsList = document.getElementById('eventsList');
     eventsList.innerHTML = '';
 
+    const selectedDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
+    const selectedDate = new Date(selectedDateAttr);
+
     getUserEvents(localStorage.getItem('userID'))
         .then(events => {
+            // Filter events by date
+            const filteredEvents = events.filter(event => {
+                let eventDate = new Date(event._startDate);
+                return eventDate.toISOString().split('T')[0] === selectedDateAttr;
+            });
             // Sort events as per the specified criteria
-            events.sort((a, b) => {
+            filteredEvents.sort((a, b) => {
                 // Compare by start time
                 if (a._startDate < b._startDate) return -1;
                 if (a._startDate > b._startDate) return 1;
@@ -701,7 +709,7 @@ function populateEventsSidebar()
             });
 
             // Create event cards for each sorted event
-            events.forEach(event => createEventCard(event, eventsList));
+            filteredEvents.forEach(event => createEventCard(event, eventsList));
         })
         .catch(error => console.error('Error loading events:', error));
 }
