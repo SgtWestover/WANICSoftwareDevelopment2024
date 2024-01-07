@@ -383,84 +383,89 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     if (startDate >= endDate) 
     {
         // Invalid input, show error message
-        var errorMessageDiv = document.getElementById('errorMessage');
-        errorMessageDiv.textContent = "Invalid start and end times";
-        errorMessageDiv.style.display = 'block';
+        displayErrorMessage("Invalid start and end times");
         return;
     }
 
     // Function to handle event creation or update
-    const handleEventCreationOrUpdate = () => 
-    {
-        newEvent = new CalendarEvent(eventUsers, eventName, startDate, endDate, eventDesc);
-        sendEventToDatabase(newEvent).then(response => 
-        {
-            if (response.message === "Event Created") 
-            {
-                // Event created or updated, handle accordingly
-                document.getElementById('eventPopup').style.display = 'none';
-                document.getElementById('errorMessage').style.display = 'none';
-                renderEvent(newEvent); // might need adjusting
-                initializeEvents();
-                resetEventForm();
-            } 
-            else 
-            {
-                // Event already exists or other issue, show error message
-                var errorMessageDiv = document.getElementById('errorMessage');
-                errorMessageDiv.textContent = response.message;
-                errorMessageDiv.style.display = 'block';
-            }
-        }).catch(error => 
-        {
-            // Handle any errors that occurred during the request
-            var errorMessageDiv = document.getElementById('errorMessage');
-            errorMessageDiv.textContent = "Error: " + error;
-            errorMessageDiv.style.display = 'block';
-        });
+    const handleEventCreationOrUpdate = () => {
+        const eventDetails = {
+            _users: eventUsers,
+            _name: eventName,
+            _startDate: startDate,
+            _endDate: endDate,
+            _description: eventDesc
+        };
+        createNewEvent(eventDetails);
     };
-
+    
     // Edit mode: first delete the existing event, then create/update
-    if (isEditing && eventID) 
-    {
+    if (isEditing && eventID) {
         const originalEventData = JSON.parse(eventForm.getAttribute('data-original-event'));
         // Compare current form data with original event data
-        const currentEventData = 
-        {
+        const currentEventData = {
             name: document.getElementById('eventName').value,
             startTime: document.getElementById('startTime').value,
             endTime: document.getElementById('endTime').value,
             description: document.getElementById('eventDesc').value
         };
-        //if they are the exact same, then display an error message
-        if (JSON.stringify(currentEventData) === JSON.stringify(originalEventData)) 
-        {
+        // If they are the exact same, then display an error message
+        if (JSON.stringify(currentEventData) === JSON.stringify(originalEventData)) {
             var errorMessageDiv = document.getElementById('errorMessage');
             errorMessageDiv.textContent = "Event Unchanged";
             errorMessageDiv.style.display = 'block';
             return;
         }
-
-        deleteEvent(eventID).then(response =>
+        if (isDuplicateEventInSidebar(currentEventData, eventID)) 
         {
-            console.log(response);
-            if (currentEventElement) 
-            {
+            displayErrorMessage("Duplicate event data");
+            return;
+        }
+        // Proceed with event update
+        deleteEvent(eventID).then(response => {
+            if (currentEventElement) {
                 currentEventElement.remove();
-                currentEventElement = null; // Reset the reference
+                currentEventElement = null;
             }
             handleEventCreationOrUpdate();
-        }).catch(error => 
-        {
-            console.error("Error deleting event:", error);
-        });
-    } 
-    else 
-    {
+        }).catch(error => console.error("Error deleting event:", error));
+    } else {
         // Create mode: just create a new event
         handleEventCreationOrUpdate();
     }
 });
+
+function displayErrorMessage(message) 
+{
+    const errorMessageDiv = document.getElementById('errorMessage');
+    errorMessageDiv.textContent = message;
+    errorMessageDiv.style.display = 'block';
+}
+
+function isDuplicateEventInSidebar(newEventData, eventID) 
+{
+    const eventCards = document.querySelectorAll('.event-card');
+    return Array.from(eventCards).some(card => {
+        if (card.getAttribute('data-event-id') === eventID) return false; // Skip the event being edited
+
+        const cardName = card.querySelector('h3').textContent;
+        const cardStart = card.querySelector('p:nth-child(2)').textContent.split(': ')[1];
+        const cardEnd = card.querySelector('p:nth-child(3)').textContent.split(': ')[1];
+        const cardDesc = card.querySelector('p:nth-child(4)').textContent;
+        return cardName === newEventData.name &&
+               cardStart === formatTimeStringWithAMPM(newEventData.startTime) &&
+               cardEnd === formatTimeStringWithAMPM(newEventData.endTime) &&
+               cardDesc === newEventData.description;
+    });
+}
+
+function formatTimeStringWithAMPM(timeString) {
+    let [hours, minutes] = timeString.split(':').map(Number);
+    let ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // Convert hour '0' to '12'
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+}
 
 // client side function which accesses server side event finder functions. Essentially an abstraction for messy backend stuff
 function getUserEvents(userID) 
@@ -486,6 +491,7 @@ function convertCalendarEvent(data)
 {
     return new CalendarEvent
     (
+        data._id, //id
         data._users,
         data._name,
         new Date(data._startDate),
@@ -506,6 +512,7 @@ function renderEvent(calendarEvent)
     let eventDateID = calendarEvent._startDate.toISOString().split('T')[0]; // YYYY-MM-DD format, gives identifiers so it can be more easily removed later
     eventElement.style.zIndex = 20;
     eventElement.setAttribute('data-event-date', eventDateID);
+    eventElement.setAttribute('data-event-id', calendarEvent._id); // Attach MongoDB ID to the element
     const timeZoneOffset = calendarEvent._startDate.getTimezoneOffset() / 60;
     eventElement.addEventListener('click', function() 
     {
@@ -578,28 +585,30 @@ function populateEventForm(eventID, calendarEvent, eventElement)
     document.getElementById('eventForm').style.display = 'block'; //inefficent but it works
 }
 
-function deleteEvent(eventID)
+function deleteEvent(eventID) 
 {
+    let eventBody = { eventID: eventID };
     currentEventElement.remove();
-    let eventBody = 
-    {
-        eventID: eventID
-    };
     return sendRequest('/deleteEvent', eventBody)
-        .then(response => 
-        {
-            if (response.result === 'OK')
-            {
+        .then(response => {
+            if (response.result === 'OK') {
+                // Find and remove the event element with the matching eventID
+                const eventElements = document.querySelectorAll('.schedule-event');
+                eventElements.forEach(element => {
+                    if (element.getAttribute('data-event-id') === eventID) {
+                        element.remove();
+                    }
+                });
+
                 initializeEvents();
                 closeEventForm();
                 return response.message;
             }
         })
-        .catch(error => 
-        {
-            console.error('Error:', error)
+        .catch(error => {
+            console.error('Error:', error);
             throw error;
-    });
+        });
 }
 
 function formatToUTCTime(date) 
@@ -628,6 +637,102 @@ function unrenderEvent(currentDate)
             element.remove(); // Rekmove the event element from the DOM
         }
     });
+}
+
+function createNewEvent(eventDetails) {
+    sendEventToDatabase(eventDetails)
+        .then(response => 
+        {
+            if (response.result === 'OK' && response.message === "Event Created") 
+            {
+                document.getElementById('eventPopup').style.display = 'none';
+                document.getElementById('errorMessage').style.display = 'none';
+                eventDetails._id = response.eventID; // Assign the new event ID
+                renderEvent(eventDetails);
+                initializeEvents();
+                populateEventsSidebar();
+                closeEventForm();
+            } 
+            else 
+            {
+                displayErrorMessage(response.message);
+            }
+        })
+        .catch(error => displayErrorMessage(error.message));
+}
+
+
+document.getElementById('showEventsSidebar').addEventListener('click', function() {
+    populateEventsSidebar();
+    document.getElementById('eventsSidebar').style.display = 'block';
+    document.getElementById('pageOverlay').style.display = 'block'; // Show the overlay
+});
+
+// Event listener for closing the sidebar
+document.getElementById('closeSidebar').addEventListener('click', function() {
+    document.getElementById('eventsSidebar').style.display = 'none';
+    document.getElementById('pageOverlay').style.display = 'none'; // Hide the overlay
+    closeEventForm();
+});
+
+function populateEventsSidebar() 
+{
+    const eventsList = document.getElementById('eventsList');
+    eventsList.innerHTML = '';
+
+    getUserEvents(localStorage.getItem('userID'))
+        .then(events => {
+            // Sort events as per the specified criteria
+            events.sort((a, b) => {
+                // Compare by start time
+                if (a._startDate < b._startDate) return -1;
+                if (a._startDate > b._startDate) return 1;
+
+                // Compare by end time if start times are equal
+                if (a._endDate < b._endDate) return -1;
+                if (a._endDate > b._endDate) return 1;
+
+                // Compare by name length if end times are equal
+                if (a._name.length < b._name.length) return -1;
+                if (a._name.length > b._name.length) return 1;
+
+                // Compare by description length if names are equal
+                return a._description.length - b._description.length;
+            });
+
+            // Create event cards for each sorted event
+            events.forEach(event => createEventCard(event, eventsList));
+        })
+        .catch(error => console.error('Error loading events:', error));
+}
+
+function createEventCard(event, container) {
+    const eventCard = document.createElement('div');
+    eventCard.classList.add('event-card');
+    eventCard.innerHTML = `
+        <h3>${event._name}</h3>
+        <p><i>Start:</i> ${formatTime(event._startDate)}</p>
+        <p><i>End:</i> ${formatTime(event._endDate)}</p>
+        <p>${event._description}</p>
+    `;
+    eventCard.setAttribute('data-event-id', event._id);
+    eventCard.addEventListener('click', () => {
+        populateEventForm(event._id, event, eventCard);
+        document.getElementById('eventPopup').style.display = 'block';
+    });
+    container.appendChild(eventCard);
+}
+
+//yeah imma be honest i just threw shit at the wall and see what stuck.
+function formatTime(date) 
+{
+    let timeOffset = date.getTimezoneOffset() / 60;
+    let hours = (date.getHours() + timeOffset) % 24; //future me is gonna hate this one lmaoooooo
+    let minutes = date.getMinutes().toString().padStart(2, '0');
+    let ampm = hours >= 12 ? 'PM' : 'AM';
+    hours %= 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    return `${hours.toString().padStart(2, '0')}:${minutes} ${ampm}`;
 }
 
 function sendEventToDatabase(event)

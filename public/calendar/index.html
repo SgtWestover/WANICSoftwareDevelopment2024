@@ -80,29 +80,40 @@
             <a class="close" href="#" onclick="closeEventForm()">&times;</a> <!--should be general later, dont have time now-->
             <a id="prev-day" class="nav-button">&lt;</a>
             <a id="next-day" class="nav-button">&gt;</a>
+            <button id="showEventsSidebar" style="position: absolute; top: 25px; right: 60px;">Show Events</button>
             <div class="popup-content">
                 <div id="scheduleBody" class="schedule-body"> </div>
                 <div id="lineTimeText" class="lineTimeText"></div>
                 <div id="line" class="line"></div>
             </div>
         </div>
-        <div id="eventPopup" style="display:none; position:fixed; left:50%; top:50%; transform:translate(-50%, -50%); background-color:white; padding:20px; border-radius:5px; box-shadow:0px 0px 10px rgba(0,0,0,0.5); z-index: 20;">
-             <h2 id="eventPopupHeader">Create Event</h2>
-                <form id="eventForm">
-                <label for="eventName">Event Name:</label><br>
-                <input type="text" id="eventName" name="eventName" required><br>
-                <label for="startTime">Start Time:</label><br>
-                <input type="time" id="startTime" name="startTime" step="60" required><br>
-                <label for="endTime">End Time:</label><br>
-                <input type="time" id="endTime" name="endTime" step="60" required><br>
-                <label for="eventDesc">Description:</label><br>
-                <textarea id="eventDesc" name="eventDesc" style="resize: none;"></textarea><br>
-                <input type="submit" id="submitEventButton" value="Create Event">
-                <div id="errorMessage" style="color: red; display: none;"></div> <!-- Error message element -->
-                <button type="button" onclick="closeEventForm()">Cancel</button>
-            </form>
+    </div>
+    <div id="eventPopup" style="display:none; position:fixed; left:50%; top:50%; transform:translate(-50%, -50%); background-color:white; padding:20px; border-radius:5px; box-shadow:0px 0px 10px rgba(0,0,0,0.5); z-index: 35;">
+      <h2 id="eventPopupHeader">Create Event</h2>
+         <form id="eventForm">
+         <label for="eventName">Event Name:</label><br>
+         <input type="text" id="eventName" name="eventName" required><br>
+         <label for="startTime">Start Time:</label><br>
+         <input type="time" id="startTime" name="startTime" step="60" required><br>
+         <label for="endTime">End Time:</label><br>
+         <input type="time" id="endTime" name="endTime" step="60" required><br>
+         <label for="eventDesc">Description:</label><br>
+         <textarea id="eventDesc" name="eventDesc" style="resize: none;"></textarea><br>
+         <input type="submit" id="submitEventButton" value="Create Event">
+         <div id="errorMessage" style="color: red; display: none;"></div> <!-- Error message element -->
+         <button type="button" onclick="closeEventForm()">Cancel</button>
+     </form>
+ </div>
+    <!-- Events Sidebar -->
+  <div id="eventsSidebar" class="sidebar-overlay">
+    <div class="sidebar-content">
+        <span id="closeSidebar" class="close-sidebar">&times;</span>
+        <div id="eventsList" class="events-list">
+            <!-- Events will be dynamically added here -->
         </div>
     </div>
+  </div>
+  <div id="pageOverlay" class="page-overlay" style="display:none;"></div>
   <!-- Page content -->
   <div class="content">
     <table id="calendar">

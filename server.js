@@ -130,9 +130,9 @@ router.post('/createEvent', async (req, res) =>
     if (await findEvent(req.body._users, req.body._name, req.body._startDate, req.body._endDate, req.body._description) == null) 
     {
         // Create a new event instance and add to database
-        const newEvent = new CalendarEvent(req.body._users, req.body._name, req.body._startDate, req.body._endDate, req.body._description);
-        await addEvent(newEvent);
-        res.send({ result: 'OK', message: "Event Created" });
+        const newEvent = new CalendarEvent(null, req.body._users, req.body._name, req.body._startDate, req.body._endDate, req.body._description);
+        const result = await addEvent(newEvent);
+        res.status(201).send({ result: 'OK', message: "Event Created", eventID: result.insertedId });
     }
     else 
     {
@@ -173,7 +173,7 @@ router.post('/deleteEvent', async (req, res) =>
     {
         // Retrieve event details before deletion
         const eventDetails = await findEventDetails(eventID);
-        console.log("event Details: " + JSON.stringify(eventDetails));
+        console.log("deleting event: " + JSON.stringify(eventDetails));
         if (!eventDetails) 
         {
             res.send({ result: 'ERROR', message: "Event not found" });
@@ -556,6 +556,40 @@ async function findEvent(users, name, startDate, endDate, description)
     }
 }
 
+router.post('/updateEvent', async (req, res) => {
+    const { eventID, ...eventDetails } = req.body;
+
+    if (!eventID || !eventDetails) {
+        res.status(400).send({ result: 'ERROR', message: "Missing event ID or details" });
+        return;
+    }
+
+    try {
+        const updatedEvent = await updateEvent(eventID, eventDetails);
+        if (updatedEvent) {
+            res.send({ result: 'OK', message: "Event updated successfully" });
+        } else {
+            res.status(404).send({ result: 'ERROR', message: "Event not found" });
+        }
+    } catch (error) {
+        console.error("Error updating event: ", error);
+        res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
+    }
+});
+
+async function updateEvent(eventID, eventDetails) {
+    const calendarDB = dbclient.db("calendarApp");
+    const eventsCollection = calendarDB.collection("events");
+    const eventObjectID = new ObjectId(eventID);
+
+    const updateResult = await eventsCollection.updateOne(
+        { _id: eventObjectID },
+        { $set: eventDetails }
+    );
+
+    return updateResult.matchedCount > 0;
+}
+
 async function findEventDetails(eventID)
 {
     try 
@@ -579,14 +613,12 @@ async function findEventDetails(eventID)
  * @param {Object} eventData - The event data to add. Expected to have _name, _startDate, _endDate and _description.
  * @returns {Promise<Object>} The result of the insertion operation.
  */
-async function addEvent(eventData) 
-{
+async function addEvent(eventData) {
     const calendarDB = dbclient.db("calendarApp");
-    const userCollection = calendarDB.collection("events");
-    const event = { ...eventData};
-    return await userCollection.insertOne(event);
+    const eventsCollection = calendarDB.collection("events");
+    const result = await eventsCollection.insertOne(eventData);
+    return result;
 }
-
 
 
 /**
