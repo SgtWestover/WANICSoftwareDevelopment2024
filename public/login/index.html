@@ -3,14 +3,24 @@
 <head>
     <title>Sign-In/Sign-Up</title>
     <link rel="stylesheet" type="text/css" href="SignInStyle.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"> <!-- For icons -->
 </head>
 <body>
     <div class="auth-box">
-        <h2>Sign-In / Sign-Up</h2>
-        <input type="text" id="username" placeholder="Username" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <button onclick="signIn()">Sign In</button>
-        <button onclick="signUp()">Sign Up</button>
+        <form id="auth-form">
+            <div class="input-wrapper">
+                <input type="text" id="username" placeholder="Username" required>
+                <i class="fas fa-user"></i>
+            </div>
+            <!-- Password field with toggle icon -->
+            <div class="input-wrapper">
+                <i class="fas fa-lock lock-icon"></i>
+                <input type="password" id="password" placeholder="Password" required>
+                <i class="fas fa-eye toggle-password" id="togglePassword"></i>
+            </div>
+            <button type="button" onclick="signIn()">Sign In</button>
+            <button type="button" onclick="signUp()">Sign Up</button>
+        </form>
         <h5 id="status"></h5>
     </div>
     <script src="/scripts/UserData.js"></script>

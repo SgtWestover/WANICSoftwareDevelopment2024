@@ -1,7 +1,7 @@
 /* General body styling */
 body {
     font-family: Arial, sans-serif;
-    background-image: url('corporate1.png'); /* Replace with your image path */
+    background-image: url('corporate3.png'); /* Replace with your image path */
     background-size: cover;
     background-position: center;
     display: flex;
@@ -13,26 +13,98 @@ body {
 
 /* Styling for the sign-in/sign-up box */
 .auth-box {
-    background-color: rgba(255, 255, 255, 0.95); /* Semi-transparent white */
+    position: relative;
+    background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
     width: 300px;
+    margin: auto;
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+    align-items: center; /* Align children in the center */
+    justify-content: center; /* Center children vertically */
 }
 
 /* Styling for input fields */
 input[type="text"], input[type="password"] {
-    width: 90%;
-    padding: 10px;
-    margin: 10px 0;
+    width: 100%; /* Adjusted to take full width of the input-wrapper */
+    padding: 10px 40px; /* Padding on both sides to make room for icons */
+    margin-bottom: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
+    background-color: #e8e8e8;
+}
+.toggle-password {
+    cursor: pointer;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px; /* Icon size */
+    color: #607D8B;
+    z-index: 10;
+}
+
+.input-wrapper input[type="password"] {
+    padding-right: 30px; /* Make sure this padding is enough to prevent text from going under the eye icon */
+}
+
+.toggle-password .fas {
+    font-size: 16px; /* Icon size */
+    color: #607D8B;
+    line-height: 1;
+}
+
+.toggle-password {
+    height: 16px;
+    width: 16px;
+}
+
+.fas.fa-eye, .fas.fa-eye-slash {
+    right: 10px;
+    top: 40%;
+    transform: translateY(-50%);
+}
+
+.fas.fa-user, .fas.fa-lock {
+    left: 00px; /* Aligns with the left side of the input field */
+    top: 40%;
+    transform: translateY(-50%);
+    z-index: 3;
+    transition: color 0.1s;
+}
+
+/* Styling for input fields and icons */
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center; /* This ensures vertical alignment */
+    width: 90%;
+    margin: 10px auto;
+}
+
+input[type="text"], 
+input[type="password"] {
+    width: 100%;
+    padding: 10px 40px 10px 40px; /* Add padding to make room for the icons */
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #e8e8e8;
+}
+
+.input-wrapper i {
+    position: absolute;
+    margin-left: 10px; /* Space from the left edge */
+    color: #aaa;
+    transition: color 0.3s;
 }
 
 /* Styling for buttons */
 button {
-    background-color: #4CAF50; /* Green background */
+    background-color: #607D8B; /* Teal color */
     color: white;
     padding: 10px 15px;
     margin: 10px 0;
@@ -40,14 +112,17 @@ button {
     border-radius: 5px;
     cursor: pointer;
     width: 95%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* subtle shadow for depth */
+    transition: background-color 0.1s ease, box-shadow 0.1s ease;
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #546E7A; /* A slightly darker shade of teal for hover state */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* deeper shadow for hover effect */
 }
-
 /* Styling for status message */
 #status {
     color: red;
     margin-top: 15px;
+    transition: color 0.1s;
 }

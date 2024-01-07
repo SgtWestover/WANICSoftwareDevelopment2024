@@ -76,10 +76,10 @@ app.use('/', router);
  */
 router.post('/signin', async (req, res) => 
 {
-    const user = await findUser(req.body._name, req.body._password);
+    const user = await findUserSignIn(req.body._name, req.body._password);
     if (user == null) 
     {
-        res.send({ result: 'OK', message: "Account Not Found" });
+        res.send({ result: 'FAIL', message: "Sign In Unsuccessful" });
     } 
     else 
     {
@@ -95,13 +95,13 @@ router.post('/signin', async (req, res) =>
 router.post('/signup', async (req, res) => 
 {
     // Check if username and password are provided
-    if (!req.body._name || !req.body._password) 
+    if (!req.body._name || !req.body._password)
     {
-        res.send({ result: 'OK', message: "Missing username or password" });
+        res.send({ result: 'FAIL', message: "Missing username or password" });
         return;
     }
     // Check if user already exists
-    if (await findUser(req.body._name, req.body._password) == null) 
+    if (await findUser(req.body._name) == null) 
     {
         // Create a new user instance and add to database
         const newUser = new User(req.body._name, req.body._password);
@@ -111,7 +111,7 @@ router.post('/signup', async (req, res) =>
     }
     else 
     {
-        res.send({ result: 'OK', message: "Account already exists" });
+        res.send({ result: 'FAIL', message: "Account already exists" });
     }
 });
 
@@ -289,6 +289,34 @@ async function findEventsByUserID(userID)
     return userEvents;
 }
 
+async function findUserSignIn(username, password)
+{
+    const calendar = dbclient.db("calendarApp");
+    const userlist = calendar.collection("users");
+    const query = {_name: username};
+    const account = await userlist.findOne(query);
+    if (account != null && account._password != null && password != null) 
+    {
+        try 
+        {
+            const result = await bcrypt.compare(password, account._password);
+            if (result)
+            {
+                return account;
+            }
+        } 
+        catch (error)
+        {
+            console.log(error)
+        }
+    }
+    else
+    {
+        return null;
+    }
+    return null;
+}
+
 
 /**
  * POST /checkpassword - Verifies if the provided password is correct for the logged-in user.
@@ -362,37 +390,43 @@ router.use('/login/', (req, res, next) =>
 /**
  * Finds a user by username and password.
  * @param {string} username - The username of the user.
- * @param {string} password - The password of the user.
  * @returns {Promise<Object|null>} The user object if credentials match, otherwise null.
  */
-async function findUser(username, password)
+// Asynchronously find a user based solely on the username
+async function findUser(username)
 {
+    // Define the calendar database and users collection
     const calendar = dbclient.db("calendarApp");
     const userlist = calendar.collection("users");
+
+    // Create a query object for the username
     const query = {_name: username};
-    const account = await userlist.findOne(query);
-    if (account != null && account._password != null && password != null) 
+
+    try 
     {
-        try 
+        // Find the user document in the database
+        const account = await userlist.findOne(query);
+
+        // Check if an account with the username exists
+        if (account != null) 
         {
-            const result = await bcrypt.compare(password, account._password);
-            if (result)
-            {
-                return account;
-            }
+            // Return the account details
+            return account;
         } 
-        catch (error)
+        else 
         {
-            console.log(error)
+            // Return null if no account is found
+            return null;
         }
-    }
-    else
+    } 
+    catch (error)
     {
+        // Log any errors that occur during the database query
+        console.log(error);
         return null;
     }
-    return null;
-
 }
+
 
 
 /**

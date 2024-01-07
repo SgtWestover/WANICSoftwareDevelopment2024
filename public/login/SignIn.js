@@ -71,24 +71,34 @@ function checkFields(username, password)
     }
     return true;
 }
-
 /**
- * Updates the status message on the page.
+ * Updates the status message on the page with appropriate color based on result.
  * @param {string} message - The message to display.
+ * @param {string} result - The result of the operation ('OK' or 'FAIL').
  */
-function updateStatus(message) 
+function updateStatus(message, result) 
 {
-    document.getElementById("status").textContent = message;
+    const statusElement = document.getElementById("status");
+    statusElement.textContent = message;
+    if (result === 'OK') 
+    {
+        statusElement.style.color = 'green';
+    } 
+    else 
+    {
+        statusElement.style.color = 'red';
+    }
 }
 
 /**
- * Handles the server response for the sign request.
+ * Handles the server response for the sign-in request.
  * @param {Object} message - The server response message.
  */
 function handleSigninResponse(message) 
 {
-    updateStatus(message.message);
-    if (message.message === "Sign In Successful") 
+    // Use the message.result to determine the color of the status message
+    updateStatus(message.message, message.result);
+    if (message.result === "OK") 
     {
         console.log("successfully signed in");
         localStorage.setItem('isSignedIn', true);
@@ -106,15 +116,17 @@ function signUp()
 {
     let username = document.getElementById("username").value;
     let password = document.getElementById("password").value;
-    // Validate username and password format
     if (checkFields(username, password) === false) return;
-    // Create new user object and send sign-up request
-    let newUser = new User(username, password);
+    let newUser = { _name: username, _password: password };
     console.log(newUser);
     sendRequest('/signup', newUser)
-        .then(message => updateStatus(message.message))
+        .then(message => {
+            // Use the message.result to determine the color of the status message
+            updateStatus(message.message, message.result);
+        })
         .catch(error => console.error('Error:', error));
 }
+
 
 /**
  * Sends an HTTP POST request to the specified endpoint with the provided data.
@@ -149,4 +161,15 @@ document.addEventListener('DOMContentLoaded', function()
     {
         logoutButton.addEventListener('click', logout); //on click to the logout button (if it exists), log out
     }
+    var togglePassword = document.getElementById("togglePassword");
+    var passwordInput = document.getElementById("password");
+    
+    togglePassword.addEventListener('click', function (e) {
+        // Toggle the type attribute
+        var type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        // Toggle the icon
+        this.classList.toggle('fa-eye-slash');
+        this.classList.toggle('fa-eye');
+    });
 });
