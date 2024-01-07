@@ -40,7 +40,7 @@ function renderCalendar(date)
     calendarBody.innerHTML = '';
 
     // Set the month and year in the header TODO: Fix months
-    //document.getElementById('month-year').innerText = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(date);
+    document.getElementById('month-button').innerText = new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date);
 
     // Get the first and last day of the month
     let firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -158,6 +158,27 @@ function changeMonth(delta)
         newYear--;
     }
 
+    // Get the last day of the new month
+    let lastDayNewMonth = new Date(newYear, newMonth + 1, 0).getDate();
+
+    // If the current day is greater than the last day of the new month, adjust the day
+    let newDay = currentDate.getDate();
+    if (newDay > lastDayNewMonth)
+    {
+        newDay = lastDayNewMonth; // Set to the last day of the new month
+    }
+
+    //create the new date and render the new calendar
+    currentDate = new Date(newYear, newMonth, newDay);
+    renderCalendar(currentDate);
+}
+
+//sets the month based on an int
+function setMonth(month)
+{
+    // Adjust the month
+    let newMonth = month
+    let newYear = currentDate.getFullYear();
     // Get the last day of the new month
     let lastDayNewMonth = new Date(newYear, newMonth + 1, 0).getDate();
 
