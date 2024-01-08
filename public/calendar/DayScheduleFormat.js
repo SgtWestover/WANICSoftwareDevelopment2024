@@ -67,7 +67,7 @@ function generateSchedule()
     // Get the schedule body element
     let scheduleBody = document.getElementById('scheduleBody');
     
-    // Clear previous content from the schedule body
+    //Clear previous content from the schedule body
     scheduleBody.innerHTML = '';
 
     // Create a container for the entire day's schedule
@@ -171,6 +171,7 @@ function lineText(event, time)
     text.innerHTML = time;
 }
 
+//converts num 0-24 to hour format
 function convertToTime(num)
 {
     let ampm = "AM";
@@ -531,9 +532,14 @@ function renderEvent(calendarEvent)
     let eventWidth = ((hourLength * parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))
     eventElement.style.width = `${eventWidth}px`
     // Gets the selected time based on mouse position
-    selectedHour = ((calendarEvent._startDate.getHours() + timeZoneOffset) * 60 + calendarEvent._startDate.getMinutes());    
+    selectedHour = ((calendarEvent._startDate.getHours() + timeZoneOffset) * 60 + calendarEvent._startDate.getMinutes());
+    if (selectedHour > 1440) // 24 hours * 60 min
+    {
+        selectedHour -= 1440;
+    }
     // set position
     eventElement.style.left = `${selectedHour * ((parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))}px`;
+    
     dayContainer.appendChild(eventElement);   
 }
 
