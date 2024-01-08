@@ -6,6 +6,10 @@ Desc: Handles the main calendar page and formatting
 */
 // Global variable for the current date
 let currentDate = new Date();
+var currentYearSearch = '';
+var highlightedYearElement = null;
+var lastSelectedYear = null;
+
 
 let ws = new WebSocket("ws://" + window.location.host);
 
@@ -43,6 +47,7 @@ function renderCalendar(date)
     // Set the month and year in the header TODO: Fix months
     document.getElementById('month-button').innerText = new Intl.DateTimeFormat('en-US', { month: 'long'}).format(date);
     document.getElementById('year-button').innerText = new Intl.DateTimeFormat('en-US', { year: 'numeric'}).format(date);
+    lastSelectedYear = document.getElementById('year-button').innerText;
 
     // Get the first and last day of the month
     let firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -193,6 +198,7 @@ function setMonth(month)
 
     //create the new date and render the new calendar
     currentDate = new Date(newYear, newMonth, newDay);
+    document.getElementById("month-dropdown").classList.remove("month-show");
     renderCalendar(currentDate);
 }
 
@@ -215,6 +221,8 @@ function setYear(year)
     //create the new date and render the new calendar
     currentDate = new Date(newYear, newMonth, newDay);
     renderCalendar(currentDate);
+    document.getElementById("year-dropdown").classList.remove("year-show");
+    resetYearSearch();
 }
 
 //displays dropdown to select the month
@@ -226,53 +234,126 @@ function monthHeaderClick()
 // Close the month dropdown menu if the user clicks outside of it
 window.onclick = function(event) 
 {
-    if (!event.target.matches('.month-dropbutton')) 
-    {
+    if (!event.target.matches('.month-dropbutton') && !event.target.closest('.month-dropdown')) {
         var dropdowns = document.getElementsByClassName("month-dropdown-content");
-        var i;
-        for (i = 0; i < dropdowns.length; i++) 
-        {
-            var openDropdown = dropdowns[i];
-            if (openDropdown.classList.contains('month-show')) 
-            {
-                openDropdown.classList.remove('month-show');
-            }
+        for (var i = 0; i < dropdowns.length; i++) {
+            dropdowns[i].classList.remove('month-show');
         }
     }
-    if (!event.target.matches('.year-dropbutton')) 
-    {
+    if (!event.target.matches('.year-dropbutton') && !event.target.closest('.year-dropdown')) {
         var dropdowns = document.getElementsByClassName("year-dropdown-content");
-        var i;
-        for (i = 0; i < dropdowns.length; i++) 
-        {
-            var openDropdown = dropdowns[i];
-            if (openDropdown.classList.contains('year-show')) 
-            {
-                openDropdown.classList.remove('year-show');
-            }
+        for (var i = 0; i < dropdowns.length; i++) {
+            dropdowns[i].classList.remove('year-show');
+            resetYearSearch();
         }
     }
-}
+};
+
 
 //displays dropdown to select the year
 function yearHeaderClick()
 {
-    document.getElementById("year-dropdown").classList.toggle("year-show");
+    var dropdown = document.getElementById("year-dropdown");
+    dropdown.classList.toggle("year-show");
+    if (dropdown.classList.contains("year-show")) 
+    {
+        document.addEventListener('keyup', yearSearch);
+    } 
+    else 
+    {
+        document.removeEventListener('keyup', yearSearch);
+        resetYearSearch();
+    }
 }
 
-//Creates the elements in year dropdown
-function createYearDropdown(minBound, maxBound)
+function resetYearSearch() {
+    currentYearSearch = ''; // Reset the search query
+    if (highlightedYearElement) {
+        highlightedYearElement.classList.remove('year-highlight'); // Remove highlight class
+    }
+    highlightedYearElement = null; // Reset the highlighted element
+    scrollToSelectedYear(document.getElementById("year-dropdown"));
+}
+
+
+function yearSearch(event) 
 {
-    let dropdownContent = document.getElementById('year-dropdown');
-    for (let i = minBound; i < maxBound; i++)
+    event.preventDefault(); // Prevent default action
+    event.stopPropagation(); // Stop event from bubbling up
+    var yearDivs = document.getElementById("year-dropdown").getElementsByTagName('div');
+    if (event.key === 'Shift' && highlightedYearElement) 
     {
-        element = document.createElement('div');
-        element.innerHTML = `${i}`;
-        element.addEventListener('click', function() // Click on year
+            highlightedYearElement.click();
+            return;
+    }
+    // If the input is not a number or Enter, ignore it
+    if (!event.key.match(/[0-9]/)) {
+        return;
+    }
+
+    // Update the current search string
+    currentYearSearch += event.key;
+
+    // Reset the highlight
+    if (highlightedYearElement) {
+        highlightedYearElement.classList.remove('year-highlight');
+    }
+    highlightedYearElement = null; // Reset the highlighted element
+
+    // Perform the search
+    var found = false;
+    for (var i = 0; i < yearDivs.length; i++) {
+        if (yearDivs[i].textContent.startsWith(currentYearSearch)) {
+            found = true;
+            highlightedYearElement = yearDivs[i]; // Update the highlighted element
+            highlightedYearElement.classList.add('year-highlight'); // Add highlight class
+            highlightedYearElement.scrollIntoView();
+            break;
+        }
+    }
+
+    // If the search string did not match any year, reset it
+    if (!found) {
+        currentYearSearch = '';
+    }
+}
+
+
+function scrollToSelectedYear(dropdownContent) {
+    var yearElements = dropdownContent.getElementsByTagName('div');
+    let yearToScrollTo = lastSelectedYear !== null ? lastSelectedYear : currentYear;
+    for (var i = 0; i < yearElements.length; i++) 
+    {
+        if (parseInt(yearElements[i].textContent, 10) === parseInt(yearToScrollTo)) 
         {
-            setYear(i);
-        });
+            dropdownContent.scrollTop = yearElements[i].offsetTop;
+            break;
+        }
+    }
+}
+
+// Creates the elements in the year dropdown, starting from minBound to maxBound but ensures the current year is in view
+function createYearDropdown(minBound, maxBound) {
+    let dropdownContent = document.getElementById('year-dropdown');
+    let currentYear = new Date().getFullYear(); // Get the current year
+
+    // Append years from minBound to maxBound
+    for (let i = minBound; i <= maxBound; i++) {
+        let element = document.createElement('div');
+        element.textContent = `${i}`;
+        element.onclick = function () { setYear(i); };
         dropdownContent.appendChild(element);
-     //   dropdownContent.appendChild(document.createElement('div').addEventListener('click', function(){setYear(i);}))
+    }
+
+    // Scroll to the current year
+    let yearToScrollTo = lastSelectedYear !== null ? lastSelectedYear : currentYear;
+    let yearElements = dropdownContent.getElementsByTagName('div');
+    for (let i = 0; i < yearElements.length; i++) {
+        if (parseInt(yearElements[i].textContent, 10) === parseInt(yearToScrollTo))
+        {
+            // Scroll the dropdown to show the current year
+            dropdownContent.scrollTop = yearElements[i].offsetTop;
+            break;
+        }
     }
 }
