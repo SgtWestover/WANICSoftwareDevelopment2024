@@ -533,7 +533,7 @@ function renderEvent(calendarEvent)
     eventElement.style.width = `${eventWidth}px`
     // Gets the selected time based on mouse position
     selectedHour = ((calendarEvent._startDate.getHours() + timeZoneOffset) * 60 + calendarEvent._startDate.getMinutes());
-    if (selectedHour > 1440) // 24 hours * 60 min
+    if (selectedHour >= 1440) // 24 hours * 60 min
     {
         selectedHour -= 1440;
     }
