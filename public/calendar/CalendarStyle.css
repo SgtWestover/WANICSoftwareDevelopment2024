@@ -308,7 +308,7 @@ td
   {
     visibility: visible;
     opacity: 1;
-    z-index: 10;
+    z-index: 20;
     transition: visibility 500ms, opacity 500ms;
   }
   
@@ -426,9 +426,12 @@ td
     opacity: 1; /* Set opacity to 1 on hover */
 }
 
-.day-container:hover + #popup1 .popup-content .lineTimeText {
+.day-container:hover + #popup1 .popup-content .lineTimeText 
+{
   opacity: 1;
 }
+
+
 
 .line
 {
