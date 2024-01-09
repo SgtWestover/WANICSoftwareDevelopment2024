@@ -1,7 +1,7 @@
 //Name: Zach Rojas and Kaelin Wang Hu
 //Date Created: 12/7/2023
 //Last Modified: 12/14/2023
-//Desc: Handles user data
+//Desc: Handles classes for calendar events, teams, and users
 
 (function(exports)
 {
@@ -273,12 +273,13 @@
     if (typeof module !== 'undefined' && module.exports) 
     {
         // Node.js Context
-        module.exports = { User, CalendarEvent };
+        module.exports = { CalendarEvent, User, Team };
     } 
     else 
     {
         // Browser Context
         exports.User = User;
         exports.CalendarEvent = CalendarEvent;
+        exports.Team = Team;
     }
 }) (typeof window === 'undefined' ? module.exports : window);

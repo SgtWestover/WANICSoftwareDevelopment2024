@@ -1,7 +1,9 @@
+/*#region General styles*/
 /* General body styling */
-body {
+body 
+{
     font-family: Arial, sans-serif;
-    background-image: url('corporate3.png'); /* Replace with your image path */
+    background-image: url('corporate3.png'); /* Background image */
     background-size: cover;
     background-position: center;
     display: flex;
@@ -11,8 +13,13 @@ body {
     margin: 0;
 }
 
+/*#endregion general styles*/
+
+/*#region Authentication box styles*/
+
 /* Styling for the sign-in/sign-up box */
-.auth-box {
+.auth-box 
+{
     position: relative;
     background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
     padding: 20px;
@@ -27,8 +34,13 @@ body {
     justify-content: center; /* Center children vertically */
 }
 
+/*#endregion Authenticaion box styles*/
+
+/*#region Username and password field styles*/
+
 /* Styling for input fields */
-input[type="text"], input[type="password"] {
+input[type="text"], input[type="password"] 
+{
     width: 100%; /* Adjusted to take full width of the input-wrapper */
     padding: 10px 40px; /* Padding on both sides to make room for icons */
     margin-bottom: 10px;
@@ -36,7 +48,12 @@ input[type="text"], input[type="password"] {
     border-radius: 5px;
     background-color: #e8e8e8;
 }
-.toggle-password {
+
+/*Styling for the toggle password (eye) icon*/
+.toggle-password 
+{
+    height: 16px;
+    width: 16px;
     cursor: pointer;
     position: absolute;
     right: 10px;
@@ -47,63 +64,60 @@ input[type="text"], input[type="password"] {
     z-index: 10;
 }
 
-.input-wrapper input[type="password"] {
-    padding-right: 30px; /* Make sure this padding is enough to prevent text from going under the eye icon */
-}
-
-.toggle-password .fas {
-    font-size: 16px; /* Icon size */
-    color: #607D8B;
-    line-height: 1;
-}
-
-.toggle-password {
-    height: 16px;
-    width: 16px;
-}
-
-.fas.fa-eye, .fas.fa-eye-slash {
-    right: 10px;
-    top: 40%;
-    transform: translateY(-50%);
-}
-
-.fas.fa-user, .fas.fa-lock {
-    left: 00px; /* Aligns with the left side of the input field */
-    top: 40%;
-    transform: translateY(-50%);
-    z-index: 3;
-    transition: color 0.1s;
-}
+/*#region Input wrapper styles*/
 
 /* Styling for input fields and icons */
-.input-wrapper {
+.input-wrapper 
+{
     position: relative;
     display: flex;
-    align-items: center; /* This ensures vertical alignment */
+    align-items: center;
     width: 90%;
     margin: 10px auto;
 }
 
-input[type="text"], 
-input[type="password"] {
-    width: 100%;
-    padding: 10px 40px 10px 40px; /* Add padding to make room for the icons */
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #e8e8e8;
-}
-
-.input-wrapper i {
+/* General icon styles within input fields */
+.input-wrapper i 
+{
     position: absolute;
     margin-left: 10px; /* Space from the left edge */
     color: #aaa;
     transition: color 0.3s;
 }
 
+/*#endregion input wrapper styles*/
+
+/*#region Icon styles*/
+
+/*Toggle password (eye) icon styles*/
+.fas.fa-eye, .fas.fa-eye-slash 
+{
+    font-size: 16px;
+    color: #607D8B;
+    line-height: 1;
+    right: 10px;
+    top: 40%;
+    transform: translateY(-50%);
+}
+
+/*User and lock icon styles*/
+.fas.fa-user, .fas.fa-lock 
+{
+    top: 40%;
+    transform: translateY(-50%);
+    z-index: 3;
+    transition: color 0.1s;
+}
+
+/*#endregion icon styles*/
+
+/*#endregion Username and password field styles*/
+
+/*#region Button and status styles*/
+
 /* Styling for buttons */
-button {
+button 
+{
     background-color: #607D8B; /* Teal color */
     color: white;
     padding: 10px 15px;
@@ -116,13 +130,19 @@ button {
     transition: background-color 0.1s ease, box-shadow 0.1s ease;
 }
 
-button:hover {
+/* Hover effect for buttons */
+button:hover 
+{
     background-color: #546E7A; /* A slightly darker shade of teal for hover state */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* deeper shadow for hover effect */
 }
+
 /* Styling for status message */
-#status {
+#status 
+{
     color: red;
     margin-top: 15px;
     transition: color 0.05s;
 }
+
+/*#endregion Button and status styles*/

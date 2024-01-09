@@ -1,29 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <!--title and external dependencies-->
     <title>Sign-In/Sign-Up</title>
     <link rel="stylesheet" type="text/css" href="SignInStyle.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"> <!-- For icons -->
 </head>
 <body>
+    <!-- Main container for authentication form -->
     <div class="auth-box">
+        <!-- Form for authentication that includes input wrappers for better styling and icon placement -->
         <form id="auth-form">
             <div class="input-wrapper">
+                <!--Username input field with user icon-->
                 <input type="text" id="username" placeholder="Username" required>
                 <i class="fas fa-user"></i>
             </div>
-            <!-- Password field with toggle icon -->
+            <!-- Password input field with lock and toggle (eye) icon -->
             <div class="input-wrapper">
                 <i class="fas fa-lock lock-icon"></i>
                 <input type="password" id="password" placeholder="Password" required>
                 <i class="fas fa-eye toggle-password" id="togglePassword"></i>
             </div>
+            <!-- Buttons for Sign In and Sign Up actions -->
             <button type="button" onclick="signIn()">Sign In</button>
             <button type="button" onclick="signUp()">Sign Up</button>
         </form>
+        <!-- Displays status for sign up and sign in-->
         <h5 id="status"></h5>
     </div>
-    <script src="/scripts/UserData.js"></script>
+    <!-- Scripts for the User class and authentication respectively -->
+    <script src="/scripts/CalendarClasses.js"></script> <!-- Why does it only work for scripts/... and not /shared...? /shared is correct but returns an error-->
     <script src="/login/SignIn.js"></script>
 </body>
 </html>

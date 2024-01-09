@@ -16,6 +16,17 @@ let currentEventElement = null;
 
 //Generate things
 
+//FUNCTION HEADER TEMPLATE
+/**
+ * Description
+ * @param   {type} name
+ * @returns {type}
+ */
+
+/**
+ * On document load
+ * @returns {void}
+ */
 document.addEventListener('DOMContentLoaded', function() 
 {
 
@@ -60,6 +71,11 @@ function initializeEvents()
         });
     }
 }
+
+document.querySelector('.popup .close').addEventListener('click', function()
+{
+    document.getElementById('popupHeader').innerHTML = '';
+});
 
 //Generates the HTML elements for the schedule menu
 function generateSchedule() 
