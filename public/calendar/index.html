@@ -1,124 +1,119 @@
 <!DOCTYPE html>
 <html lang="en">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calendar</title>
-    <link rel="stylesheet" href="CalendarStyle.css">
-    <script>
-      // Detect if the environment is local or server
-      var isLocal = window.location.hostname === 'localhost' || window.location.hostname.startsWith('192.168');
-      // Set the base path accordingly
-      var basePath = isLocal ? '' : 'calendar/';
-
-      // Function to set the base path for script and link tags
-      function setPath(tagName, attribute) 
-      {
-        var elements = document.getElementsByTagName(tagName);
-        for (var i = 0; i < elements.length; i++) 
-        {
-          var path = elements[i].getAttribute(attribute);
-          if (path) 
-          {
-            elements[i].setAttribute(attribute, basePath + path);
-          }
-        }
-      }
-
-      // Update the paths when the document is fully loaded
-      document.addEventListener('DOMContentLoaded', function() 
-      {
-        setPath('script', 'src');
-        setPath('link', 'href');
-      });
-    </script>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--title and external dependencies and stylesheet-->
+  <title>Calendar</title>
+  <link rel="stylesheet" href="CalendarStyle.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></body>
 </head>
+
 <body>
+  <header>
+      <h1>
+        <!-- Month and year headers at the top, doubling as dropdown menus-->
+        <div id="month-header" onclick="monthHeaderClick()"></div>
+        <div id="year-header" onclick="yearHeaderClick()"></div>  
+      </h1>
+  </header>
 
-    <header>
-        <h1>
-          <div id="month-header" onclick="monthHeaderClick()"></div>
-          <div id="year-header" onclick="yearHeaderClick()"></div>  
-        </h1>
-    </header>
-
-     <!-- The sidebar -->
+     <!-- The sidebar and its components (unfinished)-->
   <div class="sidebar">
     <a class="active" href="#home">Home</a>
     <a href="teams.html">Teams</a>
     <a href="#">TBD</a>
     <a href="#">TBD</a>
   </div>
+      <!-- Previous and next month buttons that navigate the months (big arrows) -->
+  <div class="button-container">
+    <a id="prev-month">&lt;</a>
+    <a id="next-month">&gt;</a>
+  </div>
 
-    <div class="button-container">
-        <a id="prev-month">&lt;</a>
-        <a id="next-month">&gt;</a>
+  <!-- Sign out and delete account buttons on the upper right hand corner-->
+  <button id="signout" style="position: fixed; top: 10px; right: 10px; z-index: 9;" onclick="signout()">Logout</button>
+  <button id ="deleteaccount" style = "position:fixed; top: 40px; right: 10px; z-index: 9;" onclick="deleteAccount()">Delete Account</button>
+  <!-- Custom Password Modal for the delete account logic-->
+  <div id="passwordModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <p>Please enter your password to delete your account</p>
+        <input type="password" id="passwordInput" class="password-input"> <!-- Password input field -->
+        <i id="togglePassword" class="fa fa-eye"></i> <!-- Toggle password visibility -->
+        <button id="submitPassword">Submit</button>
+        <div id="passwordError" style="color: red;"></div> <!-- Error message element -->
     </div>
+  </div>
 
-    <button id="signout" style="position: fixed; top: 10px; right: 10px; z-index: 9;" onclick="signout()">Logout</button>
-    <button id ="deleteaccount" style = "position:fixed; top: 40px; right: 10px; z-index: 9;" onclick="deleteAccount()">Delete Account</button>
-    <!-- Custom Password Modal -->
-    <div id="passwordModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <p>Please enter your password to delete your account</p>
-            <input type="password" id="passwordInput" class="password-input">
-            <i id="togglePassword" class="fa fa-eye"></i>
-            <button id="submitPassword">Submit</button>
-            <div id="passwordError" style="color: red;"></div> <!-- Error message element -->
-        </div>
+      <!-- Confirmation Modal for the second step of the delete account logic-->
+  <div id="confirmationModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Are you sure you want to delete your account?</p>
+      <button id="confirmDelete">Yes, delete my account</button>
+      <button id="cancelDelete">Cancel</button>
     </div>
-    <div id="confirmationModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <p>Are you sure you want to delete your account?</p>
-            <button id="confirmDelete">Yes, delete my account</button>
-            <button id="cancelDelete">Cancel</button>
-        </div>
-    </div>
+  </div>
 
-    <!-- Day Popup box -->
-    <div id="popup1" class="overlay">
-        <div class="popup">
-            <h2 id="popupHeader"></h2>
-            <a class="close" href="#" onclick="closeEventForm()">&times;</a> <!--should be general later, dont have time now-->
-            <a id="prev-day" class="nav-button">&lt;</a>
-            <a id="next-day" class="nav-button">&gt;</a>
-            <button id="showEventsSidebar" style="position: absolute; top: 25px; right: 60px;">Show Events</button>
-            <div class="popup-content">
-                <div id="scheduleBody" class="schedule-body"> </div>
-                <div id="lineTimeText" class="lineTimeText"></div>
-                <div id="line" class="line"></div>
-            </div>
-        </div>
-    </div>
-    <div id="eventPopup" style="display:none; position:fixed; left:50%; top:50%; transform:translate(-50%, -50%); background-color:white; padding:20px; border-radius:5px; box-shadow:0px 0px 10px rgba(0,0,0,0.5); z-index: 35;">
-      <h2 id="eventPopupHeader">Create Event</h2>
-         <form id="eventForm">
-         <label for="eventName">Event Name:</label><br>
-         <input type="text" id="eventName" name="eventName" required><br>
-         <label for="startTime">Start Time:</label><br>
-         <input type="time" id="startTime" name="startTime" step="60" required><br>
-         <label for="endTime">End Time:</label><br>
-         <input type="time" id="endTime" name="endTime" step="60" required><br>
-         <label for="eventDesc">Description:</label><br>
-         <textarea id="eventDesc" name="eventDesc" style="resize: none;"></textarea><br>
-         <input type="submit" id="submitEventButton" value="Create Event">
-         <div id="errorMessage" style="color: red; display: none;"></div> <!-- Error message element -->
-         <button type="button" onclick="closeEventForm()">Cancel</button>
-     </form>
- </div>
-    <!-- Events Sidebar -->
-  <div id="eventsSidebar" class="sidebar-overlay">
-    <div class="sidebar-content">
-        <span id="closeSidebar" class="close-sidebar">&times;</span>
-        <div id="eventsList" class="events-list">
-            <!-- Events will be dynamically added here -->
+  <!-- Day Popup box where a lot of the events is handled-->
+  <div id="popup1" class="overlay">
+    <div class="popup">
+      <!-- Popup header that shows the date and day of week-->
+        <h2 id="popupHeader"></h2>
+        <a class="close" href="#" onclick="closeEventForm()">&times;</a> <!-- Close button that also closes the event form if active-->
+        <!-- Previous and next day buttons that navigate the days (small arrows on the left and right of the popup) -->
+        <a id="prev-day" class="nav-button">&lt;</a>
+        <a id="next-day" class="nav-button">&gt;</a>
+        <!-- Events sidebar that shows all the events for a particular day, upper right of the popup-->
+        <button id="showEventsSidebar" style="position: absolute; top: 25px; right: 60px;">Show Events</button>
+        <!-- Schedule body with a day container where the events are rendered. Includes the line tracking where the cursor is-->
+        <div class="popup-content">
+          <!-- dayContainer and the events as well as the red line tracking the time are instantiated here in DayScheduleFormat.js-->
+          <div id="scheduleBody" class="schedule-body"> </div>
+          <div id="lineTimeText" class="lineTimeText"></div>
+          <div id="line" class="line"></div>
         </div>
     </div>
   </div>
-  <!-- Month Dropdown -->
+
+  <!-- Event Popup box where the user can submit with some information to create an event. Modified to become an edit event box if users click on an event-->
+  <div id="eventPopup" style="display:none; position:fixed; left:50%; top:50%; transform:translate(-50%, -50%); background-color:white; padding:20px; border-radius:5px; box-shadow:0px 0px 10px rgba(0,0,0,0.5); z-index: 35;">
+    <!-- Popup formatting including all the text, the fields, and the buttons-->
+    <h2 id="eventPopupHeader">Create Event</h2>
+      <form id="eventForm">
+      <label for="eventName">Event Name:</label><br>
+      <!--All the stuff that has the required keyword attached means they cannot be submitted missing-->
+      <input type="text" id="eventName" name="eventName" required><br>
+      <label for="startTime">Start Time:</label><br>
+      <input type="time" id="startTime" name="startTime" step="60" required><br> <!-- 60 steps makes the field go up a minute at a time-->
+      <label for="endTime">End Time:</label><br>
+      <input type="time" id="endTime" name="endTime" step="60" required><br>
+      <label for="eventDesc">Description:</label><br>
+      <!-- Description is NOT required-->
+      <textarea id="eventDesc" name="eventDesc" style="resize: none;"></textarea><br>
+      <input type="submit" id="submitEventButton" value="Create Event">
+      <div id="errorMessage" style="color: red; display: none;"></div> <!-- Error message element -->
+      <button type="button" onclick="closeEventForm()">Cancel</button> <!-- Cancel button that closes and resets the event form-->
+    </form>
+ </div>
+
+    <!-- Actual events sidebar, hidden unless the Show Events button is clicked -->
+  <div id="eventsSidebar" class="sidebar-overlay">
+    <div class="sidebar-content">
+      <span id="closeSidebar" class="close-sidebar">&times;</span> <!-- closes out of the sidebar-->
+      <div id="eventsList" class="events-list">
+        <!-- Event cards will be dynamically added here -->
+      </div>
+    </div>
+  </div>
+  <!-- Overlay for the events sidebar that blocks everything except the sidebar and the edit event menu-->
+  <div id="pageOverlay" class="page-overlay" style="display:none;"></div>
+
+  <!-- Month Dropdown for the month header-->
   <div class="month-dropdown">
-    <button onclick="monthHeaderClick()" class="month-dropbutton" id="month-button"type="button">Month</button>
+    <button onclick="monthHeaderClick()" class="month-dropbutton" id="month-button"type="button">Month</button> <!-- Button in the same place as the text to be clicked to show the dropdown menu-->
+    <!-- Manually created month dropdown menu with twelve months (0 - 11) -->
     <div id="month-dropdown" class="month-dropdown-content">
       <div onclick="setMonth(0)">January</div>
       <div onclick="setMonth(1)">February</div>
@@ -127,42 +122,44 @@
       <div onclick="setMonth(4)">May</div>
       <div onclick="setMonth(5)">June</div>
       <div onclick="setMonth(6)">July</div>
-      <div onclick="setMonth(7)">August</div>
+      <div onclick="setMonth(7)">August</div> <!-- Zach first spelled it as Augest lol-->
       <div onclick="setMonth(8)">September</div>
       <div onclick="setMonth(9)">October</div>
       <div onclick="setMonth(10)">November</div>
       <div onclick="setMonth(11)">December</div>
     </div>
   </div>
-  <!-- Year Dropdown -->
+
+  <!-- Year dropdown for the year header-->
   <div class="year-dropdown">
-    <button onclick="yearHeaderClick()" class="year-dropbutton" id="year-button">2024</button>
+    <button onclick="yearHeaderClick()" class="year-dropbutton" id="year-button">2024</button> <!-- Button in the same place as the text to be clicked to show the dropdown menu-->
+    <!-- Year dropdown with the years 1000 - 9999 automatically generated from CalendarFormat.js here-->
     <div id="year-dropdown" class="year-dropdown-content">
     </div>
   </div>
 
-  <div id="pageOverlay" class="page-overlay" style="display:none;"></div>
-  <!-- Page content -->
+  <!-- Calendar content -->
   <div class="content">
     <table id="calendar">
-        <thead>
-            <tr>
-                <th>Sun</th>
-                <th>Mon</th>
-                <th>Tue</th>
-                <th>Wed</th>
-                <th>Thu</th>
-                <th>Fri</th>
-                <th>Sat</th>
-            </tr>
-        </thead>
-        <tbody id="calendar-body"> <!-- created using javascript -->
-        </tbody>
+      <thead>
+        <!-- Weekday headers generated horizontally-->
+        <tr>
+          <th>Sun</th>
+          <th>Mon</th>
+          <th>Tue</th>
+          <th>Wed</th>
+          <th>Thu</th>
+          <th>Fri</th>
+          <th>Sat</th>
+        </tr>
+      </thead>
+      <tbody id="calendar-body"> <!-- The rest is created with javascript in CalendarFormat's renderCalendar--> </tbody>
     </table>
   </div>
-    <script src="/scripts/UserData.js"></script>
-    <script src="CalendarFormat.js"></script>
-    <script src="DayScheduleFormat.js"></script>
-    <script src="Account.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></body>
+
+  <!--scripts that handle all of the actual calendar functionality-->
+  <script src="/scripts/CalendarClasses.js"></script>
+  <script src="/calendar/CalendarFormat.js"></script>
+  <script src="/calendar/DayScheduleFormat.js"></script>
+  <script src="/calendar/Account.js"></script>
 </html>

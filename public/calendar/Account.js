@@ -1,6 +1,28 @@
-// Function to handle signout
+/*
+Name: Kaelin Wang Hu and Jason Leech
+Date: 11/29/2023
+Last Edit: 1/7/2023
+Desc: Handles account settings and deletion
+*/
+
+//FUNCTION HEADER TEMPLATE
+/**
+ * Description
+ * @param   {type} name - parameter description
+ * @returns {type}
+ */
+
+var pass; //Global variable set to entered password
+
+//#region Signout functions
+
+/**
+ * Handles signout with a server call
+ * @returns {void}
+ */
 function signout() 
 {
+    //calls signout on the server
     fetch('/signout', 
     {
         method: 'POST',
@@ -25,17 +47,18 @@ function signout()
     .catch(error => console.error('Error:', error));
 }
 
-// Function to initiate account deletion process
-function deleteAccount() 
-{
-    showModal();
-}
+//#endregion Signout functions
 
-// Function to show modal for password confirmation
-async function showModal() 
+//#region Account deletion functions
+
+/**
+ * Function to initiate account deletion process by showing the modal
+ * @returns {void}
+ */
+async function deleteAccount() 
 {
     var modal = document.getElementById("passwordModal");
-    var span = document.getElementsByClassName("close")[0];
+    var span = document.getElementsByClassName("close")[0]; //ex
     var passwordError = document.getElementById("passwordError"); // Element to display error message
 
     // Show the modal
@@ -59,7 +82,7 @@ async function showModal()
         }
     };
 
-    // Handling the password submission
+    // Handles the password submission
     document.getElementById("submitPassword").onclick = async function () 
     {
         const password = document.getElementById("passwordInput").value;
@@ -77,14 +100,18 @@ async function showModal()
     };
 }
 
-var pass;
-
-// Modified function to validate password
+/**
+ * Validates password with a serve call
+ * @param   {string} password - the password to validate
+ * @returns {bool}
+ */
 async function validatePassword(password) 
 {
     pass = password;
     let isValid = false;
-    try {
+    try 
+    {
+        //Checks the password
         let response = await fetch('/checkpassword', 
         {
             method: 'POST',
@@ -93,7 +120,7 @@ async function validatePassword(password)
             body: JSON.stringify({_password: password})
         });
 
-        // Assuming the response is always 200 OK, but the message varies
+        // Assuming the response is always 200 OK
         let message = await response.json();
         if (message.result === 'OK') 
         {
@@ -101,17 +128,68 @@ async function validatePassword(password)
         } 
         else
         {
-            console.log("something went wrong");
+            console.log("Server Error");
         }
-    } catch (error) 
+    } 
+    catch (error) 
     {
         console.error('Error:', error);
     }
     return isValid;
 }
 
+/**
+ * Handles the actual account deletion process once deletion is confirmed
+ * @param   {string} password - the password to validate (again as a failsafe)
+ * @returns {void}
+ */
+function deleteAccountConfirmed(password) 
+{
+    const userID = localStorage.getItem('userID'); //gets the user ID to send to server for deletion through /deleteaccount
+    fetch('/deleteaccount', 
+    {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ userID, password })
+    })
+    .then(response => response.json())
+    .then(message => 
+    {
+        if (message.result === 'OK') 
+        {
+            localStorage.removeItem('userID'); //removes the userID and redirects back to the login
+            window.location.href = "/login";
+        } 
+        else 
+        {
+            alert("Failed to delete account");
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
 
-// Function to show confirmation modal for account deletion
+//#endregion Account deletion functions
+
+//#region Account deletion and modal helpers
+
+/**
+ * Toggles password (eye) icon visibility
+ * @returns {void}
+ */
+document.getElementById("togglePassword").addEventListener('click', function () 
+{
+    var passwordInput = document.getElementById("passwordInput");
+    var type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password'; //switch between text and password
+    passwordInput.setAttribute('type', type);
+    this.classList.toggle('fa-eye-slash'); //toggle the icon
+});
+
+
+/**
+ * Shows confirmation modal for account deletion
+ * @returns {void}
+ */
 function confirmPassword() 
 {
     showModalConfirmation();
@@ -126,18 +204,21 @@ function confirmPassword()
     };
 }
 
-// Function to display the custom confirmation modal
+/**
+ * Displays the custom confirmation modal
+ * @returns {void}
+ */
 function showModalConfirmation() 
 {
     var modal = document.getElementById("confirmationModal");
     modal.style.display = "block";
 
+    //if clicked on the close or clicked outside, close the modal
     var span = modal.getElementsByClassName("close")[0];
     span.onclick = function () 
     {
         modal.style.display = "none";
     };
-
     window.onclick = function (event) 
     {
         if (event.target === modal) 
@@ -147,43 +228,14 @@ function showModalConfirmation()
     };
 }
 
-// Function to close the custom confirmation modal
+/**
+ * Close the custom confirmation modal
+ * @returns {void}
+ */
 function closeModalConfirmation() 
 {
     var modal = document.getElementById("confirmationModal");
     modal.style.display = "none";
 }
 
-// Function handling the actual account deletion process
-function deleteAccountConfirmed(password) 
-{
-    const userID = localStorage.getItem('userID');
-    fetch('/deleteaccount', 
-    {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ userID, password })
-    })
-    .then(response => response.json())
-    .then(message => 
-    {
-        if (message.result === 'OK') 
-        {
-            localStorage.removeItem('userID');
-            window.location.href = "/login";
-        } 
-        else 
-        {
-            alert("Failed to delete account");
-        }
-    })
-    .catch(error => console.error('Error:', error));
-}
-// Function to toggle password visibility
-document.getElementById("togglePassword").addEventListener('click', function (e) {
-    var passwordInput = document.getElementById("passwordInput");
-    var type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-    passwordInput.setAttribute('type', type);
-    this.classList.toggle('fa-eye-slash');
-});
+//#endregion Account deletion and modal helpers
