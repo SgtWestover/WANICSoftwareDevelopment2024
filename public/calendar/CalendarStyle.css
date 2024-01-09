@@ -9,7 +9,7 @@ Desc: style for index
 /*#region Main calendar formatting*/
 
 
-body 
+body /* Document body*/
 {
     font-family: Arial, sans-serif;
     background-color: #3a3e41; /*#181a1b*/
@@ -18,7 +18,7 @@ body
     height: auto;
 }
 
-header
+header /* Document header*/
 {
     position: absolute;
     background-color: #333;
@@ -31,7 +31,7 @@ header
     height: 50px
 }
 
-table 
+table /* Table to organize calendar days */
 {
     width: 100%;
     margin-top: 90px;
@@ -40,7 +40,7 @@ table
     border-spacing: 10px;
 }
 
-th, td 
+th, td /* Table for calendar days*/
 {
     border: 0px solid #3a3e41;
     margin: 10px;
@@ -76,32 +76,18 @@ td
   cursor: pointer;
 }
 
-
-.today 
-{
-    background-color: #4CAF50;
-    color: #fff;
-}
-
-#prev-month, #next-month
+#prev-month, #next-month /* Buttons to increment months*/
 {
   position: fixed;
   font-size: 40px;
   font-weight: bolder;
   top: 18px;
   user-select: none;
-  transition: color 250ms ease-in-out;
+  transition: transform 250ms ease-in-out;
   color: white;
   cursor: pointer;
   z-index: 15;
 }
-
-#month-year
-{
-  position: relative;
-  top: -15px;
-}
-
 
 #prev-month
 {
@@ -113,12 +99,12 @@ td
   left: calc(50% + 170px);
 }
 
-#prev-month:hover, #next-month:hover
+#prev-month:hover, #next-month:hover 
 {
-  color: #4CAF50;
+  transform: scale(1.05);
 }
 
-.modal 
+.modal /* Modal for the delete account window */
 {
   display: none;
   position: fixed;
@@ -133,7 +119,7 @@ td
   padding-top: 60px;
 }
 
-.modal-content 
+.modal-content /* Content inside the delete account window */
 {
   background-color: #fefefe;
   margin: 5% auto;
@@ -142,7 +128,7 @@ td
   width: 80%;
 }
 
-.close 
+.close /* delete account close button */
 {
   color: #aaa;
   float: right;
@@ -158,7 +144,7 @@ td
   cursor: pointer;
 }
 
-.fa-eye 
+.fa-eye /* font awesome eye */
 {
   cursor: pointer;
 }
@@ -262,9 +248,10 @@ td
 /*#endregion*/
 
 
-/* Pop-up box thing (goofy) --------------------------------------------------*/
+/* Event Pop-up window --------------------------------------------------*/
 /*#region Popup box*/
-  .box 
+
+  .box /* The window that pops-ups for events */
   {
     width: 150px;
     margin: 0 auto;
@@ -275,24 +262,8 @@ td
     text-align: center;
     margin-top: 150px;
   }
-  
-  .button 
-  {
-    font-size: 1em;
-    padding: 10px;
-    color: #fff;
-    border: 2px solid #06D85F;
-    border-radius: 20px/50px;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.3s ease-out;
-  }
-  .button:hover 
-  {
-    background: #04AA6D;
-  }
-  
-  .overlay 
+
+  .overlay /* The overlay to the popup to prevent the user form clicking elements out  */
   {
     position: fixed;
     top: 0;
@@ -304,7 +275,7 @@ td
     visibility: hidden;
     opacity: 0;
   }
-  .overlay:target 
+  .overlay:target /* when the overlay is targeted */
   {
     visibility: visible;
     opacity: 1;
@@ -312,7 +283,7 @@ td
     transition: visibility 500ms, opacity 500ms;
   }
   
-  .popup 
+  .popup /* the event popup */ 
   {
     margin: 70px auto;
     padding: 20px;
@@ -325,13 +296,14 @@ td
     margin-top: 120px;
   }
   
-  .popup h2 
+  .popup h2 /* Event popup header*/
   {
     margin-top: 0;
     color: #333;
     font-family: Tahoma, Arial, sans-serif;
   }
-  .popup .close 
+
+  .popup .close  /* popup close butten */
   {
     position: absolute;
     top: 20px;
@@ -342,11 +314,11 @@ td
     text-decoration: none;
     color: #333;
   }
-  .popup .close:hover 
+  .popup .close:hover /* Change color when popup hovered */
   {
     color: #04AA6D;
   }
-  .popup .popup-content 
+  .popup .popup-content /* Event popup content */
   {
     max-height: 30%;
     overflow: auto;
@@ -354,7 +326,7 @@ td
     height: 750px
   }
   
-  .current-time-line 
+  .current-time-line /* The line that follows mouse and shows the time */
   {
     background-color: red;
     height: 100%;
@@ -363,7 +335,7 @@ td
     display: none; /* Hidden by default */
     z-index: 25; /* Set z-index to ensure it's above other elements if necessary */
   }
-  .nav-button
+  .nav-button /* Buttons to switch days while in popup menu */
   {
     position: absolute;
     top: 278.8px;
@@ -376,21 +348,22 @@ td
     user-select: none;
   }
 
-  .nav-button:hover {
+  .nav-button:hover /* Change color on hover */
+  {
     color: #04AA6D;
-}
+  }
   
-  #prev-day
+  #prev-day /* Previous day nav-button */
   {
     left: 30px;
   }
 
-  #next-day
+  #next-day /* Next day nav-button*/
   {
     right: 30px;
   }
 
-  @media screen and (max-width: 700px)
+  @media screen and (max-width: 700px) /* Set max width */ 
   {
     .box
     {
@@ -407,7 +380,7 @@ td
 /* Day Schedule --------------------------------------------------------------*/
 /*#region Day Schedule*/
 
-.day-container 
+.day-container /* contains the elements for day schedule */
 {
     position: relative;
     top: 50px;
@@ -422,18 +395,19 @@ td
     overflow: hidden;
 }
 
-.day-container:hover .line {
+.day-container:hover .line /* Show line when hover */
+{
     opacity: 1; /* Set opacity to 1 on hover */
 }
 
-.day-container:hover + #popup1 .popup-content .lineTimeText 
+.day-container:hover + #popup1 .popup-content .lineTimeText /* Shows the time text on hover */
 {
   opacity: 1;
 }
 
 
 
-.line
+.line /* The line that helps indicate what time the user is selecting */
 {
     position: absolute;
     z-index: 12;
@@ -444,7 +418,7 @@ td
     transition: opacity 150ms;
 }
 
-.measurement-line
+.measurement-line /* Lines that are incremented for every hour */
 {
     position: absolute;
     z-index: 11;
@@ -454,7 +428,8 @@ td
     opacity: 0.4;
 }
 
-.lineTimeText {
+.lineTimeText /* The text the shows the user what time they are selecting */
+{
   top: 70px;
   color: black;
   height: 50px;
@@ -474,7 +449,7 @@ td
 /* Events --------------------------------------------------------------------*/
 /*#region Events*/
 
-.schedule-event
+.schedule-event /* The event that is shown on the schedule */
 {
   background-color: rgb(4, 75, 182);
   height: 100%;
@@ -486,6 +461,7 @@ td
 
 /* SideBar Styles ------------------------------------------------------------*/
 /*#region Sidebar Styles*/
+
 /* Existing Sidebar Styles */
 .sidebar-overlay {
   position: fixed;
