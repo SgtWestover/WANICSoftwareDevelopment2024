@@ -1,4 +1,9 @@
-//TODO: REORGANIZE with regions and stuff... also review function headers and try to remove some bloat
+/*
+Name: Kaelin Wang Hu, Jason Leech
+Date: 11/27/2023
+Last Edited: 1/8/2024
+Description: express.js backend framework handling much of the server and database side functionality
+*/
 // #region Imports of necessary modules and libraries
 
 // Express.js framework
