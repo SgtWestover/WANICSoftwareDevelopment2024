@@ -2,7 +2,7 @@
 Name: Kaelin Wang Hu and Jason Leech
 Date: 11/29/2023
 Last Edit: 1/7/2023
-Desc: Handles account settings and deletion
+Description: Handles account settings and deletion
 */
 
 //FUNCTION HEADER TEMPLATE

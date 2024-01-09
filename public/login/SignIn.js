@@ -2,7 +2,7 @@
 Name: Kaelin Wang Hu and Jason Leech
 Date: 11/21/2023
 Last Edit: 1/7/2023
-Desc: Handles log-ins
+Description: Handles log-in logic
 */
 
 //FUNCTION HEADER TEMPLATE

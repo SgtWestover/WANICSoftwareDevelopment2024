@@ -2,7 +2,7 @@
 Name: Zach Rojas, Kaelin Wang Hu
 Date: 11/27/2023
 Last Edit: 12/15/2023
-Desc: Handles the formatting for the day schedule
+Description: Handles the formatting for the day schedule
 */
 
 //TODO: ORGANIZE PROCEDURAL BLOAT and make it so that the time zones are actually consistent
@@ -156,7 +156,6 @@ window.onload = function()
 {
     startTime = 0;
     endTime = 24;
-    //initializeInputListeners();
     generateSchedule();
     initializeCurrentTimeLine();
 };
