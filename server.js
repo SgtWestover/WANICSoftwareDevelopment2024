@@ -76,10 +76,12 @@ app.use('/', router);
 
 // #region Account and SignIn functions
 
+// #region Sign in functions
+
 /**
  * Handles user login and session creation.
  * @param {express.Request} req - The request object, containing user credentials.
- * @param {express.Response} res - The response object.
+ * @param {express.Response} res - The response message that details whether sign-in worked or not.
  * @returns {Promise<void>} - Does not return a value but sends a response to the client.
  */
 router.post('/signin', async (req, res) => 
@@ -129,10 +131,14 @@ async function findUserSignIn(username, password)
     }
 }
 
+//#endregion Sign in functions
+
+// #region Sign up functions
+
 /**
  * Handles user signup. It creates a new user account if the username does not exist.
  * @param {express.Request} req - The request object, containing new user details.
- * @param {express.Response} res - The response object.
+ * @param {express.Response} res - The response object detailing whether the signup was successful or not.
  * @returns {Promise<void>} - Does not return a value but sends a response to the client.
  */
 router.post('/signup', async (req, res) => 
@@ -142,126 +148,16 @@ router.post('/signup', async (req, res) =>
         res.send({ result: 'FAIL', message: "Missing username or password" });
         return;
     }
-    if (await findUser(req.body._name) == null) 
+    if (await findUser(req.body._name) == null) //if there is no user with that name, create a new user
     {
         const newUser = new User(req.body._name, req.body._password);
         await addUser(newUser);
         console.log("Account created for " + newUser._name);
         res.send({ result: 'OK', message: "Account created" });
     } 
-    else 
+    else //otherwise, error
     {
         res.send({ result: 'FAIL', message: "Account already exists" });
-    }
-});
-
-/**
- * Handles user logout by destroying their session.
- * @param {express.Request} req - The request object.
- * @param {express.Response} res - The response object.
- * @returns {Promise<void>} - Sends a response to the client.
- */
-router.post('/signout', async (req, res) => 
-{
-    if (req.session.userID) 
-    {
-        req.session.destroy();
-        res.send({ result: 'OK', message: "Signed out successfully" });
-    }
-});
-
-/**
- * Allows a user to delete their account after verifying their password.
- * @param {express.Request} req - The request object, containing the user's password.
- * @param {express.Response} res - The response object.
- * @returns {Promise<void>} - Sends a response to the client.
- */
-router.post('/deleteaccount/', async (req, res) => 
-{
-    if (req.session.userID) 
-    {
-        const user = await findUserByID(req.session.userID);
-        if (user && await bcrypt.compare(req.body.password, user._password)) 
-        {
-            await deleteUser(user._name);
-            await deleteUserEvents(req.session.userID);
-            req.session.destroy();
-            res.send({ result: 'OK', message: "Account deleted" });
-        } 
-        else 
-        {
-            res.send({ result: 'OK', message: "Incorrect password or user not found" });
-        }
-    } 
-    else 
-    {
-        res.send({ result: 'OK', message: "User not logged in" });
-    }
-});
-
-/**
- * Retrieves a user by their unique ID from the database.
- * @param {string} userID - The unique ID of the user to retrieve.
- * @returns {Promise<Object|null>} The user object if found, otherwise null.
- */
-async function findUserByID(userID)
-{
-    const userObjectID = new ObjectId(userID); //this is quite retarded because mongoDB appropriates the id to an object string so we have to work with this
-    const calendarDB = dbclient.db("calendarApp");
-    const userCollection = calendarDB.collection("users");
-    return await userCollection.findOne({ _id: userObjectID });
-}
-
-/**
- * Verifies if the provided password is correct for the logged-in user.
- * @param {express.Request} req - The request object, containing the user's password.
- * @param {express.Response} res - The response object.
- * @returns {Promise<void>} - Sends a response to the client.
- */
-router.post('/checkpassword/', async (req, res) => 
-{
-    if (req.session.userID) 
-    {
-        const user = await findUserByID(req.session.userID);
-        if (user && await bcrypt.compare(req.body._password, user._password)) 
-        {
-            res.send({ result: 'OK', message: "CorrectPassword" });
-        } 
-        else 
-        {
-            res.send({ result: 'OK', message: "IncorrectPassword" });
-        }
-    } 
-    else 
-    {
-        res.send({ result: 'OK', message: "User not logged in" });
-    }
-});
-
-
-/**
- * Retrieves data for the logged-in user.
- * @param {express.Request} req - The request object.
- * @param {express.Response} res - The response object.
- * @returns {Promise<void>} - Sends the user data as a response to the client.
- */
-router.post('/getData/', async (req, res) => 
-{
-    if (req.session.userID) 
-    {
-        let user = await findUserByID(req.session.userID);
-        if (user) 
-        {
-            res.send({ result: 'OK', message: JSON.stringify(user) });
-        } 
-        else 
-        {
-            res.send({ result: 'OK', message: "User not found" });
-        }
-    } 
-    else 
-    {
-        res.send({ result: 'OK', message: "User not logged in" });
     }
 });
 
@@ -270,7 +166,6 @@ router.post('/getData/', async (req, res) =>
  * @param {string} username - The username of the user.
  * @returns {Promise<Object|null>} The user object if credentials match, otherwise null.
  */
-// Asynchronously find a user based solely on the username
 async function findUser(username)
 {
     // Define the calendar database and users collection
@@ -316,6 +211,67 @@ async function addUser(userData)
     return await userCollection.insertOne(user);
 }
 
+// #endregion Sign up functions
+
+/**
+ * Handles user logout by destroying their session.
+ * @param {express.Request} req - The request object with the user ID.
+ * @param {express.Response} res - The response object that details whether the signout was successful or not.
+ * @returns {Promise<void>} - Sends a response to the client.
+ */
+router.post('/signout', async (req, res) => 
+{
+    if (req.session.userID) 
+    {
+        req.session.destroy();
+        res.send({ result: 'OK', message: "Signed out successfully" });
+    }
+});
+
+// #region Delete account functions
+
+/**
+ * Allows a user to delete their account after verifying their password.
+ * @param {express.Request} req - The request object, containing the user's password.
+ * @param {express.Response} res - The response object detailing whether the account deletion was successful or not.
+ * @returns {Promise<void>} - Sends a response to the client.
+ */
+router.post('/deleteaccount/', async (req, res) => 
+{
+    if (req.session.userID) 
+    {
+        const user = await findUserByID(req.session.userID);
+        if (user && await bcrypt.compare(req.body.password, user._password)) 
+        {
+            await deleteUser(user._name);
+            await deleteUserEvents(req.session.userID);
+            req.session.destroy();
+            res.send({ result: 'OK', message: "Account deleted" });
+        } 
+        else 
+        {
+            res.send({ result: 'OK', message: "Incorrect password or user not found" });
+        }
+    } 
+    else 
+    {
+        res.send({ result: 'OK', message: "User not logged in" });
+    }
+});
+
+/**
+ * Retrieves a user by their unique ID from the database.
+ * @param {string} userID - The unique ID of the user to retrieve.
+ * @returns {Promise<Object|null>} The user object if found, otherwise null.
+ */
+async function findUserByID(userID)
+{
+    const userObjectID = new ObjectId(userID); //this is quite retarded because mongoDB appropriates the id to an object string so we have to work with this
+    const calendarDB = dbclient.db("calendarApp");
+    const userCollection = calendarDB.collection("users");
+    return await userCollection.findOne({ _id: userObjectID });
+}
+
 /**
  * Deletes a user by their username.
  * @param {string} username - The username of the user to delete.
@@ -329,13 +285,57 @@ async function deleteUser(username)
     await userCollection.deleteOne({ _name: username });
 }
 
+//TODO: Make it so that if userID is the only person it can delete it, otherwise its gonna delete the functions of others
+/**
+ * Deletes events associated with a specific user ID.
+ * @param {string} userID - The user ID whose events are to be deleted.
+ * @returns {Promise<void>}
+ */
+async function deleteUserEvents(userID) 
+{
+    const calendarDB = dbclient.db("calendarApp");
+    const eventsCollection = calendarDB.collection("events");
+    await eventsCollection.deleteMany({ _users: { $in: [userID] } });
+}
+
+/**
+ * Verifies if the provided password is correct for the logged-in user.
+ * @param {express.Request} req - The request object, containing the user's password.
+ * @param {express.Response} res - The response object detailing whether the password was correct or incorrect
+ * @returns {Promise<void>} - Sends a response to the client.
+ */
+router.post('/checkpassword/', async (req, res) => 
+{
+    if (req.session.userID) 
+    {
+        const user = await findUserByID(req.session.userID);
+        if (user && await bcrypt.compare(req.body._password, user._password)) 
+        {
+            res.send({ result: 'OK', message: "CorrectPassword" });
+        } 
+        else 
+        {
+            res.send({ result: 'OK', message: "IncorrectPassword" });
+        }
+    } 
+    else 
+    {
+        res.send({ result: 'OK', message: "User not logged in" });
+    }
+});
+
+// #endregion Delete account functions
+
 //#endregion Account and SignIn functions
 
 // #region Events
+
+// #region Event creation
+
 /**
  * Handles the creation of a new event.
  * @param {express.Request} req - The request object, containing event details.
- * @param {express.Response} res - The response object.
+ * @param {express.Response} res - The response object that details whether the event was created successfully or not.
  * @returns {Promise<void>} - Sends a response to the client.
  */
 router.post('/createEvent', async (req, res) => 
@@ -360,35 +360,26 @@ router.post('/createEvent', async (req, res) =>
 });
 
 /**
- * Searches for an event based on provided criteria.
- * @param {express.Request} req - The request object, containing search criteria.
- * @param {express.Response} res - The response object.
- * @returns {Promise<void>} - Sends a response to the client.
+ * Adds a new event to the database.
+ * @param {Object} eventData - The event data to add. Expected to have _name, _startDate, _endDate and _description.
+ * @returns {Promise<Object>} The result of the insertion operation.
  */
-router.post('/findEvent', async (req, res) => 
+async function addEvent(eventData) 
 {
-    // Validate required information
-    if (!req.body._users || !req.body._name || !req.body._startDate || !req.body._endDate) 
-    {
-        res.send({ result: 'ERROR', message: "Missing information" });
-        return;
-    }
-    // Find the event
-    const foundEventID = await findEvent(req.body._users, req.body._name, req.body._startDate, req.body._endDate, req.body._description);
-    if (foundEventID) 
-    {
-        res.send({ result: 'OK', eventID: foundEventID });
-    } 
-    else 
-    {
-        res.send({ result: 'ERROR', message: "Event not found" });
-    }
-});
+    const calendarDB = dbclient.db("calendarApp");
+    const eventsCollection = calendarDB.collection("events");
+    const result = await eventsCollection.insertOne(eventData);
+    return result;
+}
+
+// #endregion Event creation
+
+// #region Event deletion
 
 /**
  * Deletes an event based on its ID.
  * @param {express.Request} req - The request object, containing the event ID.
- * @param {express.Response} res - The response object.
+ * @param {express.Response} res - The response object detailing whether the event deletion was successful or not.
  * @returns {Promise<void>} - Sends a response to the client.
  */
 router.post('/deleteEvent', async (req, res) => 
@@ -420,9 +411,49 @@ router.post('/deleteEvent', async (req, res) =>
 });
 
 /**
+ * Retrieves details of a specific event from the database.
+ * @param {string} eventID - The unique identifier of the event.
+ * @returns {Promise<Object|null>} The event object if found, otherwise null.
+ */
+async function findEventDetails(eventID) 
+{
+    try 
+    {
+        const calendar = dbclient.db("calendarApp");
+        const eventList = calendar.collection("events");
+        const eventObjectID = new ObjectId(eventID);
+        const query = { _id: eventObjectID };
+        const event = await eventList.findOne(query);
+        return event;
+    } 
+    catch (error) 
+    {
+        console.error("Error finding event: ", error);
+        return null;
+    }
+}
+
+/**
+ * Deletes an event from the database based on its ID.
+ * @param {string} eventID - The unique identifier of the event to be deleted.
+ * @returns {Promise<void>} 
+ */
+async function deleteEvent(eventID) 
+{
+    const calendarDB = dbclient.db("calendarApp");
+    const eventsCollection = calendarDB.collection("events");
+    const eventObjectID = new ObjectId(eventID);
+    await eventsCollection.deleteOne({ _id: eventObjectID });
+}
+
+// #endregion Event deletion
+
+// #region Event retrieval
+
+/**
  * Retrieves all events for a given user ID.
  * @param {express.Request} req - The request object, containing the user ID.
- * @param {express.Response} res - The response object.
+ * @param {express.Response} res - The response object giving either the events with the associated user if they exist.
  * @returns {Promise<void>} - Sends the events as a JSON response to the client.
  */
 router.get('/getUserEvents/:userID', async (req, res) => 
@@ -456,17 +487,30 @@ async function findEventsByUserID(userID)
 }
 
 /**
- * Deletes an event from the database based on its ID.
- * @param {string} eventID - The unique identifier of the event to be deleted.
- * @returns {Promise<void>}
+ * Searches for an event based on provided criteria.
+ * @param {express.Request} req - The request object, containing search criteria.
+ * @param {express.Response} res - The response object detailing whether the event was found or not.
+ * @returns {Promise<void>} - Sends a response to the client.
  */
-async function deleteEvent(eventID) 
+router.post('/findEvent', async (req, res) => 
 {
-    const calendarDB = dbclient.db("calendarApp");
-    const eventsCollection = calendarDB.collection("events");
-    const eventObjectID = new ObjectId(eventID);
-    await eventsCollection.deleteOne({ _id: eventObjectID });
-}
+    // Validate required information
+    if (!req.body._users || !req.body._name || !req.body._startDate || !req.body._endDate) 
+    {
+        res.send({ result: 'ERROR', message: "Missing information" });
+        return;
+    }
+    // Find the event
+    const foundEventID = await findEvent(req.body._users, req.body._name, req.body._startDate, req.body._endDate, req.body._description);
+    if (foundEventID) 
+    {
+        res.send({ result: 'OK', eventID: foundEventID });
+    } 
+    else 
+    {
+        res.send({ result: 'ERROR', message: "Event not found" });
+    }
+});
 
 /**
  * Finds an event by name, dates, and description
@@ -503,103 +547,9 @@ async function findEvent(users, name, startDate, endDate, description)
     }
 }
 
-router.post('/updateEvent', async (req, res) => 
-{
-    const { eventID, ...eventDetails } = req.body;
+// #endregion Event retrieval
 
-    if (!eventID || !eventDetails) 
-    {
-        res.status(400).send({ result: 'ERROR', message: "Missing event ID or details" });
-        return;
-    }
-    try 
-    {
-        const updatedEvent = await updateEvent(eventID, eventDetails);
-        if (updatedEvent) 
-        {
-            res.send({ result: 'OK', message: "Event updated successfully" });
-        } 
-        else 
-        {
-            res.status(404).send({ result: 'ERROR', message: "Event not found" });
-        }
-    } 
-    catch (error) 
-    {
-        console.error("Error updating event: ", error);
-        res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
-    }
-});
-
-/**
- * Updates an event's details in the database.
- * @param {string} eventID - The unique identifier of the event to be updated.
- * @param {Object} eventDetails - The new details of the event.
- * @returns {Promise<boolean>} True if the update was successful, false otherwise.
- */
-async function updateEvent(eventID, eventDetails) 
-{
-    const calendarDB = dbclient.db("calendarApp");
-    const eventsCollection = calendarDB.collection("events");
-    const eventObjectID = new ObjectId(eventID);
-    const updateResult = await eventsCollection.updateOne
-    (
-        { _id: eventObjectID },
-        { $set: eventDetails }
-    );
-    return updateResult.matchedCount > 0;
-}
-
-/**
- * Retrieves details of a specific event from the database.
- * @param {string} eventID - The unique identifier of the event.
- * @returns {Promise<Object|null>} The event object if found, otherwise null.
- */
-async function findEventDetails(eventID) 
-{
-    try 
-    {
-        const calendar = dbclient.db("calendarApp");
-        const eventList = calendar.collection("events");
-        const eventObjectID = new ObjectId(eventID);
-        const query = { _id: eventObjectID };
-        const event = await eventList.findOne(query);
-        return event;
-    } 
-    catch (error) 
-    {
-        console.error("Error finding event: ", error);
-        return null;
-    }
-}
-
-/**
- * Adds a new event to the database.
- * @param {Object} eventData - The event data to add. Expected to have _name, _startDate, _endDate and _description.
- * @returns {Promise<Object>} The result of the insertion operation.
- */
-async function addEvent(eventData) 
-{
-    const calendarDB = dbclient.db("calendarApp");
-    const eventsCollection = calendarDB.collection("events");
-    const result = await eventsCollection.insertOne(eventData);
-    return result;
-}
-
-//TODO: Make it so that if userID is the only person it can delete it, otherwise its gonna delete the functions of others
-/**
- * Deletes events associated with a specific user ID.
- * @param {string} userID - The user ID whose events are to be deleted.
- * @returns {Promise<void>}
- */
-async function deleteUserEvents(userID) 
-{
-    const calendarDB = dbclient.db("calendarApp");
-    const eventsCollection = calendarDB.collection("events");
-    await eventsCollection.deleteMany({ _users: { $in: [userID] } });
-}
-
-// #endregion
+// #endregion Events
 
 // #region Websockets and server
 
@@ -665,6 +615,7 @@ wss.on('connection', function (ws, request)
     });
 });
 
+//logs the socket error if it occurs
 function onSocketError(err) 
 {
     console.log(err);
@@ -673,7 +624,7 @@ function onSocketError(err)
 /**
  * Handles the logout process by destroying the user's session and closing their WebSocket connection if it exists.
  * @param {express.Request} request - The request object.
- * @param {express.Response} response - The response object.
+ * @param {express.Response} response - The response object that details whether the logout was successful.
  */
 app.delete('/logout', function (request, response) 
 {
@@ -732,6 +683,5 @@ app.get('/', (req, res) =>
 {
     res.sendFile('calendar.html', { root: 'public' });
 });
-
 
 // #endregion
