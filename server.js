@@ -337,6 +337,7 @@ router.post('/checkpassword/', async (req, res) =>
 
 // #region Event creation
 
+//TODO: 
 /**
  * Handles the creation of a new event.
  * @param {express.Request} req - The request object, containing event details.
