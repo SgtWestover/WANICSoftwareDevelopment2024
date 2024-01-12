@@ -405,7 +405,6 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     var startTime = document.getElementById('startTime').value;
     var endTime = document.getElementById('endTime').value;
     var eventDesc = document.getElementById('eventDesc').value;
-
     // Convert time to Date objects
     var currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
     var currentDate = new Date(currentPopupDateAttr);
@@ -419,7 +418,6 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     endDate.setHours(endHours, endMinutes);
     startDate = new Date(startDate.getTime() - timeOffset + dayOffset); //dunno why but you have to add a day for this to work
     endDate = new Date(endDate.getTime() - timeOffset + dayOffset);
-
     const eventForm = document.getElementById('eventForm');
     const isEditing = eventForm.getAttribute('data-editing') === 'true';
     const eventID = eventForm.getAttribute('data-event-id');
@@ -552,18 +550,13 @@ function getUserEvents(userID)
     .then(events =>
     {
         userEvents = events.map(eventData => convertCalendarEvent(eventData)); //map each eventData into a new calendar event
-        console.log("userEvents: aaa" + JSON.stringify(userEvents));
         userEvents.forEach(event => 
         {
-            console.log("event: " + JSON.stringify(event));
-            console.log("event.gettime()" + event._startDate.getTime());
             //js for some reason ignores timezones when creating new dates so if you have a timezone it gets offset stupid thing
             let timeZoneOffset = event._startDate.getTimezoneOffset() * 60000
             event._startDate = new Date(event._startDate.getTime() + timeZoneOffset);
             event._endDate = new Date(event._endDate.getTime() + timeZoneOffset);
-            console.log(event._startDate);    
     });
-    console.log(userEvents);
         return userEvents;
     });
 }
@@ -597,18 +590,25 @@ function renderEvent(calendarEvent)
 {    
     // create event element
     let eventElement = document.createElement("div");
+
     eventElement.classList.add('schedule-event');
     eventElement.innerHTML = calendarEvent._name //TODO: make it the description or something we can add more later
     let eventDateID = calendarEvent._startDate.toISOString().split('T')[0]; // YYYY-MM-DD format, gives identifiers so it can be more easily removed later
     eventElement.style.zIndex = 20;
     eventElement.setAttribute('data-event-date', eventDateID);
     eventElement.setAttribute('data-event-id', calendarEvent._id); // Attach MongoDB ID to the element
-    const timeZoneOffset = calendarEvent._startDate.getTimezoneOffset() / 60;
+    const timeZoneOffset = calendarEvent._startDate.getTimezoneOffset();
+    let calendarEventCopy = calendarEvent; //duplicate because the fields are supposed to be unique
     eventElement.addEventListener('click', function() 
     {
-        findEventID(calendarEvent)
+        calendarEventCopy._startDate = new Date(calendarEventCopy._startDate.getTime() - timeZoneOffset * 60000); // Convert to local time
+        calendarEventCopy._endDate = new Date(calendarEventCopy._endDate.getTime() - timeZoneOffset * 60000); // Convert to local time
+        console.log("calendarEvent: " + JSON.stringify(calendarEventCopy));
+        findEventID(calendarEventCopy)
         .then(eventID => 
         {
+            calendarEventCopy._startDate = new Date(calendarEventCopy._startDate.getTime() + timeZoneOffset * 60000); // Convert to local time
+            calendarEventCopy._endDate = new Date(calendarEventCopy._endDate.getTime() + timeZoneOffset * 60000); // Convert to local time    
             populateEventForm(eventID, calendarEvent, eventElement);
         })
         .catch(error => 
@@ -620,11 +620,6 @@ function renderEvent(calendarEvent)
     let hourLength = (calendarEvent._endDate.getHours() * 60 + calendarEvent._endDate.getMinutes()) - (calendarEvent._startDate.getHours() * 60 + calendarEvent._startDate.getMinutes());
     let eventWidth = ((hourLength * parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))
     eventElement.style.width = `${eventWidth}px`
-    console.log(hourLength);
-    console.log(calendarEvent._endDate);
-    console.log(calendarEvent._endDate.getHours());
-    console.log((calendarEvent._startDate.getHours() * 60 + calendarEvent._startDate.getMinutes()));
-    console.log(userEvents);
     // Gets the selected time based on mouse position
     selectedHour = ((calendarEvent._startDate.getHours()/* + timeZoneOffset*/) * 60 + calendarEvent._startDate.getMinutes());
     if (selectedHour >= 1440) // 24 hours * 60 min
@@ -638,22 +633,22 @@ function renderEvent(calendarEvent)
 
 function populateEventForm(eventID, calendarEvent, eventElement)
 {
+    console.log("populateEventForm calendarEvent: " + JSON.stringify(calendarEvent));
     let startDate = calendarEvent._startDate;
     let endDate = calendarEvent._endDate;
+    console.log("startDate: " + formatToTime(startDate));
+    console.log("endDate: " + formatToTime(endDate));
     currentEventElement = eventElement;
-
     document.getElementById('eventPopupHeader').textContent = 'Edit Event';
     document.getElementById('eventName').value = calendarEvent._name;
-    document.getElementById('startTime').value = startDate; // Format to "HH:MM"
-    document.getElementById('endTime').value = endDate; // Format to "HH:MM"
+    document.getElementById('startTime').value = formatToTime(startDate); // Format to "HH:MM"
+    document.getElementById('endTime').value = formatToTime(endDate); // Format to "HH:MM"
     document.getElementById('eventDesc').value = calendarEvent._description;
     const eventForm = document.getElementById('eventForm');
     eventForm.setAttribute('data-editing', 'true');
     eventForm.setAttribute('data-event-id', eventID);
     document.getElementById('submitEventButton').value = 'Edit Event';
-
     let fragment = document.createDocumentFragment();
-    
     let deleteButton = document.getElementById('deleteEventButton');
     if (!deleteButton) 
     {
@@ -662,17 +657,14 @@ function populateEventForm(eventID, calendarEvent, eventElement)
         deleteButton.textContent = 'Delete Event';
         fragment.appendChild(deleteButton);
     }
-
     const originalEventData = 
     {
         name: calendarEvent._name,
-        startTime: formatToUTCTime(calendarEvent._startDate),
-        endTime: formatToUTCTime(calendarEvent._endDate),
+        startTime: formatToTime(calendarEvent._startDate),
+        endTime: formatToTime(calendarEvent._endDate),
         description: calendarEvent._description
     };
-
     eventForm.setAttribute('data-original-event', JSON.stringify(originalEventData));
-
     deleteButton.onclick = function(e) 
     {
         e.preventDefault();
@@ -691,18 +683,19 @@ function populateEventForm(eventID, calendarEvent, eventElement)
 function deleteEvent(eventID) 
 {
     let eventBody = { eventID: eventID };
-    currentEventElement.remove();
+    if (currentEventElement) currentEventElement.remove();
     return sendRequest('/deleteEvent', eventBody)
         .then(response => {
-            if (response.result === 'OK') {
+            if (response.result === 'OK') 
+            {
                 // Find and remove the event element with the matching eventID
                 const eventElements = document.querySelectorAll('.schedule-event');
                 eventElements.forEach(element => {
-                    if (element.getAttribute('data-event-id') === eventID) {
+                    if (element.getAttribute('data-event-id') === eventID) 
+                    {
                         element.remove();
                     }
                 });
-
                 initializeEvents();
                 closeEventForm();
                 return response.message;
@@ -719,11 +712,11 @@ function deleteEvent(eventID)
  * @param {Date} date - the date to be converted to a UTC string
  * @returns {string} - the string of the date in UTC
  */
-function formatToUTCTime(date) 
+function formatToTime(date) 
 {
     // Get UTC hours and minutes
-    const hoursUTC = date.getUTCHours();
-    const minutesUTC = date.getUTCMinutes();
+    const hoursUTC = date.getHours();
+    const minutesUTC = date.getMinutes();
     // Pad single digit minutes and hours with a leading zero
     const paddedHoursUTC = hoursUTC.toString().padStart(2, '0');
     const paddedMinutesUTC = minutesUTC.toString().padStart(2, '0');
@@ -752,7 +745,7 @@ function unrenderEvent(currentDate)
 
 /**
  * Creates a new event in the database with the given details
- * @param {Date} currentDate - the current date to be compared to see what will be removed
+ * @param {Date} eventDetails - the current date to be compared to see what will be removed
  * @returns {void} - but removes all the events not in the current day
  */
 function createNewEvent(eventDetails) 
@@ -765,6 +758,9 @@ function createNewEvent(eventDetails)
             document.getElementById('eventPopup').style.display = 'none';
             document.getElementById('errorMessage').style.display = 'none';
             eventDetails._id = response.eventID; // Assign the new event ID
+            eventDetails._startDate = new Date(eventDetails._startDate.getTime() + eventDetails._startDate.getTimezoneOffset() * 60000); // Convert to local time
+            eventDetails._endDate = new Date(eventDetails._endDate.getTime() + eventDetails._endDate.getTimezoneOffset() * 60000); // Convert to local time
+            console.log("startDate: " + eventDetails._startDate);
             renderEvent(eventDetails);
             initializeEvents();
             populateEventsSidebar();
@@ -903,6 +899,8 @@ function sendEventToDatabase(event)
  */
 function findEventID(event) 
 {
+    const offsetInMilliseconds = event._startDate.getTimezoneOffset() * 60000; // Convert minutes to milliseconds
+    console.log("fuck this: " + JSON.stringify(event));
     return sendRequest('/findEvent', 
     {
         _users: event._users,
