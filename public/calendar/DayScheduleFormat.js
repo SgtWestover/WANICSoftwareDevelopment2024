@@ -136,24 +136,27 @@ function generateSchedule()
  * Generates the time measurements for the day container, runs 
  * @returns {void} - but creates the lines for each hour in the day container
  */
-function generateTimeMeasurements()
+function generateTimeMeasurements() 
 {
-    //TODO: Get Zach to document this thing. wtf is this??
+    // Retrieve all existing measurement lines in the day container.
     const currentLines = document.getElementsByClassName('measurement-line');
-    //Remove existing lines
-    while(currentLines.length > 0)
+
+    // Remove existing lines to refresh the measurements.
+    while (currentLines.length > 0) 
     {
         currentLines[0].parentNode.removeChild(currentLines[0]);
     }
-    //Create new lines spaced properly
-    for (let i = 1; i < endTime - startTime; i++)
+    // Create new measurement lines based on the start and end times of the day.
+    for (let i = 1; i < endTime - startTime; i++) 
     {
         let line = document.createElement('div');
         line.classList.add('measurement-line');
+        // Position each line proportionally within the day container based on the hour.
         line.style.left = `${i * ((parseInt(dayContainer.offsetWidth)) / (endTime - startTime))}px`;
         dayContainer.appendChild(line);   
     }
 }
+
 
 //On the window load, set global variables startTime and endTime and generate the schedule while initializing the current time tracker
 window.onload = function() 
@@ -169,19 +172,23 @@ window.onload = function()
  * @param   {Event} event - mouse event when passing over the day container
  * @returns {void} - but moves the line to follow the mouse
  */
-function lineFollow(event)
+function lineFollow(event) 
 {
     let line = document.getElementById('line');    
     let Left = line.parentElement.getBoundingClientRect().left;
-    line.style.left = `${event.clientX - Left - 1.75}px`; // mousePos
-    //Gets the selected time based on mouse position
+    // Position the line to follow the mouse horizontally within the day container.
+    line.style.left = `${event.clientX - Left - 1.75}px`;
+    // Calculate the selected time based on the mouse's position.
     let current = event.clientX - Left;
-    let max = parseInt(dayContainer.offsetWidth); //pixel on the right bound
+    let max = parseInt(dayContainer.offsetWidth);
     let percent = Math.floor((current / max) * 100) + 1;
     let selectedHour = ((endTime - startTime) * percent / 100) + startTime;
-    selectedHour = Math.floor(selectedHour * 4) / 4; // Round to the nearest quarter hour
+    selectedHour = Math.floor(selectedHour * 4) / 4; // Round to the nearest quarter hour.
+
+    // Display the calculated time above the line.
     lineText(event, convertToTime(selectedHour));
 }
+
 
 /**
  * Generates the text that will be shown above the line when hovering
@@ -189,35 +196,39 @@ function lineFollow(event)
  * @param {String} time - the string indicating the time to be shown when hovering
  * @returns {void} - but initializes the text over the following line
  */
-function lineText(event, time)
+function lineText(event, time) 
 {
     let text = document.getElementById('lineTimeText');
     let Left = text.parentElement.getBoundingClientRect().left;
-    text.style.left = `${event.clientX - Left - 5.5}px`; // mousePos
-    text.innerHTML = time;
+    // Position the text element to follow the mouse, displaying the time.
+    text.style.left = `${event.clientX - Left - 5.5}px`;
+    text.innerHTML = time; // Update the text to show the calculated time.
 }
+
 
 /**
  * Converts an integer representing a time to the format "HH:MM AM/PM"
  * @param   {int} num - the number to be converted
  * @returns {String} - the string representing the number
  */
-function convertToTime(num)
+function convertToTime(num) 
 {
     let ampm = "AM";
-    let hour = Math.trunc(num);
-    if (hour === 12) ampm = "PM"
-    else if (hour > 12) 
+    let hour = Math.trunc(num); // Extract the hour part from the number.
+    // Convert 24-hour format to 12-hour format and set AM/PM accordingly.
+    if (hour === 12) ampm = "PM";
+    else if (hour > 12) //if it's more than 12, subtract it to keep AM/PM continuity
     {
         hour -= 12;
         ampm = "PM";
         if (hour === 12) ampm = "AM";
     }
-    if (hour === 0) hour = 12;
+    if (hour === 0) hour = 12; //if it's at hour 0, then it should be 12 AM
+    // Convert the decimal part to minutes.
     num *= 100;
     let min = ((num % 100) / 100) * 60;
-    if (min != 0) return hour + ":" + min + " " + ampm;
-    else return hour + ":00 " + ampm;
+    // Format the time string in "HH:MM AM/PM" format.
+    return min !== 0 ? hour + ":" + min + " " + ampm : hour + ":00 " + ampm;
 }
 
 /**
@@ -501,14 +512,19 @@ function displayErrorMessage(message)
  */
 function isDuplicateEventInSidebar(newEventData, eventID) 
 {
+    // Select all event cards from the sidebar.
     const eventCards = document.querySelectorAll('.event-card');
+    // Check if any card matches the new event data, indicating a duplicate.
     return Array.from(eventCards).some(card => 
     {
-        if (card.getAttribute('data-event-id') === eventID) return false; // Skip the event being edited
+        // Skip comparison for the event being edited.
+        if (card.getAttribute('data-event-id') === eventID) return false;
+        // Extract data from the event card for comparison.
         const cardName = card.querySelector('h3').textContent;
         const cardStart = card.querySelector('p:nth-child(2)').textContent.split(': ')[1];
         const cardEnd = card.querySelector('p:nth-child(3)').textContent.split(': ')[1];
         const cardDesc = card.querySelector('p:nth-child(4)').textContent;
+        // Compare the extracted data with the new event data.
         return cardName === newEventData.name &&
         cardStart === formatTimeStringWithAMPM(newEventData.startTime) &&
         cardEnd === formatTimeStringWithAMPM(newEventData.endTime) &&
@@ -572,7 +588,7 @@ function convertCalendarEvent(data)
         data._id, //id
         data._users,
         data._name,
-        new Date(data._startDate),
+        new Date(data._startDate), //automatically converts the UTC date stored in server back to local time
         new Date(data._endDate),
         data._description,
         data._location,
@@ -589,7 +605,6 @@ function renderEvent(calendarEvent)
 {    
     // create event element
     let eventElement = document.createElement("div");
-
     eventElement.classList.add('schedule-event');
     eventElement.innerHTML = calendarEvent._name //TODO: make it the description or something we can add more later
     let eventDateID = calendarEvent._startDate.toISOString().split('T')[0]; // YYYY-MM-DD format, gives identifiers so it can be more easily removed later
@@ -623,6 +638,13 @@ function renderEvent(calendarEvent)
     dayContainer.appendChild(eventElement);   
 }
 
+/**
+ * Populates the event form with the parameters of a certain calendar event to be changed in editing mode
+ * @param {String} eventID - the ID of the event to be edited
+ * @param {CalendarEvent} calendarEvent - the calendar event that will filled into the form's fields
+ * @param {div} eventElement - the div corresponding to the calendar event that will be changed
+ * @returns {void} - but changes the event submission form into editing mode with prepopulated parameters.
+ */
 function populateEventForm(eventID, calendarEvent, eventElement)
 {
     let startDate = calendarEvent._startDate;
@@ -639,7 +661,7 @@ function populateEventForm(eventID, calendarEvent, eventElement)
     document.getElementById('submitEventButton').value = 'Edit Event';
     let fragment = document.createDocumentFragment();
     let deleteButton = document.getElementById('deleteEventButton');
-    if (!deleteButton) 
+    if (!deleteButton)
     {
         deleteButton = document.createElement('button');
         deleteButton.id = 'deleteEventButton';
@@ -659,7 +681,6 @@ function populateEventForm(eventID, calendarEvent, eventElement)
         e.preventDefault();
         deleteEvent(eventID); 
     };
-
     document.getElementById('eventForm').appendChild(fragment)
     document.getElementById('eventForm').style.display = 'block'; //inefficent but it works
 }
