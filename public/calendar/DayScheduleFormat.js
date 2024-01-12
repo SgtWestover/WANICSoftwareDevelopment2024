@@ -1,7 +1,7 @@
 /*
 Name: Zach Rojas, Kaelin Wang Hu
 Date: 11/27/2023
-Last Edit: 1/9/2023
+Last Edit: 1/11/2023
 Description: Handles the formatting for the day schedule
 */
 
@@ -29,6 +29,8 @@ var startTime = 0;
 var endTime = 24;
 //day container for the majority of popup stuff
 var dayContainer;
+
+// #region Popup initialization
 
 /**
  * Global listeners on document load
@@ -184,7 +186,6 @@ function lineFollow(event)
     let percent = Math.floor((current / max) * 100) + 1;
     let selectedHour = ((endTime - startTime) * percent / 100) + startTime;
     selectedHour = Math.floor(selectedHour * 4) / 4; // Round to the nearest quarter hour.
-
     // Display the calculated time above the line.
     lineText(event, convertToTime(selectedHour));
 }
@@ -230,6 +231,10 @@ function convertToTime(num)
     // Format the time string in "HH:MM AM/PM" format.
     return min !== 0 ? hour + ":" + min + " " + ampm : hour + ":00 " + ampm;
 }
+
+// #endregion Popup initialization
+
+
 
 /**
  * Called whenever the popup changes, and updates everything to reflect the new circumstances such as new events or new dates
@@ -389,7 +394,7 @@ function resetEventForm()
     document.getElementById('submitEventButton').value = 'Create Event';
     // Remove the delete button if it exists (editing mode only)
     let deleteButton = document.getElementById('deleteEventButton');
-    if (deleteButton) 
+    if (deleteButton)
     {
         deleteButton.remove();
     }
@@ -756,7 +761,7 @@ function unrenderEvent(currentDate)
 /**
  * Creates a new event in the database with the given details
  * @param {Date} eventDetails - the current date to be compared to see what will be removed
- * @returns {void} - but removes all the events not in the current day
+ * @returns {void} - but adds a new event to the database and to the calendar with the given details
  */
 function createNewEvent(eventDetails) 
 {
@@ -792,10 +797,11 @@ document.getElementById('showEventsSidebar').addEventListener('click', function(
 });
 
 // Event listener for closing the sidebar
-document.getElementById('closeSidebar').addEventListener('click', function() {
+document.getElementById('closeSidebar').addEventListener('click', function() 
+{
     document.getElementById('eventsSidebar').style.display = 'none';
     document.getElementById('pageOverlay').style.display = 'none'; // Hide the overlay
-    closeEventForm();
+    closeEventForm(); //also close the event form if it is open to prevent abuse
 });
 
 /**
@@ -846,6 +852,7 @@ function populateEventsSidebar()
  */
 function createEventCard(event, container) 
 {
+    // Create event card element and add the details such as the name, start date, end date, and description
     const eventCard = document.createElement('div');
     eventCard.classList.add('event-card');
     eventCard.innerHTML = 
@@ -855,13 +862,15 @@ function createEventCard(event, container)
         <p><i>End:</i> ${formatTime(event._endDate)}</p>
         <p>${event._description}</p>
     `;
+    //also fill the event card with the ID of the event being filled out to ensure continuity between sidebar and popup
     eventCard.setAttribute('data-event-id', event._id);
     eventCard.addEventListener('click', () => 
     {
+        //if clicked, add the event to the event form submission in editing mode and display it
         populateEventForm(event._id, event, eventCard);
         document.getElementById('eventPopup').style.display = 'block';
     });
-    container.appendChild(eventCard);
+    container.appendChild(eventCard); //appends it to the sidebar
 }
 
 /**
@@ -871,8 +880,9 @@ function createEventCard(event, container)
  */
 function formatTime(date) 
 {
-    let hours = (date.getHours()) % 24; //future me is gonna hate this one lmaoooooo
+    let hours = date.getHours();
     let minutes = date.getMinutes().toString().padStart(2, '0');
+    //if over 12 hours (PM), subtract 12 and set AM/PM to PM. Otherwise, it's AM
     let ampm = hours >= 12 ? 'PM' : 'AM';
     hours %= 12;
     hours = hours ? hours : 12; // the hour '0' should be '12'
