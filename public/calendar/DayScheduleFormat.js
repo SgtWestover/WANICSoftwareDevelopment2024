@@ -413,11 +413,10 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     var [startHours, startMinutes] = startTime.split(':').map(Number);
     var [endHours, endMinutes] = endTime.split(':').map(Number);
     var timeOffset = startDate.getTimezoneOffset() * 60000;
-    var dayOffset = 24 * 60 * 60 * 1000;
-    startDate.setHours(startHours, startMinutes);
-    endDate.setHours(endHours, endMinutes);
-    startDate = new Date(startDate.getTime() - timeOffset + dayOffset); //dunno why but you have to add a day for this to work
-    endDate = new Date(endDate.getTime() - timeOffset + dayOffset);
+    startDate.setUTCHours(startHours, startMinutes);
+    endDate.setUTCHours(endHours, endMinutes);
+    startDate = new Date(startDate.getTime() + timeOffset); //dunno why but you have to add a day for this to work
+    endDate = new Date(endDate.getTime() + timeOffset);
     const eventForm = document.getElementById('eventForm');
     const isEditing = eventForm.getAttribute('data-editing') === 'true';
     const eventID = eventForm.getAttribute('data-event-id');
@@ -431,7 +430,8 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
 
     // Function to handle event creation or update
     const handleEventCreationOrUpdate = () => {
-        const eventDetails = {
+        const eventDetails = 
+        {
             _users: eventUsers,
             _name: eventName,
             _startDate: startDate,
@@ -552,11 +552,10 @@ function getUserEvents(userID)
         userEvents = events.map(eventData => convertCalendarEvent(eventData)); //map each eventData into a new calendar event
         userEvents.forEach(event => 
         {
-            //js for some reason ignores timezones when creating new dates so if you have a timezone it gets offset stupid thing
-            let timeZoneOffset = event._startDate.getTimezoneOffset() * 60000
-            event._startDate = new Date(event._startDate.getTime() + timeZoneOffset);
-            event._endDate = new Date(event._endDate.getTime() + timeZoneOffset);
-    });
+            event._startDate = new Date(event._startDate.getTime());
+            event._endDate = new Date(event._endDate.getTime());
+            
+        });
         return userEvents;
     });
 }
@@ -597,18 +596,11 @@ function renderEvent(calendarEvent)
     eventElement.style.zIndex = 20;
     eventElement.setAttribute('data-event-date', eventDateID);
     eventElement.setAttribute('data-event-id', calendarEvent._id); // Attach MongoDB ID to the element
-    const timeZoneOffset = calendarEvent._startDate.getTimezoneOffset();
-    let calendarEventCopy = calendarEvent; //duplicate because the fields are supposed to be unique
     eventElement.addEventListener('click', function() 
     {
-        calendarEventCopy._startDate = new Date(calendarEventCopy._startDate.getTime() - timeZoneOffset * 60000); // Convert to local time
-        calendarEventCopy._endDate = new Date(calendarEventCopy._endDate.getTime() - timeZoneOffset * 60000); // Convert to local time
-        console.log("calendarEvent: " + JSON.stringify(calendarEventCopy));
-        findEventID(calendarEventCopy)
+        findEventID(calendarEvent)
         .then(eventID => 
         {
-            calendarEventCopy._startDate = new Date(calendarEventCopy._startDate.getTime() + timeZoneOffset * 60000); // Convert to local time
-            calendarEventCopy._endDate = new Date(calendarEventCopy._endDate.getTime() + timeZoneOffset * 60000); // Convert to local time    
             populateEventForm(eventID, calendarEvent, eventElement);
         })
         .catch(error => 
@@ -621,7 +613,7 @@ function renderEvent(calendarEvent)
     let eventWidth = ((hourLength * parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))
     eventElement.style.width = `${eventWidth}px`
     // Gets the selected time based on mouse position
-    selectedHour = ((calendarEvent._startDate.getHours()/* + timeZoneOffset*/) * 60 + calendarEvent._startDate.getMinutes());
+    selectedHour = ((calendarEvent._startDate.getHours()) * 60 + calendarEvent._startDate.getMinutes());
     if (selectedHour >= 1440) // 24 hours * 60 min
     {
         selectedHour -= 1440;
@@ -633,11 +625,8 @@ function renderEvent(calendarEvent)
 
 function populateEventForm(eventID, calendarEvent, eventElement)
 {
-    console.log("populateEventForm calendarEvent: " + JSON.stringify(calendarEvent));
     let startDate = calendarEvent._startDate;
     let endDate = calendarEvent._endDate;
-    console.log("startDate: " + formatToTime(startDate));
-    console.log("endDate: " + formatToTime(endDate));
     currentEventElement = eventElement;
     document.getElementById('eventPopupHeader').textContent = 'Edit Event';
     document.getElementById('eventName').value = calendarEvent._name;
@@ -758,9 +747,8 @@ function createNewEvent(eventDetails)
             document.getElementById('eventPopup').style.display = 'none';
             document.getElementById('errorMessage').style.display = 'none';
             eventDetails._id = response.eventID; // Assign the new event ID
-            eventDetails._startDate = new Date(eventDetails._startDate.getTime() + eventDetails._startDate.getTimezoneOffset() * 60000); // Convert to local time
-            eventDetails._endDate = new Date(eventDetails._endDate.getTime() + eventDetails._endDate.getTimezoneOffset() * 60000); // Convert to local time
-            console.log("startDate: " + eventDetails._startDate);
+            eventDetails._startDate = new Date(eventDetails._startDate.getTime()); // Convert to local time
+            eventDetails._endDate = new Date(eventDetails._endDate.getTime()); // Convert to local time
             renderEvent(eventDetails);
             initializeEvents();
             populateEventsSidebar();
@@ -862,7 +850,6 @@ function createEventCard(event, container)
  */
 function formatTime(date) 
 {
-    let timeOffset = date.getTimezoneOffset() / 60;
     let hours = (date.getHours()) % 24; //future me is gonna hate this one lmaoooooo
     let minutes = date.getMinutes().toString().padStart(2, '0');
     let ampm = hours >= 12 ? 'PM' : 'AM';
@@ -899,8 +886,6 @@ function sendEventToDatabase(event)
  */
 function findEventID(event) 
 {
-    const offsetInMilliseconds = event._startDate.getTimezoneOffset() * 60000; // Convert minutes to milliseconds
-    console.log("fuck this: " + JSON.stringify(event));
     return sendRequest('/findEvent', 
     {
         _users: event._users,
