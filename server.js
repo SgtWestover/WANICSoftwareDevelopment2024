@@ -355,7 +355,6 @@ router.post('/createEvent', async (req, res) =>
     // Check for event duplication
     if (await findEvent(req.body._users, req.body._name, req.body._startDate, req.body._endDate, req.body._description) == null) 
     {
-        console.log("req.body._startDate: " + req.body._startDate  + " req.body._endDate: " + req.body._endDate);
         const newEvent = new CalendarEvent(null, req.body._users, req.body._name, req.body._startDate, req.body._endDate, req.body._description);
         const result = await addEvent(newEvent);
         res.status(201).send({ result: 'OK', message: "Event Created", eventID: result.insertedId });
@@ -542,7 +541,6 @@ async function findEvent(users, name, startDate, endDate, description)
             _endDate: endDate,
             _description: description
         };
-        console.log("query: " + JSON.stringify(query));
         // Find one event that matches the query
         const event = await eventList.findOne(query);
         // If an event is found, return it; otherwise return null

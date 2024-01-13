@@ -290,7 +290,7 @@ function getDateFromAttribute(attr)
     let year = parseInt(parts[0], 10);
     let month = parseInt(parts[1], 10) - 1; // Month is 0-indexed in JavaScript Date
     let day = parseInt(parts[2], 10);
-    return new Date(year, month, day); // This treats the date as local time (TODO: fix this?)
+    return new Date(year, month, day);
 }
 
 /**
@@ -530,11 +530,6 @@ function renderEvent(calendarEvent)
     eventElement.style.width = `${eventWidth}px` 
     // Gets the selected time based on mouse position
     selectedHour = ((calendarEvent._startDate.getHours()) * 60 + calendarEvent._startDate.getMinutes());
-    if (selectedHour >= 1440) // if the selected hour is > 24 hours * 60 min, it will overflow, which is fixed by this safeguard
-    {
-        //TODO: TEST REMOVAL
-        selectedHour -= 1440;
-    }
     // Finally, set the ultimate position and append it to the day container
     eventElement.style.left = `${selectedHour * ((parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))}px`;
     dayContainer.appendChild(eventElement);   
@@ -887,13 +882,6 @@ function getUserEvents(userID)
     .then(events =>
     {
         userEvents = events.map(eventData => convertCalendarEvent(eventData)); //map each eventData into a new calendar event
-        userEvents.forEach(event => //for each event retrieved, set it back to local time from the UTC where it's stored on the server
-        {
-            //TODO: TEST REMOVAL
-            event._startDate = new Date(event._startDate.getTime());
-            event._endDate = new Date(event._endDate.getTime());
-            
-        });
         return userEvents;
     });
 }
