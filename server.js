@@ -25,7 +25,7 @@ const cookieParser = require("cookie-parser");
 // Core module in Node.js for handling file and directory paths
 const path = require('path');
 // Custom classes for User and CalendarEvent
-const { User, CalendarEvent } = require('./shared/CalendarClasses');
+const { User, CalendarEvent, CalendarTeam} = require('./shared/CalendarClasses');
 // MongoDB's utility for handling ObjectIDs
 const { ObjectId } = require('mongodb');
 // Core module in Node.js for writing logs to the console
@@ -116,7 +116,6 @@ async function findUserSignIn(username, password)
     const userlist = calendar.collection("users");
     const query = { _name: username };
     const account = await userlist.findOne(query);
-
     if (account && account._password && password) 
     {
         try 
@@ -157,7 +156,7 @@ router.post('/signup', async (req, res) =>
     {
         const newUser = new User(req.body._name, req.body._password);
         await addUser(newUser);
-        console.log("Account created for " + newUser._name);
+        console.log("signing up " + newUser._name);
         res.send({ result: 'OK', message: "Account created" });
     } 
     else //otherwise, error
@@ -556,6 +555,36 @@ async function findEvent(users, name, startDate, endDate, description)
 // #endregion Event retrieval
 
 // #endregion Events
+
+// #region Teams
+router.post('/findUser', async (req, res) => 
+{
+    const username = req.body.username;
+    if (!username) 
+    {
+        return res.send({ result: 'FAIL', message: 'Username is required' });
+    }
+    try 
+    {
+        const user = await findUser(username);
+        if (user) 
+        {
+            res.send({ result: 'OK', message: 'USER FOUND', userID: user._id });
+        } 
+        else 
+        {
+            res.send({ result: 'FAIL', message: 'NO USER FOUND' });
+        }
+    } 
+    catch (error) 
+    {
+        console.error('Error finding user:', error);
+        res.send({ result: 'ERROR', message: 'An error occurred' });
+    }
+});
+
+
+//#endregion teams
 
 // #region Websockets and server
 

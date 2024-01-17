@@ -18,8 +18,6 @@ var currentYearSearch = ''; //Global variable for the current searched year
 var highlightedYearElement = null; //Global variable for the highlighted year element
 var lastSelectedYear = null; //Global variable for the last selected year
 
-let ws = new WebSocket("ws://" + window.location.host); //websocket
-
 /**
  * When the DOM content is fully loaded, initialize the calendar and dropdown menus
  * @returns {void}
@@ -34,17 +32,6 @@ document.addEventListener('DOMContentLoaded', function ()
     addNavigationEventListeners(); //add the previous and next month button functionalities
     renderCalendar(currentDate); //renders the calendar with the current day
     createYearDropdown(1000, 9999) //create the year dropdown from 1000 to 9999
-});
-
-//websocket connection and other stuff
-ws.addEventListener("open", (event) => 
-{
-    ws.send(JSON.stringify({type: "connected"}))
-});
-
-ws.addEventListener("message", (event) => 
-{
-    console.log("Message from server ", event.data);
 });
 
 // #endregion Global variables and listeners

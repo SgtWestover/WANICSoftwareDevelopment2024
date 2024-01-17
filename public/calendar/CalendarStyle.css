@@ -27,7 +27,8 @@ header /* Document header*/
   position: fixed;
   top: 0;
   width: 100%;
-  height: 50px
+  height: 50px;
+  z-index: 1;
 }
 
 table /* Table to organize calendar days */
@@ -66,6 +67,13 @@ td
 #calendar th, #calendar td 
 {
   width: 14.28%; /* 100% divided by 7 days of the week */
+}
+
+/*Current (selected day)*/
+.selected-day
+{
+  background-color: #ff69b4; /* Bright pink color heheheha*/
+  color: #fff;
 }
 
 .calendar-cell:hover /*Upo hovering with each clickable calendar cell*/
@@ -148,8 +156,8 @@ td
 
 /*#endregion*/
 
-/* SideBar ------------------------------------------------------------------ */
-/*#region Sidebar*/
+/* General Sidebar ---------------------------------------------------------- */
+/*#region General Sidebar Styles*/
 
 /* The side navigation menu */
 .sidebar 
@@ -161,7 +169,7 @@ td
   position: fixed;
   height: 100%;
   overflow: auto;
-  top: 84px;
+  top: 80px;
 }
 
 /* Sidebar links */
@@ -186,13 +194,6 @@ td
   text-align: center;
   padding: 10px;
   background-color: rgba(51, 51, 51, 0);
-}
-
-/*Current (selected day)*/
-.selected-day
-{
-  background-color: #ff69b4; /* Bright pink color heheheha*/
-  color: #fff;
 }
 
 /* Active/current link */
@@ -240,9 +241,9 @@ div.content
   }
 } 
 
-/*#endregion*/
+/*#endregion General sidebar*/
 
-/* Event Pop-up window -------------------------------------------------------*/
+/* Event Pop-up Window -------------------------------------------------------*/
 /*#region Popup Box*/
 
 .box /* The window that pops-ups for events */
@@ -453,8 +454,8 @@ div.content
 
 /*#endregion*/
 
-/* SideBar Styles ------------------------------------------------------------*/
-/*#region Sidebar Styles*/
+/* Events Sidebar ------------------------------------------------------------*/
+/*#region Events Sidebar Styles*/
 
 /*The actual sidebar*/
 .sidebar-overlay 
@@ -533,7 +534,7 @@ div.content
 /* Month Header Popup --------------------------------------------------------*/
 /*#region Month Header Popup*/
 
-/* Dropdown Button for the month, doubles as the month header */
+/* Dropdown Button for the month, same hitbox as the month header */
 .month-dropbutton 
 {
   width: 200px;

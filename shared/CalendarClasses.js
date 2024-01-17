@@ -111,15 +111,15 @@
 
 
     //Team class for the teams that users can create and join
-    class Team 
+    class CalendarTeam 
     {
-        constructor(name, description, users, id, permissions) 
+        constructor(id, name, description, users, code) 
         {
+            this.id = id;
             this.name = name;
             this.description = description;
             this.users = users;
-            this.id = id;
-            this.permissions = permissions;
+            this.code = code;
         }
 
         // Getter for name
@@ -165,16 +165,13 @@
         {
             this._id = value;
         }
-
-        // Getter for permissions
-        get permissions() 
+        get code()
         {
-            return this._permissions;
+            return this._code;
         }
-        // Setter for permissions
-        set permissions(value) 
+        set code(value)
         {
-            this._permissions = value;
+            this._code = value;
         }
     }
 
@@ -273,13 +270,13 @@
     if (typeof module !== 'undefined' && module.exports) 
     {
         // Node.js Context
-        module.exports = { CalendarEvent, User, Team };
+        module.exports = { CalendarEvent, User, CalendarTeam };
     } 
     else 
     {
         // Browser Context
         exports.User = User;
         exports.CalendarEvent = CalendarEvent;
-        exports.Team = Team;
+        exports.CalendarTeam = CalendarTeam;
     }
 }) (typeof window === 'undefined' ? module.exports : window);
