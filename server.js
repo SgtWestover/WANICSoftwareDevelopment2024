@@ -42,6 +42,8 @@ const events = new Map();
 // Security note: Connection strings should be stored in environment variables or config files
 const uri = "mongodb://127.0.0.1/";
 const dbclient = new MongoClient(uri);
+const currentTeamCodes = {};
+
 // Session parser setup for Express
 const sessionParser = session
 ({
@@ -583,6 +585,67 @@ router.post('/findUser', async (req, res) =>
     }
 });
 
+router.post('/createTeam', async (req, res) => 
+{
+    // Validate required information
+    if (!req.body._name || !req.body._users) 
+    {
+        res.send({ result: 'FAIL', message: "Missing information" });
+        return;
+    }
+    // Check for event duplication
+    const newTeam = new CalendarTeam(null, req.body._name, req.body_description, req.body_users, null);
+    const result = await addTeam(newTeam);
+    const teamCode = getNewCode();
+    res.status(201).send({ result: 'OK', message: "Team Created", teamID: result.insertedId, teamCode: teamCode});
+});
+
+async function addTeam(teamData) 
+{
+    const calendarDB = dbclient.db("calendarApp");
+    const teamsCollection = calendarDB.collection("teams");
+    const result = await teamsCollection.insertOne(teamData);
+    return result;
+}
+
+/**
+ * Creates a new unique random code of 8 characters, including URL-safe special characters.
+ * The function generates the first 7 characters randomly, checks for uniqueness at the 8th character,
+ * and backtracks if necessary.
+ * @returns {string} The new unique code.
+ */
+function getNewCode() 
+{
+    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~';
+    let baseCode, testCode;
+
+    // Function to generate a random code of a given length
+    const generateRandomCode = (length) => 
+    {
+        let code = '';
+        for (let i = 0; i < length; i++) 
+        {
+            code += characters[Math.floor(Math.random() * characters.length)];
+        }
+        return code;
+    }
+    // Starting with 7 characters, try to find a unique 8th character
+    for (let i = 7; i >= 0; i--) 
+    {
+        baseCode = generateRandomCode(i);
+        for (let j = 0; j < characters.length; j++) 
+        {
+            testCode = baseCode + characters[j];
+            if (!currentTeamCodes[testCode]) 
+            {
+                // Unique code found, add it to currentCodes and return
+                currentTeamCodes[testCode] = true;
+                return testCode;
+            }
+        }
+    }
+    throw new Error('Unable to generate a unique code.');
+}
 
 //#endregion teams
 

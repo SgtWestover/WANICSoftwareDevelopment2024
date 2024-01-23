@@ -131,12 +131,32 @@ function handleTeamCreation(event)
     // Collect form data
     var teamName = document.getElementById('teamName').value;
     var teamDescription = document.getElementById('teamDescription').value;
-    // Logic to send data to server would go here
-    console.log('Creating team:', teamName, 'with description:', teamDescription);
     // Close the modal upon submission
     var modal = document.getElementById('createTeamModal');
     modal.style.display = 'none';
+    var team = 
+    {
+        _name: teamName,
+        _description: teamDescription,
+        _users: addedPeople
+    }
     addedPeople = [];
+    return sendRequest('/createTeam', team)
+    .then(response => 
+    {
+        if (response.result === 'OK') 
+        {
+            console.log(team);
+            console.log(response.teamID);
+            console.log(response.teamCode);
+            createTeamPanel(team);
+        }
+    })
+    .catch(error => 
+    {
+        console.error('Error:', error);
+        throw error;
+    });
 }
 
 function resetTeamsCreate()

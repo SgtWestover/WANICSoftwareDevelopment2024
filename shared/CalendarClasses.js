@@ -179,7 +179,7 @@
     //general user class
     class User 
     {
-        constructor(name, password, events = null, teams = null, settings = null, friends = null, id = null, timezone = null) 
+        constructor(name, password, events = null, teams = null, settings = null, friends = null, id = null, teamNotifications = null, timezone = null) 
         {
             this.name = name;
             this.password = password;
@@ -187,6 +187,7 @@
             this.teams = teams; //array of team classes
             this.settings = settings;
             this.friends = friends; //array of users
+            this.teamNotifications = teamNotifications;
             this.id = id;
             this.timezone = timezone;
         }
@@ -265,6 +266,15 @@
         set id(value) 
         {
             this._id = value;
+        }
+
+        get teamNotifications()
+        {
+            return this._teamNotifications;
+        }
+        set teamNotifications(value)
+        {
+            this._teamNotifications = value;
         }
     }
     if (typeof module !== 'undefined' && module.exports) 
