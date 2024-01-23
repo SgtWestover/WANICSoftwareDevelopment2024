@@ -596,8 +596,8 @@ router.post('/createTeam', async (req, res) =>
     // Check for event duplication
     const newTeam = new CalendarTeam(null, req.body._name, req.body_description, req.body_users, null);
     const result = await addTeam(newTeam);
-    const teamCode = getNewCode();
-    res.status(201).send({ result: 'OK', message: "Team Created", teamID: result.insertedId, teamCode: teamCode});
+    const teamJoinCode = getNewCode();
+    res.status(201).send({ result: 'OK', message: "Team Created", teamID: result.insertedId, teamJoinCode: teamJoinCode});
 });
 
 async function addTeam(teamData) 
