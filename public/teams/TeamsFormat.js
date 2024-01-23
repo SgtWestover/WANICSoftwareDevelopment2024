@@ -237,5 +237,5 @@ function createTeamPanel(team)
     });
     let teamCode = document.createElement("div");
     teamCode.classList.add("team-code");
-    teamCode.innerHTML = team.code;
+    teamCode.innerHTML = team._joinCode;
 }
