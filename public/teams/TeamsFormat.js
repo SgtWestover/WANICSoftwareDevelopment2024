@@ -149,10 +149,10 @@ function handleTeamCreation(event)
     {
         if (response.result === 'OK') 
         {
-            const createdTeam = new CalendarTeam(response.teamID, team._name, team._description, team._users, response.teamCode);
+            const createdTeam = new CalendarTeam(response.teamID, team._name, team._description, team._users, response.teamJoinCode);
             console.log(team);
             console.log(response.teamID);
-            console.log(response.teamCode);
+            console.log(response.teamJoinCode);
             createTeamPanel(createdTeam);
         }
     })
@@ -197,6 +197,39 @@ function teamsSort()
 
 }
 
+function createTeamPanel(team)
+{
+    let container = document.createElement("div");
+    container.classList.add("team-container");
+    let teamName = document.createElement("div");
+    teamName.classList.add("team-name");
+    teamName.innerHTML = team._name;
+    let description = document.createElement("div");
+    description.classList.add("team-description");
+    description.innerHTML = team._description;
+    let userList = document.createElement("div");
+    userList.classList.add("team-userList-container");
+    // Iterate over the team._users object
+    for (const [username, role] of Object.entries(team._users)) 
+    {
+        let userElement = document.createElement("div");
+        userElement.classList.add("team-user");
+        userElement.innerHTML = `${username} - ${role}`;
+        userList.appendChild(userElement); // Append the user element to the user list container
+    }
+    let teamCode = document.createElement("div");
+    teamCode.classList.add("team-code");
+    teamCode.innerHTML = team._joinCode;
+
+    // Append all created elements to the container
+    container.appendChild(teamName);
+    container.appendChild(description);
+    container.appendChild(userList);
+    container.appendChild(teamCode);
+}
+
+// #endregion Teams create and join functions
+
 /**
  * Sends an HTTP POST request to the specified endpoint with the provided data.
  * @param {string} endpoint - The endpoint to send the request to.
@@ -217,30 +250,4 @@ async function sendRequest(endpoint, data)
         throw new Error('Network response was not ok');
     }
     return await response.json();
-}
-
-// #endregion Teams create and join functions
-
-function createTeamPanel(team)
-{
-    let container = document.createElement("div");
-    container.classList.add("team-container");
-    let teamName = document.createElement("div");
-    teamName.classList.add("team-name");
-    teamName.innerHTML = team._name;
-    let description = document.createElement("div");
-    description.classList.add("team-description");
-    description.innerHTML = team._description;
-    let userList = document.createElement("div");
-    userList.classList.add("team-userList-container");
-    console.log(team._users);
-    team._users.forEach(user => 
-    {
-        let userElement = document.createElement("div");
-        userElement.classList.add("team-user");
-        userElement.innerHTML = user;
-    });
-    let teamCode = document.createElement("div");
-    teamCode.classList.add("team-code");
-    teamCode.innerHTML = team._joinCode;
 }
