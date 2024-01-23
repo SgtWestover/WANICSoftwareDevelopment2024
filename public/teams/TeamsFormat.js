@@ -230,7 +230,7 @@ function createTeamPanel(team)
     description.innerHTML = team._description;
     let userList = document.createElement("div");
     userList.classList.add("team-userList-container");
-    team._addedPeople.forEach(user => 
+    team._users.forEach(user => 
     {
         let userElement = document.createElement("div");
         userElement.classList.add("team-user");
