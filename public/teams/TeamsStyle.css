@@ -238,27 +238,27 @@ div.content
 
 .team-name
 {
-
+  background-color: mediumaquamarine;
 }
 
 .team-description
 {
-
+  background-color: thistle;
 }
 
 .team-userList
 {
-
+  background-color: palevioletred;
 }
 
 .team-userList
 {
-
+  background-color: cornflowerblue;
 }
 
 .team-code
 {
-
+  background-color: darksalmon;
 }
 
 /*#endregion Header Teams panels*/
