@@ -593,10 +593,9 @@ router.post('/createTeam', async (req, res) =>
         res.send({ result: 'FAIL', message: "Missing information" });
         return;
     }
-    // Check for event duplication
-    const newTeam = new CalendarTeam(null, req.body._name, req.body_description, req.body_users, null);
-    const result = await addTeam(newTeam);
     const teamJoinCode = getNewCode();
+    const newTeam = new CalendarTeam(null, req.body._name, req.body._description, req.body._users, teamJoinCode);
+    const result = await addTeam(newTeam);
     res.status(201).send({ result: 'OK', message: "Team Created", teamID: result.insertedId, teamJoinCode: teamJoinCode});
 });
 

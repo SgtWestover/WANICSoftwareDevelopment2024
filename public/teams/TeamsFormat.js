@@ -131,6 +131,7 @@ function handleTeamCreation(event)
     // Collect form data
     var teamName = document.getElementById('teamName').value;
     var teamDescription = document.getElementById('teamDescription').value;
+    console.log("teamDesc: " + teamDescription);
     // Close the modal upon submission
     var modal = document.getElementById('createTeamModal');
     modal.style.display = 'none';
@@ -140,6 +141,8 @@ function handleTeamCreation(event)
         _description: teamDescription,
         _users: addedPeople
     }
+    console.log(JSON.stringify(team));
+
     addedPeople = [];
     return sendRequest('/createTeam', team)
     .then(response => 
