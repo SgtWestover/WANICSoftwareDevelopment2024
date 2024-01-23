@@ -196,3 +196,26 @@ async function sendRequest(endpoint, data)
 }
 
 // #endregion Teams create and join functions
+
+function createTeamPanel(team)
+{
+    let container = document.createElement("div");
+    container.classList.add("team-container");
+    let teamName = document.createElement("div");
+    teamName.classList.add("team-name");
+    teamName.innerHTML = team.name;
+    let description = document.createElement("div");
+    description.classList.add("team-description");
+    description.innerHTML = team.description;
+    let userList = document.createElement("div");
+    userList.classList.add("team-userList-container");
+    team.userList.forEach(user => 
+    {
+        let userElement = document.createElement("div");
+        userElement.classList.add("team-user");
+        userElement.innerHTML = user;
+    });
+    let teamCode = document.createElement("div");
+    teamCode.classList.add("team-code");
+    teamCode.innerHTML = team.code;
+}
