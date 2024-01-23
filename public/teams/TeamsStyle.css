@@ -225,3 +225,15 @@ div.content
 }
 
 /*#endregion Header buttons and modal*/
+
+/*#region Teams panels*/
+
+.team-container
+{
+  width: 800px;
+  height: 100px;
+  background-color: burlywood;
+  
+}
+
+/*#endregion Header Teams panels*/
