@@ -223,13 +223,13 @@ function createTeamPanel(team)
     container.classList.add("team-container");
     let teamName = document.createElement("div");
     teamName.classList.add("team-name");
-    teamName.innerHTML = team.name;
+    teamName.innerHTML = team._name;
     let description = document.createElement("div");
     description.classList.add("team-description");
-    description.innerHTML = team.description;
+    description.innerHTML = team._description;
     let userList = document.createElement("div");
     userList.classList.add("team-userList-container");
-    team.userList.forEach(user => 
+    team._addedPeople.forEach(user => 
     {
         let userElement = document.createElement("div");
         userElement.classList.add("team-user");
