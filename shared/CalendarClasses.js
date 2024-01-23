@@ -113,13 +113,13 @@
     //Team class for the teams that users can create and join
     class CalendarTeam 
     {
-        constructor(id, name, description, users, code) 
+        constructor(id, name, description, users, joinCode) 
         {
             this.id = id;
             this.name = name;
             this.description = description;
             this.users = users;
-            this.code = code;
+            this.joinCode = joinCode;
         }
 
         // Getter for name
@@ -165,13 +165,13 @@
         {
             this._id = value;
         }
-        get code()
+        get joinCode()
         {
-            return this._code;
+            return this._joinCode;
         }
-        set code(value)
+        set joinCode(value)
         {
-            this._code = value;
+            this._joinCode = value;
         }
     }
 

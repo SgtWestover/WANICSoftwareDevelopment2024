@@ -146,10 +146,11 @@ function handleTeamCreation(event)
     {
         if (response.result === 'OK') 
         {
+            const createdTeam = new CalendarTeam(response.teamID, team._name, team._description, team._users, response.teamCode);
             console.log(team);
             console.log(response.teamID);
             console.log(response.teamCode);
-            createTeamPanel(team);
+            createTeamPanel(createdTeam);
         }
     })
     .catch(error => 
