@@ -42,8 +42,19 @@ const events = new Map();
 // Security note: Connection strings should be stored in environment variables or config files
 const uri = "mongodb://127.0.0.1/";
 const dbclient = new MongoClient(uri);
-const currentTeamCodes = {};
+//mongoose for schemas to store unique team codes to check against
+const mongoose = require('mongoose');
 
+const codeSchema = new mongoose.Schema
+({
+    code: 
+    {
+        type: String,
+        unique: true,
+        required: true
+    }
+});
+const Code = mongoose.model('Code', codeSchema);
 // Session parser setup for Express
 const sessionParser = session
 ({
@@ -613,10 +624,9 @@ async function addTeam(teamData)
  * and backtracks if necessary.
  * @returns {string} The new unique code.
  */
-function getNewCode() 
+async function getNewCode() 
 {
     let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~';
-    let baseCode, testCode;
 
     // Function to generate a random code of a given length
     const generateRandomCode = (length) => 
@@ -628,21 +638,31 @@ function getNewCode()
         }
         return code;
     }
+
+    // Function to check if the code exists in the database
+    const codeExists = async (code) => 
+    {
+        const count = await Code.countDocuments({ code: code });
+        return count > 0;
+    }
+
     // Starting with 7 characters, try to find a unique 8th character
     for (let i = 7; i >= 0; i--) 
     {
-        baseCode = generateRandomCode(i);
+        let baseCode = generateRandomCode(i);
         for (let j = 0; j < characters.length; j++) 
         {
-            testCode = baseCode + characters[j];
-            if (!currentTeamCodes[testCode]) 
+            let testCode = baseCode + characters[j];
+            if (!await codeExists(testCode)) 
             {
-                // Unique code found, add it to currentCodes and return
-                currentTeamCodes[testCode] = true;
+                // Unique code found, add it to the database and return
+                let newCode = new Code({ code: testCode });
+                await newCode.save();
                 return testCode;
             }
         }
     }
+
     throw new Error('Unable to generate a unique code.');
 }
 
