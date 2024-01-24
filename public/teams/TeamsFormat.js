@@ -229,6 +229,17 @@ function createTeamPanel(team)
     document.body.append(container);
 }
 
+//resize so its centered
+window.addEventListener("resize", function(event) 
+{
+    teamContainers = this.document.getElementsByClassName("team-container");
+    teamContainers.forEach(container => {
+        //center element
+        container.style.left = `${((this.window.innerWidth / 2) - (parseInt(container.offsetWidth) / 2))}px`;  
+    });
+    
+});
+
 // #endregion Teams create and join functions
 
 /**
