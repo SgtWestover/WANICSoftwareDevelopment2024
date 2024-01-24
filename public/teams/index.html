@@ -37,11 +37,24 @@
         <textarea id="teamDescription" name="teamDescription"></textarea>
         <input type="button" value="Add People" id="addPeople">
         <input type="submit" value="Create Team">
+        <label for="autoJoin">Join Code Is Automatic</label>
+        <select id="autoJoin">
+          <option value="true">Yes</option>
+          <option value="false">No</option>
+        </select>
+        <label for="autoJoinPerms">Auto Join Perms:</label>
+        <select id="autoJoinPerms">
+          <option value="viewer">Viewer</option>
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
         <div id="addedPeopleList"></div>
       </form>
     </div>
   </div>
-  <!-- The modal for adding people to a team -->
+    <!-- The modal for joining a team -->
+
+  <!-- The modal for adding people to a team upon creation -->
   <div id="addPeopleModal" class="modal">
     <!-- Modal content -->
     <div class="modal-content">
@@ -50,12 +63,21 @@
         <input type="text" id="usernameToAdd" placeholder="Enter username">
         <label for="userRole">Role:</label>
         <select id="userRole">
-            <option value="viewer">Viewer</option>
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
+          <option value="viewer">Viewer</option>
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
         </select>
         <button type="button" id="submitUsername">Add</button>
         <p id="addPeopleError" style="color: red;"></p> <!-- Error message display -->
+    </div>
+  </div>
+  <div id="joinTeamModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Join a Team</h2>
+        <label for="teamJoinCode">Enter Team Code:</label>
+        <input type="text" id="teamJoinCode" name="teamJoinCode">
+        <input type="button" value="Join Team" id="joinTeamButton">
     </div>
   </div>
   <script src="/scripts/CalendarClasses.js"></script>

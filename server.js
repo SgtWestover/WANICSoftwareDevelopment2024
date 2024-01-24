@@ -635,7 +635,7 @@ router.post('/createTeam', async (req, res) =>
     try 
     {
         const teamJoinCode = await getNewCode();
-        const newTeam = new CalendarTeam(null, req.body._name, req.body._description, req.body._users, teamJoinCode);
+        const newTeam = new CalendarTeam(null, req.body._name, req.body._description, req.body._users, teamJoinCode, null, req.body._autoJoin, req.body._autoJoinPerms);
         const result = await addTeam(newTeam);
         res.status(201).send({ result: 'OK', message: "Team Created", teamID: result.insertedId, teamJoinCode: teamJoinCode });
     } 
@@ -662,7 +662,7 @@ async function addTeam(teamData)
  */
 async function getNewCode() 
 {
-    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~';
+    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_~';
 
     // Function to generate a random code of a given length
     const generateRandomCode = (length) => 
@@ -682,8 +682,8 @@ async function getNewCode()
         return count > 0;
     }
 
-    // Starting with 7 characters, try to find a unique 8th character
-    for (let i = 7; i >= 0; i--) 
+    // Starting with 8 characters, try to find a unique 9th character
+    for (let i = 8; i >= 0; i--) 
     {
         let baseCode = generateRandomCode(i);
         for (let j = 0; j < characters.length; j++) 
@@ -737,6 +737,56 @@ router.post('/getUserTeams', async (req, res) =>
     {
         // Handle any errors
         res.status(500).send({ result: 'FAIL', message: error.message });
+    }
+});
+
+router.post('/joinTeam', async (req, res) => 
+{
+    const { userID, joinCode } = req.body;
+    if (!joinCode || joinCode.length !== 9) 
+    {
+        return res.send({ result: 'FAIL', message: 'Invalid join code' });
+    }
+
+    try 
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+
+        // Find the team with the given join code
+        const team = await teamsCollection.findOne({ _joinCode: joinCode });
+        if (!team) 
+        {
+            return res.send({ result: 'FAIL', message: 'Team not found' });
+        }
+
+        // Convert userID to username
+        const user = await findUserByID(userID);
+        if (!user) 
+        {
+            return res.send({ result: 'FAIL', message: 'User not found' });
+        }
+        const userName = user._name;
+
+        // Check autoJoin and update team accordingly
+        if (team._autoJoin) 
+        {
+            team._users[userName] = team._autoJoinPerms;
+            await teamsCollection.updateOne({ _id: team._id }, { $set: { _users: team._users } });
+            res.send({ result: 'OK', message: 'Successfully joined the team' });
+        } 
+        else 
+        {
+            team._usersQueued = team._usersQueued || {};
+            team._usersQueued[userName] = team._autoJoinPerms;
+            await teamsCollection.updateOne({ _id: team._id }, { $set: { _usersQueued: team._usersQueued } });
+            res.send({ result: 'QUEUED', message: 'Added to the queue' });
+        }
+    } 
+    catch (error) 
+    {
+        console.error('Error joining team:', error);
+        res.send({ result: 'ERROR', message: 'An error occurred' });
     }
 });
 

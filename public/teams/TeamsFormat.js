@@ -22,12 +22,10 @@ const Roles =
 };
 var userID = localStorage.getItem('userID');
 
-
 document.addEventListener('DOMContentLoaded', function() 
 {
     renderAllTeams(userID);
 });
-
 
 // #region Teams create and join functions
 
@@ -138,6 +136,8 @@ function handleTeamCreation(event)
     // Collect form data
     var teamName = document.getElementById('teamName').value;
     var teamDescription = document.getElementById('teamDescription').value;
+    var autoJoin = document.getElementById('autoJoin').value === 'true';
+    var autoJoinPerms = document.getElementById('autoJoinPerms').value;
     // Close the modal upon submission
     var modal = document.getElementById('createTeamModal');
     var team;
@@ -154,7 +154,9 @@ function handleTeamCreation(event)
             {
                 _name: teamName,
                 _description: teamDescription,
-                _users: addedPeople
+                _users: addedPeople,
+                _autoJoin: autoJoin,
+                _autoJoinPerms: autoJoinPerms
             };
             resetTeamsCreate();
             return sendRequest('/createTeam', team);
@@ -168,7 +170,6 @@ function handleTeamCreation(event)
     {
         if (response.result === 'OK') 
         {
-            const createdTeam = new CalendarTeam(response.teamID, team._name, team._description, team._users, response.teamJoinCode);
             renderAllTeams();
         }
     })
@@ -190,12 +191,78 @@ function resetTeamsCreate()
     updateAddedPeopleList();
 }
 
+document.getElementById('joinTeamButton').onclick = async function() 
+{
+    var joinCode = document.getElementById('teamJoinCode').value;
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_~';
+
+    // Check if the join code is valid
+    if (joinCode.length === 9 && [...joinCode].every(char => characters.includes(char))) 
+    {
+        try 
+        {
+            const response = await sendRequest('/joinTeam', { userID: userID, joinCode: joinCode });
+            // Handle different responses
+            if (response.result === 'OK') 
+            {
+                alert('Successfully joined the team!');
+                closeTeamJoinModal();
+                renderAllTeams();
+            } 
+            else if (response.result === 'QUEUED') 
+            {
+                alert('You have been added to the queue.');
+                closeTeamJoinModal();
+            } 
+            else 
+            {
+                alert('Failed to join the team.');
+            }
+        } 
+        catch (error) 
+        {
+            console.error('Error:', error);
+            alert('An error occurred while trying to join the team.');
+        }
+    } 
+    else 
+    {
+        alert('Invalid team join code.');
+    }
+};
+
 /**
  * Start the process to join a team, with a modal to enter the team code
  * @returns {void} - but opens a modal to join a team
  */
-function teamsJoinStart()
+function teamsJoinStart() 
 {
+    var joinTeamModal = document.getElementById('joinTeamModal');
+    var closeButton = joinTeamModal.querySelector('.close');
+
+    // Show the modal
+    joinTeamModal.style.display = 'block';
+
+    // Close the modal when the close button (x) is clicked
+    closeButton.onclick = function() 
+    {
+        closeTeamJoinModal();
+    };
+
+    // Close the modal when clicking outside of it
+    window.onclick = function(event) 
+    {
+        if (event.target === joinTeamModal) 
+        {
+            closeTeamJoinModal();
+        }
+    };
+}
+
+function closeTeamJoinModal()
+{
+    joinTeamModal.style.display = 'none';
+    document.getElementById('teamJoinCode').value = '';
 
 }
 
@@ -281,11 +348,14 @@ window.addEventListener("resize", function(event)
 {
     teamContainers = this.document.getElementsByClassName("team-container");
     console.log(teamContainers);
-    teamContainers.forEach(container => {
-        //center element
-        container.style.left = `${((this.window.innerWidth / 2) - (parseInt(container.offsetWidth) / 2))}px`;  
-    });
-    
+    if (teamContainers.length != 0)
+    {
+        teamContainers.forEach(container => 
+        {
+            //center element
+            container.style.left = `${((this.window.innerWidth / 2) - (parseInt(container.offsetWidth) / 2))}px`;  
+        });
+    }
 });
 
 // #endregion Teams create and join functions
