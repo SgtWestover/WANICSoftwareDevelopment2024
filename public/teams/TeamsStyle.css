@@ -230,9 +230,12 @@ div.content
 
 .team-container
 {
+  position: absolute;
   width: 800px;
   height: 100px;
+  top: 83px;
   background-color: burlywood;
+  left: 300px;
 
 }
 
