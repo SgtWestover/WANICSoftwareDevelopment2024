@@ -226,6 +226,7 @@ function createTeamPanel(team)
     container.appendChild(description);
     container.appendChild(userList);
     container.appendChild(teamCode);
+    document.body.append(container);
 }
 
 // #endregion Teams create and join functions
