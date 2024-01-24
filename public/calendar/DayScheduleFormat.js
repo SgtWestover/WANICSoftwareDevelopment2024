@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function()
  */
 function initializeEvents()
 {
-    const userID = localStorage.getItem('userID'); // Assuming userID is stored in localStorage
+    const userID = localStorage.getItem('userID'); // userID is stored in localStorage
     if (userID)
     {
         getUserEvents(userID).then(fetchedEvents => 

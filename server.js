@@ -55,6 +55,7 @@ const codeSchema = new mongoose.Schema
     }
 });
 const Code = mongoose.model('Code', codeSchema);
+mongoose.connect(uri);
 // Session parser setup for Express
 const sessionParser = session
 ({
@@ -596,6 +597,32 @@ router.post('/findUser', async (req, res) =>
     }
 });
 
+router.post('/findUserName', async (req, res) => 
+{
+    const userID = req.body.userID;
+    if (!userID) 
+    {
+        return res.send({ result: 'FAIL', message: 'UserID is required' });
+    }
+    try 
+    {
+        const user = await findUserByID(userID);
+        if (user) 
+        {
+            res.send({ result: 'OK', message: 'USER FOUND', username: user._name });
+        } 
+        else 
+        {
+            res.send({ result: 'FAIL', message: 'NO USER FOUND' });
+        }
+    } 
+    catch (error) 
+    {
+        console.error('Error finding user by ID:', error);
+        res.send({ result: 'ERROR', message: 'An error occurred' });
+    }
+});
+
 router.post('/createTeam', async (req, res) => 
 {
     // Validate required information
@@ -604,10 +631,19 @@ router.post('/createTeam', async (req, res) =>
         res.send({ result: 'FAIL', message: "Missing information" });
         return;
     }
-    const teamJoinCode = getNewCode();
-    const newTeam = new CalendarTeam(null, req.body._name, req.body._description, req.body._users, teamJoinCode);
-    const result = await addTeam(newTeam);
-    res.status(201).send({ result: 'OK', message: "Team Created", teamID: result.insertedId, teamJoinCode: teamJoinCode});
+
+    try 
+    {
+        const teamJoinCode = await getNewCode();
+        const newTeam = new CalendarTeam(null, req.body._name, req.body._description, req.body._users, teamJoinCode);
+        const result = await addTeam(newTeam);
+        res.status(201).send({ result: 'OK', message: "Team Created", teamID: result.insertedId, teamJoinCode: teamJoinCode });
+    } 
+    catch (error) 
+    {
+        // Handle error from getNewCode or addTeam
+        res.status(500).send({ result: 'FAIL', message: error.message });
+    }
 });
 
 async function addTeam(teamData) 
@@ -662,9 +698,47 @@ async function getNewCode()
             }
         }
     }
-
     throw new Error('Unable to generate a unique code.');
 }
+
+router.post('/getUserTeams', async (req, res) => 
+{
+    try 
+    {
+        // Extract userID from the request
+        const userID = req.body.userID;
+        if (!userID) 
+        {
+            res.status(400).send({ result: 'FAIL', message: "Missing userID" });
+            return;
+        }
+
+        // Retrieve user by ID
+        const user = await findUserByID(userID);
+        if (!user) 
+        {
+            res.status(404).send({ result: 'FAIL', message: "User not found" });
+            return;
+        }
+
+        // Extract user's name
+        const userName = user._name;
+        // Connect to the 'teams' collection
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+
+        // Find teams where the user is a member
+        const query = { [`_users.${userName}`]: { $exists: true } };
+        const userTeams = await teamsCollection.find(query).toArray();
+        // Send the retrieved teams
+        res.status(200).send({ result: 'OK', teams: userTeams });
+    } 
+    catch (error) 
+    {
+        // Handle any errors
+        res.status(500).send({ result: 'FAIL', message: error.message });
+    }
+});
 
 //#endregion teams
 

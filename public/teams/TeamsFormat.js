@@ -17,8 +17,16 @@ const Roles =
 {
     VIEWER: 'viewer',
     USER: 'user',
-    ADMIN: 'admin'
+    ADMIN: 'admin',
+    OWNER: 'owner'
 };
+var userID = localStorage.getItem('userID');
+
+
+document.addEventListener('DOMContentLoaded', function() 
+{
+    renderAllTeams(userID);
+});
 
 
 // #region Teams create and join functions
@@ -58,7 +66,7 @@ function teamsCreateStart()
     document.getElementById('closeAddPeopleModal').onclick = function() 
     {
         document.getElementById('addPeopleModal').style.display = 'none';
-        resetAddPeople();
+        resetAddPeopleModal();
     };    
     form.onsubmit = handleTeamCreation;
 }
@@ -72,16 +80,16 @@ document.getElementById('submitUsername').onclick = async function()
         try 
         {
             const response = await sendRequest('/findUser', { username: username });
-            if (response.result === 'OK' && response.userID != localStorage.getItem('userID')) 
+            if (response.result === 'OK' && response.userID != userID) 
             {
                 addedPeople[username] = userRole;
                 console.log("addedPeople: ", addedPeople);
-                updateAddedPeopleList(); 
                 // Close the modal and reset
                 document.getElementById('addPeopleModal').style.display = 'none';
-                resetAddPeople();   
+                resetAddPeopleModal();
+                updateAddedPeopleList();
             }
-            else if (response.result === 'OK' && response.userID == localStorage.getItem('userID'))
+            else if (response.result === 'OK' && response.userID == userID)
             {
                 document.getElementById('addPeopleError').textContent = 'User cannot be yourself.';
             }
@@ -107,7 +115,6 @@ function updateAddedPeopleList()
 {
     const addedPeopleList = document.getElementById('addedPeopleList'); // Make sure this element exists in your HTML
     addedPeopleList.innerHTML = ''; // Clear the current list
-
     // Iterate over the addedPeople object
     for (const [username, role] of Object.entries(addedPeople)) 
     {
@@ -118,7 +125,7 @@ function updateAddedPeopleList()
 }
 
 
-function resetAddPeople()
+function resetAddPeopleModal()
 {
     document.getElementById('usernameToAdd').value = '';
     // Clear any previous error message
@@ -131,29 +138,38 @@ function handleTeamCreation(event)
     // Collect form data
     var teamName = document.getElementById('teamName').value;
     var teamDescription = document.getElementById('teamDescription').value;
-    console.log("teamDesc: " + teamDescription);
     // Close the modal upon submission
     var modal = document.getElementById('createTeamModal');
+    var team;
     modal.style.display = 'none';
-    var team = 
+    // Assuming teamCreatorID is available in the scope
+    sendRequest('/findUserName', { userID: userID })
+    .then(response => 
     {
-        _name: teamName,
-        _description: teamDescription,
-        _users: addedPeople
-    }
-    console.log(JSON.stringify(team));
-
-    addedPeople = [];
-    return sendRequest('/createTeam', team)
+        if (response.result === 'OK') 
+        {
+            var teamCreatorName = response.username;
+            addedPeople[teamCreatorName] = Roles.OWNER;
+            team = 
+            {
+                _name: teamName,
+                _description: teamDescription,
+                _users: addedPeople
+            };
+            resetTeamsCreate();
+            return sendRequest('/createTeam', team);
+        }
+        else 
+        {
+            throw new Error('Team creator not found');
+        }
+    })
     .then(response => 
     {
         if (response.result === 'OK') 
         {
             const createdTeam = new CalendarTeam(response.teamID, team._name, team._description, team._users, response.teamJoinCode);
-            console.log(team);
-            console.log(response.teamID);
-            console.log(response.teamJoinCode);
-            createTeamPanel(createdTeam);
+            renderAllTeams();
         }
     })
     .catch(error => 
@@ -197,10 +213,12 @@ function teamsSort()
 
 }
 
-function createTeamPanel(team)
+//creates the html elements to display the team panel
+function renderTeamPanel(team, teamCount)
 {
     let container = document.createElement("div");
     container.classList.add("team-container");
+    container.style.top = `${140 * teamCount}px`
     let teamName = document.createElement("div");
     teamName.classList.add("team-name");
     teamName.innerHTML = team._name;
@@ -229,10 +247,40 @@ function createTeamPanel(team)
     document.body.append(container);
 }
 
+
+async function GetTeamList() 
+{
+    try 
+    {
+        const response = sendRequest("/getUserTeams", {userID: userID});
+        return response;
+    } 
+    catch (error) 
+    {
+        console.error('Error:', error.message);
+    }
+};
+
+
+async function renderAllTeams()
+{
+    //get list of all teams
+    let teamList = await GetTeamList(userID);
+    console.log(JSON.stringify(teamList));
+    let teamCount = 0;
+    
+    teamList.teams.forEach(team => 
+    {
+        teamCount++;
+        renderTeamPanel(team, teamCount);
+    });
+}
+
 //resize so its centered
 window.addEventListener("resize", function(event) 
 {
     teamContainers = this.document.getElementsByClassName("team-container");
+    console.log(teamContainers);
     teamContainers.forEach(container => {
         //center element
         container.style.left = `${((this.window.innerWidth / 2) - (parseInt(container.offsetWidth) / 2))}px`;  

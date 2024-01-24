@@ -234,34 +234,34 @@ div.content
   width: 800px;
   height: 100px;
   top: 83px;
-  background-color: burlywood;
+  background-color: lightgray;
   left: 300px;
 
 }
 
 .team-name
 {
-  background-color: mediumaquamarine;
+  background-color: lightgray;
 }
 
 .team-description
 {
-  background-color: thistle;
+  background-color: lightgray;
 }
 
-.team-userList
+.team-userList-container
 {
-  background-color: palevioletred;
+  background-color: lightgray;
 }
 
-.team-userList
+.team-user
 {
-  background-color: cornflowerblue;
+  background-color: lightgray;
 }
 
 .team-code
 {
-  background-color: darksalmon;
+  background-color: lightgray;
 }
 
 /*#endregion Header Teams panels*/
