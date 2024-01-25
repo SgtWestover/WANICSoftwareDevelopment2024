@@ -12,6 +12,7 @@ Description: Handles account settings and deletion
  * @returns {type}
  */
 
+let ws;
 var addedPeople = {};
 const Roles = 
 {
@@ -22,10 +23,37 @@ const Roles =
 };
 var userID = localStorage.getItem('userID');
 
+const teamHeight = 180;
+
 document.addEventListener('DOMContentLoaded', function() 
 {
-    renderAllTeams(userID);
+    connectWebSocket();
+    renderAllTeams();
 });
+
+function connectWebSocket() 
+{
+    // Establish a WebSocket connection. Change when IP is different
+    ws = new WebSocket('ws://192.168.74.114:8080');
+    ws.onopen = function() 
+    {
+        console.log("WebSocket connection established.");
+    };
+    ws.onmessage = function(event) 
+    {
+        console.log("message received");
+        handleWebSocketMessage(event.data);
+    };
+    ws.onerror = function(error) 
+    {
+        console.error("WebSocket error:", error);
+    };
+    ws.onclose = function(event) 
+    {
+        console.log("WebSocket connection closed:", event);
+        setTimeout(connectWebSocket, 3000); // Reconnect after 3 seconds
+    };
+}
 
 // #region Teams create and join functions
 
@@ -137,7 +165,7 @@ function handleTeamCreation(event)
     var teamName = document.getElementById('teamName').value;
     var teamDescription = document.getElementById('teamDescription').value;
     var autoJoin = document.getElementById('autoJoin').value === 'true';
-    var autoJoinPerms = document.getElementById('autoJoinPerms').value;
+    var joinPerms = document.getElementById('joinPerms').value;
     // Close the modal upon submission
     var modal = document.getElementById('createTeamModal');
     var team;
@@ -156,7 +184,7 @@ function handleTeamCreation(event)
                 _description: teamDescription,
                 _users: addedPeople,
                 _autoJoin: autoJoin,
-                _autoJoinPerms: autoJoinPerms
+                _joinPerms: joinPerms
             };
             resetTeamsCreate();
             return sendRequest('/createTeam', team);
@@ -283,10 +311,13 @@ function teamsSort()
 //creates the html elements to display the team panel
 function renderTeamPanel(team, teamCount)
 {
+    const teamPadding = 30;
+    const teamListVertOffset = 82 /*Height of header*/ + teamPadding;
+    const teamVetricalSpacing = teamHeight + teamPadding;
     let container = document.createElement("div");
     container.classList.add("team-container");
-    container.style.top = `${140 * teamCount}px`
-    let teamName = document.createElement("div");
+    container.style.top = `${teamVetricalSpacing * (teamCount - 1) + teamListVertOffset}px`;
+    let teamName = document.createElement("div"); 
     teamName.classList.add("team-name");
     teamName.innerHTML = team._name;
     let description = document.createElement("div");
@@ -329,34 +360,68 @@ async function GetTeamList()
 };
 
 
-async function renderAllTeams()
+async function renderAllTeams() 
 {
-    //get list of all teams
-    let teamList = await GetTeamList(userID);
-    console.log(JSON.stringify(teamList));
-    let teamCount = 0;
-    
-    teamList.teams.forEach(team => 
+    try 
     {
-        teamCount++;
-        renderTeamPanel(team, teamCount);
-    });
+        let teamList = await GetTeamList();
+        console.log(JSON.stringify(teamList));
+        let teamCount = 0;
+        // Clear existing teams before rendering new ones
+        document.querySelectorAll('.team-container').forEach(container => container.remove());
+        teamList.teams.forEach(team => 
+        {
+            teamCount++;
+            renderTeamPanel(team, teamCount);
+        });
+        repositionTeams();
+    } 
+    catch (error) 
+    {
+        console.error('Error:', error.message);
+    }
 }
 
 //resize so its centered
 window.addEventListener("resize", function(event) 
 {
-    teamContainers = this.document.getElementsByClassName("team-container");
-    console.log(teamContainers);
-    if (teamContainers.length != 0)
-    {
-        teamContainers.forEach(container => 
-        {
-            //center element
-            container.style.left = `${((this.window.innerWidth / 2) - (parseInt(container.offsetWidth) / 2))}px`;  
-        });
-    }
+    repositionTeams();
 });
+
+
+function repositionTeams()
+{
+    const sidebarWidth = 200;
+    const widthPadding = 50;
+    var teamContainers = document.getElementsByClassName("team-container");
+    for (const container of teamContainers) 
+    {
+        // Center element
+        container.style.height = `${teamHeight}px`;
+        container.style.width = `${window.innerWidth - sidebarWidth - widthPadding}px`;
+        container.style.left = `${((window.innerWidth / 2) - (parseInt(container.offsetWidth) / 2) + sidebarWidth / 2)}px`;
+        
+    }
+}
+
+function handleWebSocketMessage(data) 
+{
+    try
+    {
+        console.log("handle web socket");
+        const message = JSON.parse(data);
+        if (message.type === 'teamUpdate') 
+        {
+            // Call function to update teams
+            renderAllTeams();
+        }
+        // Handle other message types as needed
+    } 
+    catch (error) 
+    {
+        console.error("Error handling WebSocket message:", error);
+    }
+}
 
 // #endregion Teams create and join functions
 
@@ -381,3 +446,4 @@ async function sendRequest(endpoint, data)
     }
     return await response.json();
 }
+

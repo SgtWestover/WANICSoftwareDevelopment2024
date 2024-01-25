@@ -232,36 +232,59 @@ div.content
 {
   position: absolute;
   width: 800px;
-  height: 100px;
+  height: 200px;
   top: 83px;
-  background-color: lightgray;
+  background-color: #181a1b;
   left: 300px;
-
+  border-radius: 15px;
+  overflow: hidden;
 }
 
 .team-name
 {
-  background-color: lightgray;
+  position: relative;
+  top: 15px;
+  left: 20px;
+  font-size: 36px;
+  max-width: 500px;
+  width: fit-content;
+  overflow: hidden;
+  color: white;
 }
 
 .team-description
 {
-  background-color: lightgray;
+  top: 30px;
+  left: 20px;
+  position: relative;
+  color: white;
+  width: 400px;
+  word-wrap: break-word;
+  max-height: 200px;
+  height: 90px;
+  overflow-y: hidden;
 }
 
 .team-userList-container
 {
-  background-color: lightgray;
+  position: relative;
+  top: 15px;
+  left: 300px;
+  position: relative;
+  color: white;
 }
 
 .team-user
 {
-  background-color: lightgray;
+  position: relative;
+  color: white;
 }
 
 .team-code
 {
-  background-color: lightgray;
+  top: 400px;
+  position: relative;
+  color: white;
 }
 
 /*#endregion Header Teams panels*/

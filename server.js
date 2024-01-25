@@ -631,13 +631,16 @@ router.post('/createTeam', async (req, res) =>
         res.send({ result: 'FAIL', message: "Missing information" });
         return;
     }
-
     try 
     {
         const teamJoinCode = await getNewCode();
-        const newTeam = new CalendarTeam(null, req.body._name, req.body._description, req.body._users, teamJoinCode, null, req.body._autoJoin, req.body._autoJoinPerms);
+        const newTeam = new CalendarTeam(null, req.body._name, req.body._description, req.body._users, teamJoinCode, null, req.body._autoJoin, req.body._joinPerms);
         const result = await addTeam(newTeam);
-        res.status(201).send({ result: 'OK', message: "Team Created", teamID: result.insertedId, teamJoinCode: teamJoinCode });
+        if (result)
+        {
+            await notifyTeamUpdate(newTeam); // Notify users about the team update
+            res.status(201).send({ result: 'OK', message: "Team Created", teamID: result.insertedId, teamJoinCode: teamJoinCode });
+        }
     } 
     catch (error) 
     {
@@ -752,14 +755,12 @@ router.post('/joinTeam', async (req, res) =>
     {
         const calendarDB = dbclient.db("calendarApp");
         const teamsCollection = calendarDB.collection("teams");
-
         // Find the team with the given join code
         const team = await teamsCollection.findOne({ _joinCode: joinCode });
         if (!team) 
         {
             return res.send({ result: 'FAIL', message: 'Team not found' });
         }
-
         // Convert userID to username
         const user = await findUserByID(userID);
         if (!user) 
@@ -767,12 +768,12 @@ router.post('/joinTeam', async (req, res) =>
             return res.send({ result: 'FAIL', message: 'User not found' });
         }
         const userName = user._name;
-
         // Check autoJoin and update team accordingly
         if (team._autoJoin) 
         {
             team._users[userName] = team._autoJoinPerms;
             await teamsCollection.updateOne({ _id: team._id }, { $set: { _users: team._users } });
+            await notifyTeamUpdate(team);
             res.send({ result: 'OK', message: 'Successfully joined the team' });
         } 
         else 
@@ -790,6 +791,31 @@ router.post('/joinTeam', async (req, res) =>
     }
 });
 
+async function notifyTeamUpdate(team) 
+{
+    const usersToUpdate = Object.keys(team._users);
+    console.log("usersToUpdate: " + usersToUpdate);
+    for (const username of usersToUpdate) 
+    {
+        try 
+        {
+            const user = await findUser(username);
+            console.log(map);
+            if (userID && map.has(user._id)) 
+            {
+                const ws = map.get(user._id);
+                console.log(ws);
+                ws.send(JSON.stringify({ type: 'teamUpdate' }));
+            }
+        } 
+        catch (error) 
+        {
+            console.error(`Error notifying user ${username}:`, error);
+        }
+    }
+}
+
+
 //#endregion teams
 
 // #region Websockets and server
@@ -805,7 +831,6 @@ server.on('upgrade', function (request, socket, head)
 {
     // Handle any errors on the socket.
     socket.on('error', onSocketError);
-
     // Parse the session from the request.
     sessionParser(request, {}, () => 
     {
@@ -816,10 +841,9 @@ server.on('upgrade', function (request, socket, head)
             socket.destroy();
             return;
         }
-
         // If authenticated, upgrade the connection to WebSocket.
         wss.handleUpgrade(request, socket, head, ws => 
-            {
+        {
             wss.emit('connection', ws, request);
         });
     });
