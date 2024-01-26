@@ -14,7 +14,14 @@
       <!-- The teams create and join buttons -->
       <div id="teams-create" onclick="teamsCreateStart()">Create Team</div>
       <div id="teams-join" onclick="teamsJoinStart()">Join Team</div>
-      <div id="teams-notifs" onclick="teamsNotifs()">Notifications</div>
+      <div id="teams-notifs">
+        <button class="icon-button" onclick="showTeamsNotifs()">
+          <i class="fa fa-bell"></i>
+        </button>
+        <div id="notificationDropdown" class="notification-dropdown">
+          <!-- Notifications will be dynamically added here -->
+        </div>
+    </div>    
     </h1>
   </header>
   <!-- The sidebar and its components -->
@@ -42,7 +49,7 @@
           <option value="true">Yes</option>
           <option value="false">No</option>
         </select>
-        <label for="joinPerms">Auto Join Perms:</label>
+        <label for="joinPerms">Join Permissions:</label>
         <select id="joinPerms">
           <option value="viewer">Viewer</option>
           <option value="user">User</option>

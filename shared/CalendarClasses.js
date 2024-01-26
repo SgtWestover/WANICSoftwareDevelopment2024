@@ -5,6 +5,10 @@
 
 (function(exports)
 {
+    class Notifications
+    {
+
+    }
     //Event class for an event on the calendar
     class CalendarEvent 
     {
@@ -201,7 +205,6 @@
             this._joinPerms = value;
         }
     }
-
 
     //general user class
     class User 

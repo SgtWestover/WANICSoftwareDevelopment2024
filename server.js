@@ -36,8 +36,6 @@ const app = express();
 const map = new Map();
 // Map for tracking users and session management
 const users = new Map();
-// Map for tracking events - marked as deprecated
-const events = new Map();
 // MongoDB Client setup with connection string
 // Security note: Connection strings should be stored in environment variables or config files
 const uri = "mongodb://127.0.0.1/";
@@ -723,13 +721,11 @@ router.post('/getUserTeams', async (req, res) =>
             res.status(404).send({ result: 'FAIL', message: "User not found" });
             return;
         }
-
         // Extract user's name
         const userName = user._name;
         // Connect to the 'teams' collection
         const calendarDB = dbclient.db("calendarApp");
         const teamsCollection = calendarDB.collection("teams");
-
         // Find teams where the user is a member
         const query = { [`_users.${userName}`]: { $exists: true } };
         const userTeams = await teamsCollection.find(query).toArray();
@@ -742,7 +738,6 @@ router.post('/getUserTeams', async (req, res) =>
         res.status(500).send({ result: 'FAIL', message: error.message });
     }
 });
-
 router.post('/joinTeam', async (req, res) => 
 {
     const { userID, joinCode } = req.body;
@@ -755,23 +750,26 @@ router.post('/joinTeam', async (req, res) =>
     {
         const calendarDB = dbclient.db("calendarApp");
         const teamsCollection = calendarDB.collection("teams");
-        // Find the team with the given join code
         const team = await teamsCollection.findOne({ _joinCode: joinCode });
         if (!team) 
         {
             return res.send({ result: 'FAIL', message: 'Team not found' });
         }
-        // Convert userID to username
         const user = await findUserByID(userID);
         if (!user) 
         {
             return res.send({ result: 'FAIL', message: 'User not found' });
         }
         const userName = user._name;
-        // Check autoJoin and update team accordingly
+        // Check if user is already in the team or queued
+        if (team._users[userName] || (team._usersQueued && team._usersQueued[userName])) 
+        {
+            return res.send({ result: 'FAIL', message: 'Already a member or in queue' });
+        }
+        // Proceed with joining or queuing the user
         if (team._autoJoin) 
         {
-            team._users[userName] = team._autoJoinPerms;
+            team._users[userName] = team._joinPerms;
             await teamsCollection.updateOne({ _id: team._id }, { $set: { _users: team._users } });
             await notifyTeamUpdate(team);
             res.send({ result: 'OK', message: 'Successfully joined the team' });
@@ -779,17 +777,18 @@ router.post('/joinTeam', async (req, res) =>
         else 
         {
             team._usersQueued = team._usersQueued || {};
-            team._usersQueued[userName] = team._autoJoinPerms;
+            team._usersQueued[userName] = team._joinPerms;
             await teamsCollection.updateOne({ _id: team._id }, { $set: { _usersQueued: team._usersQueued } });
             res.send({ result: 'QUEUED', message: 'Added to the queue' });
         }
-    } 
+    }
     catch (error) 
     {
         console.error('Error joining team:', error);
         res.send({ result: 'ERROR', message: 'An error occurred' });
     }
 });
+
 
 async function notifyTeamUpdate(team) 
 {
@@ -800,11 +799,11 @@ async function notifyTeamUpdate(team)
         try 
         {
             const user = await findUser(username);
-            console.log(map);
-            if (userID && map.has(user._id)) 
+            const userID = user._id.toString();
+            console.log("hasID: " + map.has(userID));
+            if (userID && map.has(userID)) 
             {
-                const ws = map.get(user._id);
-                console.log(ws);
+                const ws = map.get(userID);
                 ws.send(JSON.stringify({ type: 'teamUpdate' }));
             }
         } 
@@ -856,13 +855,7 @@ server.on('upgrade', function (request, socket, head)
 wss.on('connection', function (ws, request) 
 {
     const userID = request.session.userID;
-    // If the user is not recognized, terminate the WebSocket connection.
-    if (!map.has(userID)) 
-    {
-        ws.terminate();
-        return;
-    }
-    // Store the WebSocket connection in the map for tracking.
+    console.log("connected userID: " + userID);
     map.set(userID, ws);
     // Handle any errors on the WebSocket.
     ws.on('error', console.error);

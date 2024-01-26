@@ -223,17 +223,16 @@ document.getElementById('joinTeamButton').onclick = async function()
 {
     var joinCode = document.getElementById('teamJoinCode').value;
     var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_~';
-
     // Check if the join code is valid
-    if (joinCode.length === 9 && [...joinCode].every(char => characters.includes(char))) 
+    if (joinCode.length === 9 && [...joinCode].every(char => characters.includes(char)) && 1) 
     {
-        try 
+        try
         {
             const response = await sendRequest('/joinTeam', { userID: userID, joinCode: joinCode });
             // Handle different responses
             if (response.result === 'OK') 
             {
-                alert('Successfully joined the team!');
+                alert('Successfully joined the team!'); //replace alerts later with actual html lol
                 closeTeamJoinModal();
                 renderAllTeams();
             } 
@@ -298,10 +297,23 @@ function closeTeamJoinModal()
  * Show a dropdown notification relating to any teams notifications
  * @returns {void} - but opens a dropdown notification menu
  */
-function teamsNotifs()
+function showTeamsNotifs()
 {
-
+    var dropdown = document.getElementById('notificationDropdown');
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    
 }
+
+document.addEventListener('click', function(event) 
+{
+    var dropdown = document.getElementById('notificationDropdown');
+    var iconButton = document.querySelector('.icon-button');
+    // Check if the clicked target is not the dropdown and not the button
+    if (!dropdown.contains(event.target) && !iconButton.contains(event.target)) 
+    {
+        dropdown.style.display = 'none';
+    }
+});
 
 function teamsSort()
 {
@@ -345,7 +357,6 @@ function renderTeamPanel(team, teamCount)
     document.body.append(container);
 }
 
-
 async function GetTeamList() 
 {
     try 
@@ -358,7 +369,6 @@ async function GetTeamList()
         console.error('Error:', error.message);
     }
 };
-
 
 async function renderAllTeams() 
 {
@@ -388,7 +398,6 @@ window.addEventListener("resize", function(event)
     repositionTeams();
 });
 
-
 function repositionTeams()
 {
     const sidebarWidth = 200;
@@ -400,7 +409,6 @@ function repositionTeams()
         container.style.height = `${teamHeight}px`;
         container.style.width = `${window.innerWidth - sidebarWidth - widthPadding}px`;
         container.style.left = `${((window.innerWidth / 2) - (parseInt(container.offsetWidth) / 2) + sidebarWidth / 2)}px`;
-        
     }
 }
 
@@ -408,7 +416,7 @@ function handleWebSocketMessage(data)
 {
     try
     {
-        console.log("handle web socket");
+        console.log("handle web socket message");
         const message = JSON.parse(data);
         if (message.type === 'teamUpdate') 
         {
