@@ -25,7 +25,7 @@ const cookieParser = require("cookie-parser");
 // Core module in Node.js for handling file and directory paths
 const path = require('path');
 // Custom classes for User and CalendarEvent
-const { User, CalendarEvent, CalendarTeam} = require('./shared/CalendarClasses');
+const { User, CalendarEvent, CalendarTeam, Notifications} = require('./shared/CalendarClasses');
 // MongoDB's utility for handling ObjectIDs
 const { ObjectId } = require('mongodb');
 // Core module in Node.js for writing logs to the console
@@ -623,18 +623,34 @@ router.post('/findUserName', async (req, res) =>
 
 router.post('/createTeam', async (req, res) => 
 {
-    // Validate required information
-    if (!req.body._name || !req.body._users) 
+    if (!req.body._name || !req.body._usersQueued) 
     {
+
         res.send({ result: 'FAIL', message: "Missing information" });
         return;
     }
     try 
     {
         const teamJoinCode = await getNewCode();
-        const newTeam = new CalendarTeam(null, req.body._name, req.body._description, req.body._users, teamJoinCode, null, req.body._autoJoin, req.body._joinPerms);
+        let users = {};
+        let usersQueued = {};
+        // Process addedPeople to separate 'JOINED' and 'INVITE'
+        for (const [username, info] of Object.entries(req.body._usersQueued)) 
+        {
+            if (info.status === 'JOINED') 
+            {
+                users[username] = info.role; // Add to users
+            } 
+            else 
+            {
+                usersQueued[username] = { role: info.role, status: info.status }; // Keep in usersQueued
+            }
+        }
+        console.log("users: " + JSON.stringify(users));
+        console.log("usersQueued: " + JSON.stringify(usersQueued));
+        const newTeam = new CalendarTeam(null, req.body._name, req.body._description, users, teamJoinCode, usersQueued, req.body._autoJoin, req.body._joinPerms);
         const result = await addTeam(newTeam);
-        if (result)
+        if (result) 
         {
             await notifyTeamUpdate(newTeam); // Notify users about the team update
             res.status(201).send({ result: 'OK', message: "Team Created", teamID: result.insertedId, teamJoinCode: teamJoinCode });
@@ -642,10 +658,10 @@ router.post('/createTeam', async (req, res) =>
     } 
     catch (error) 
     {
-        // Handle error from getNewCode or addTeam
         res.status(500).send({ result: 'FAIL', message: error.message });
     }
 });
+
 
 async function addTeam(teamData) 
 {

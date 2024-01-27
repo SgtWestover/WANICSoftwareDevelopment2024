@@ -5,10 +5,44 @@
 
 (function(exports)
 {
-    class Notifications
+    class Notifications 
     {
-
+        constructor() 
+        {
+            this._notifications = new Map(); // Using a Map for easy access and manipulation
+        }
+    
+        // Add a new notification
+        addNotification(notificationId, type, message) 
+        {
+            this._notifications.set(notificationId, { type, message });
+        }
+        // Get a specific notification by ID
+        getNotification(notificationId) 
+        {
+            return this._notifications.get(notificationId);
+        }
+        // Get all notifications
+        getAllNotifications() 
+        {
+            return Array.from(this._notifications.values());
+        }
+        // Remove a notification
+        removeNotification(notificationId) 
+        {
+            this._notifications.delete(notificationId);
+        }
+        // Getters and Setters
+        get notifications() 
+        {
+            return this._notifications;
+        }
+        set notifications(value) 
+        {
+            this._notifications = value;
+        }
     }
+    
     //Event class for an event on the calendar
     class CalendarEvent 
     {
@@ -127,6 +161,7 @@
             this.usersQueued = usersQueued;
             this.autoJoin = autoJoin;
             this.joinPerms = joinPerms;
+            this.notifications = new Notifications();
         }
 
         // Getter for name
@@ -204,12 +239,20 @@
         {
             this._joinPerms = value;
         }
+        get notifications()
+        {
+            return this._notifications;
+        }
+        set notifications(value)
+        {
+            this._notifications = value;
+        }
     }
 
     //general user class
     class User 
     {
-        constructor(name, password, events = null, teams = null, settings = null, friends = null, id = null, teamNotifications = null, timezone = null) 
+        constructor(name, password, events = null, teams = null, settings = null, friends = null, id = null, timezone = null) 
         {
             this.name = name;
             this.password = password;
@@ -217,9 +260,9 @@
             this.teams = teams; //array of team classes
             this.settings = settings;
             this.friends = friends; //array of users
-            this.teamNotifications = teamNotifications;
             this.id = id;
             this.timezone = timezone;
+            this.notifications = new Notifications();
         }
         // Getter for name
         get name() 
@@ -298,19 +341,19 @@
             this._id = value;
         }
 
-        get teamNotifications()
+        get notifications()
         {
-            return this._teamNotifications;
+            return this._notifications;
         }
-        set teamNotifications(value)
+        set notifications(value)
         {
-            this._teamNotifications = value;
+            this._notifications = value;
         }
     }
     if (typeof module !== 'undefined' && module.exports) 
     {
         // Node.js Context
-        module.exports = { CalendarEvent, User, CalendarTeam };
+        module.exports = { CalendarEvent, User, CalendarTeam, Notifications };
     } 
     else 
     {
@@ -318,5 +361,6 @@
         exports.User = User;
         exports.CalendarEvent = CalendarEvent;
         exports.CalendarTeam = CalendarTeam;
+        exports.Notifications = Notifications;
     }
 }) (typeof window === 'undefined' ? module.exports : window);

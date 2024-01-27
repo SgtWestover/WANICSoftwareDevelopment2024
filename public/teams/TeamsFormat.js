@@ -14,6 +14,7 @@ Description: Handles account settings and deletion
 
 let ws;
 var addedPeople = {};
+let teamsList;
 const Roles = 
 {
     VIEWER: 'viewer',
@@ -97,6 +98,28 @@ function teamsCreateStart()
     form.onsubmit = handleTeamCreation;
 }
 
+function showUserList() 
+{
+    var modal = document.getElementById('userListModal');
+    var closeButton = document.querySelector('#userListModal .close');
+    var userlistContainer = document.getElementById("UserListModalContainer");
+    // Show the modal
+    modal.style.display = 'block';
+    // When the user clicks on <span> (x), close the modal
+    closeButton.onclick = function() 
+    {
+        modal.style.display = 'none';
+    };
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) 
+    {
+        if (event.target === modal) 
+        {
+            modal.style.display = 'none';
+        }
+    };
+}
+
 document.getElementById('submitUsername').onclick = async function() 
 {
     var username = document.getElementById('usernameToAdd').value;
@@ -106,9 +129,9 @@ document.getElementById('submitUsername').onclick = async function()
         try 
         {
             const response = await sendRequest('/findUser', { username: username });
-            if (response.result === 'OK' && response.userID != userID) 
+            if (response.result === 'OK' && response.userID != userID)
             {
-                addedPeople[username] = userRole;
+                addedPeople[username] = { role: userRole, status: "INVITE"};
                 console.log("addedPeople: ", addedPeople);
                 // Close the modal and reset
                 document.getElementById('addPeopleModal').style.display = 'none';
@@ -139,17 +162,15 @@ document.getElementById('submitUsername').onclick = async function()
 
 function updateAddedPeopleList() 
 {
-    const addedPeopleList = document.getElementById('addedPeopleList'); // Make sure this element exists in your HTML
-    addedPeopleList.innerHTML = ''; // Clear the current list
-    // Iterate over the addedPeople object
-    for (const [username, role] of Object.entries(addedPeople)) 
+    const addedPeopleList = document.getElementById('addedPeopleList');
+    addedPeopleList.innerHTML = '';
+    for (const [username, info] of Object.entries(addedPeople)) 
     {
         const personElement = document.createElement('div');
-        personElement.textContent = `${username} - ${role}`;
+        personElement.textContent = `${username} - ${info.role} (Status: ${info.status})`;
         addedPeopleList.appendChild(personElement);
     }
 }
-
 
 function resetAddPeopleModal()
 {
@@ -177,12 +198,12 @@ function handleTeamCreation(event)
         if (response.result === 'OK') 
         {
             var teamCreatorName = response.username;
-            addedPeople[teamCreatorName] = Roles.OWNER;
+            addedPeople[teamCreatorName] = { role: Roles.OWNER, status: "JOINED" };
             team = 
             {
                 _name: teamName,
                 _description: teamDescription,
-                _users: addedPeople,
+                _usersQueued: addedPeople,
                 _autoJoin: autoJoin,
                 _joinPerms: joinPerms
             };
@@ -302,6 +323,7 @@ function showTeamsNotifs()
     var dropdown = document.getElementById('notificationDropdown');
     dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
     
+    
 }
 
 document.addEventListener('click', function(event) 
@@ -343,6 +365,10 @@ function renderTeamPanel(team, teamCount)
         let userElement = document.createElement("div");
         userElement.classList.add("team-user");
         userElement.innerHTML = `${username} - ${role}`;
+        userElement.onclick = function()
+        {
+            showUserList();
+        };
         userList.appendChild(userElement); // Append the user element to the user list container
     }
     let teamCode = document.createElement("div");
@@ -374,7 +400,7 @@ async function renderAllTeams()
 {
     try 
     {
-        let teamList = await GetTeamList();
+        teamList = await GetTeamList();
         console.log(JSON.stringify(teamList));
         let teamCount = 0;
         // Clear existing teams before rendering new ones
