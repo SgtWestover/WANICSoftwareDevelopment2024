@@ -242,7 +242,7 @@ div.content
 
 .team-name
 {
-  position: relative;
+  position: absolute;
   top: 15px;
   left: 20px;
   font-size: 36px;
@@ -254,9 +254,9 @@ div.content
 
 .team-description
 {
-  top: 30px;
+  top: 70px;
   left: 20px;
-  position: relative;
+  position: absolute;
   color: white;
   width: 400px;
   word-wrap: break-word;
@@ -267,7 +267,7 @@ div.content
 
 .team-userList-container
 {
-  position: relative;
+  position: absolute;
   top: 15px;
   left: 300px;
   position: relative;
