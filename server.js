@@ -25,7 +25,7 @@ const cookieParser = require("cookie-parser");
 // Core module in Node.js for handling file and directory paths
 const path = require('path');
 // Custom classes for User and CalendarEvent
-const { User, CalendarEvent, CalendarTeam, Notifications} = require('./shared/CalendarClasses');
+const { User, CalendarEvent, CalendarTeam} = require('./shared/CalendarClasses');
 // MongoDB's utility for handling ObjectIDs
 const { ObjectId } = require('mongodb');
 // Core module in Node.js for writing logs to the console
@@ -135,7 +135,7 @@ async function findUserSignIn(username, password)
             const result = await bcrypt.compare(password, account._password);
             return result ? account : null;
         } 
-        catch (error) 
+        catch (error)
         {
             console.log(error);
             return null;
@@ -620,47 +620,80 @@ router.post('/findUserName', async (req, res) =>
         res.send({ result: 'ERROR', message: 'An error occurred' });
     }
 });
-
 router.post('/createTeam', async (req, res) => 
 {
     if (!req.body._name || !req.body._usersQueued) 
     {
-
-        res.send({ result: 'FAIL', message: "Missing information" });
-        return;
+        return res.status(400).send({ result: 'FAIL', message: "Missing information" });
     }
     try 
     {
         const teamJoinCode = await getNewCode();
         let users = {};
         let usersQueued = {};
-        // Process addedPeople to separate 'JOINED' and 'INVITE'
+        let teamNotifications = {};
         for (const [username, info] of Object.entries(req.body._usersQueued)) 
         {
             if (info.status === 'JOINED') 
             {
-                users[username] = info.role; // Add to users
+                users[username] = info.role;
             } 
             else 
             {
-                usersQueued[username] = { role: info.role, status: info.status }; // Keep in usersQueued
+                usersQueued[username] = { role: info.role, status: info.status };
             }
         }
-        console.log("users: " + JSON.stringify(users));
-        console.log("usersQueued: " + JSON.stringify(usersQueued));
-        const newTeam = new CalendarTeam(null, req.body._name, req.body._description, users, teamJoinCode, usersQueued, req.body._autoJoin, req.body._joinPerms);
-        const result = await addTeam(newTeam);
-        if (result) 
+        const ownerUsername = Object.keys(users).find(username => users[username] === 'owner');
+        for (const [username, info] of Object.entries(req.body._usersQueued)) 
         {
-            await notifyTeamUpdate(newTeam); // Notify users about the team update
+            if (info.status === 'INVITE') 
+            {
+                const message = `${ownerUsername} invited you to join their team ${req.body._name}`;
+                const notificationId = await addNotificationToUser(username, "TEAM_INVITE", message);
+                teamNotifications[notificationId] = { type: "TEAM_INVITE", message, username };
+            }
+        }
+        const newTeam = new CalendarTeam(null, req.body._name, req.body._description, users, teamJoinCode, usersQueued, req.body._autoJoin, req.body._joinPerms, teamNotifications);
+        const result = await addTeam(newTeam);
+        if (result.insertedId) 
+        {
+            await notifyTeamUpdate(newTeam);
             res.status(201).send({ result: 'OK', message: "Team Created", teamID: result.insertedId, teamJoinCode: teamJoinCode });
+        } 
+        else 
+        {
+            throw new Error("Team creation failed");
         }
     } 
     catch (error) 
     {
+        console.error('Error creating team:', error);
         res.status(500).send({ result: 'FAIL', message: error.message });
     }
 });
+
+async function addTeam(teamData) 
+{
+    const calendarDB = dbclient.db("calendarApp");
+    const teamsCollection = calendarDB.collection("teams");
+    return await teamsCollection.insertOne(teamData);
+}
+
+async function addNotificationToUser(username, type, message) 
+{
+    const calendarDB = dbclient.db("calendarApp");
+    const usersCollection = calendarDB.collection("users");
+    const notificationId = new ObjectId().toString(); // Unique ID for the notification
+    const notification = { id: notificationId, type, message };
+
+    await usersCollection.updateOne
+    (
+        { _name: username },
+        { $set: { [`_notifications.${notificationId}`]: notification } }
+    );
+    return notificationId; // Return the notification ID for team notifications
+}
+
 
 
 async function addTeam(teamData) 
@@ -670,6 +703,7 @@ async function addTeam(teamData)
     const result = await teamsCollection.insertOne(teamData);
     return result;
 }
+
 
 /**
  * Creates a new unique random code of 8 characters, including URL-safe special characters.
@@ -729,7 +763,6 @@ router.post('/getUserTeams', async (req, res) =>
             res.status(400).send({ result: 'FAIL', message: "Missing userID" });
             return;
         }
-
         // Retrieve user by ID
         const user = await findUserByID(userID);
         if (!user) 
@@ -761,7 +794,6 @@ router.post('/joinTeam', async (req, res) =>
     {
         return res.send({ result: 'FAIL', message: 'Invalid join code' });
     }
-
     try 
     {
         const calendarDB = dbclient.db("calendarApp");
@@ -830,6 +862,82 @@ async function notifyTeamUpdate(team)
     }
 }
 
+router.post('/getUserNotifications', async (req, res) => 
+{
+    const userID = req.body.userID;
+    if (!userID)
+    {
+        return res.status(400).send({ result: 'FAIL', message: 'UserID is required' });
+    }
+    try 
+    {
+        const user = await findUserByID(userID);
+        if (user && user._notifications) 
+        {
+            // Convert the _notifications object to an array. I really hate this but it is what it is
+            const notificationsArray = Object.entries(user._notifications).map(([id, notification]) => 
+            ({
+                id,
+                ...notification
+            }));
+            res.send({ result: 'OK', notifications: notificationsArray });
+        }
+        else 
+        {
+            res.status(404).send({ result: 'FAIL', message: 'User not found or no notifications' });
+        }
+    } 
+    catch (error) 
+    {
+        console.error('Error retrieving user notifications:', error);
+        res.status(500).send({ result: 'ERROR', message: 'An error occurred' });
+    }
+});
+
+router.post('/handleTeamInvite', async (req, res) => 
+{
+    const { userID, notificationID, action } = req.body; // action can be 'accept' or 'reject'
+    if (!userID || !notificationID || !action) 
+    {
+        return res.status(400).send({ result: 'FAIL', message: 'UserID, NotificationID, and action are required' });
+    }
+    try 
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const usersCollection = calendarDB.collection("users");
+        const teamsCollection = calendarDB.collection("teams");
+        const team = await teamsCollection.findOne({ [`_notifications.${notificationID}`]: { $exists: true } });
+        if (!team) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: 'Team not found' });
+        }
+        const user = await findUserByID(userID);
+        if (!user) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: 'User not found' });
+        }
+        if (action === 'accept') 
+        {
+            team._users[user._name] = team._joinPerms;
+            delete team._usersQueued[user._name];
+        } 
+        else if (action === 'reject') 
+        {
+            delete team._usersQueued[user._name];
+        }
+        await teamsCollection.updateOne({ _id: team._id }, { $set: { _users: team._users, _usersQueued: team._usersQueued } });
+        const notificationRemovalQuery = { $unset: { [`_notifications.${notificationID}`]: "" } };
+        await usersCollection.updateOne({ _id: user._id }, notificationRemovalQuery);
+        await teamsCollection.updateOne({ _id: team._id }, notificationRemovalQuery);
+        await notifyTeamUpdate(team);
+        res.send({ result: 'OK', message: `Team invite ${action}ed` });
+    } 
+    catch (error) 
+    {
+        console.error(`Error ${action}ing team invite:`, error);
+        res.status(500).send({ result: 'ERROR', message: 'An error occurred' });
+    }
+});
 
 //#endregion teams
 
@@ -959,3 +1067,4 @@ app.get('/', (req, res) =>
 });
 
 // #endregion
+

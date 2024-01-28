@@ -35,8 +35,8 @@ document.addEventListener('DOMContentLoaded', function()
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.74.114:8080');
-    ws.onopen = function() 
+    ws = new WebSocket('ws://192.168.50.42:8080');
+    ws.onopen = function()
     {
         console.log("WebSocket connection established.");
     };
@@ -318,14 +318,87 @@ function closeTeamJoinModal()
  * Show a dropdown notification relating to any teams notifications
  * @returns {void} - but opens a dropdown notification menu
  */
-function showTeamsNotifs()
+function showTeamsNotifs() 
 {
     var dropdown = document.getElementById('notificationDropdown');
     dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
-    
-    
+    sendRequest('/getUserNotifications', { userID: userID })
+    .then(response => 
+    {
+        if (response.result === 'OK') 
+        {
+            renderNotifications(response.notifications);
+        }
+    })
+    .catch(error => console.error('Error fetching notifications:', error));
 }
 
+function renderNotifications(notifications) 
+{
+    const dropdown = document.getElementById('notificationDropdown');
+    dropdown.innerHTML = '';
+    notifications.forEach(notification => 
+    {
+        const notificationDiv = document.createElement('div');
+        notificationDiv.className = 'notification-item';
+        notificationDiv.textContent = `${notification.type}: ${notification.message}`;
+        notificationDiv.onclick = () => openNotificationModal(notification, notificationDiv);
+        dropdown.appendChild(notificationDiv);
+    });
+}
+
+function openNotificationModal(notification, notificationDiv) 
+{
+    const modal = document.getElementById('notificationInteractionModal');
+    const messageElement = document.getElementById('notificationMessage');
+    const actionsElement = document.getElementById('notificationActions');
+    messageElement.textContent = `${notification.type}: ${notification.message}`;
+    actionsElement.innerHTML = '';
+    if (notification.type === 'TEAM_INVITE') 
+    {
+        const acceptButton = createActionButton('Accept', () => handleTeamInvite(notification.id, 'accept', notificationDiv));
+        const rejectButton = createActionButton('Reject', () => handleTeamInvite(notification.id, 'reject', notificationDiv));
+        actionsElement.appendChild(acceptButton);
+        actionsElement.appendChild(rejectButton);
+    }
+    modal.style.display = 'block';
+}
+function createActionButton(text, onClick) 
+{
+    const button = document.createElement('button');
+    button.textContent = text;
+    button.addEventListener('click', onClick);
+    return button;
+}
+
+function closeNotificationModal() 
+{
+    const modal = document.getElementById('notificationInteractionModal');
+    modal.style.display = 'none';
+}
+
+function handleTeamInvite(notificationId, action, notificationDiv) 
+{
+    sendRequest('/handleTeamInvite', { userID: userID, notificationID: notificationId, action: action })
+    .then(response =>   
+    {
+        if (response.result === 'OK') 
+        {
+            alert(`Team invite ${action}ed.`);
+            closeNotificationModal();
+            notificationDiv.remove(); // Remove the notification div from the dropdown
+        } 
+        else 
+        {
+            alert(`Failed to ${action} team invite.`);
+        }
+    })
+    .catch(error => 
+    {
+        console.error(`Error ${action}ing team invite:`, error);
+        alert(`An error occurred while ${action}ing team invite.`);
+    });
+}
 document.addEventListener('click', function(event) 
 {
     var dropdown = document.getElementById('notificationDropdown');
@@ -400,12 +473,12 @@ async function renderAllTeams()
 {
     try 
     {
-        teamList = await GetTeamList();
-        console.log(JSON.stringify(teamList));
+        teamsList = await GetTeamList();
+        console.log(JSON.stringify(teamsList));
         let teamCount = 0;
         // Clear existing teams before rendering new ones
         document.querySelectorAll('.team-container').forEach(container => container.remove());
-        teamList.teams.forEach(team => 
+        teamsList.teams.forEach(team => 
         {
             teamCount++;
             renderTeamPanel(team, teamCount);

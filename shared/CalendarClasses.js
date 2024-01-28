@@ -5,44 +5,6 @@
 
 (function(exports)
 {
-    class Notifications 
-    {
-        constructor() 
-        {
-            this._notifications = new Map(); // Using a Map for easy access and manipulation
-        }
-    
-        // Add a new notification
-        addNotification(notificationId, type, message) 
-        {
-            this._notifications.set(notificationId, { type, message });
-        }
-        // Get a specific notification by ID
-        getNotification(notificationId) 
-        {
-            return this._notifications.get(notificationId);
-        }
-        // Get all notifications
-        getAllNotifications() 
-        {
-            return Array.from(this._notifications.values());
-        }
-        // Remove a notification
-        removeNotification(notificationId) 
-        {
-            this._notifications.delete(notificationId);
-        }
-        // Getters and Setters
-        get notifications() 
-        {
-            return this._notifications;
-        }
-        set notifications(value) 
-        {
-            this._notifications = value;
-        }
-    }
-    
     //Event class for an event on the calendar
     class CalendarEvent 
     {
@@ -151,7 +113,7 @@
     //Team class for the teams that users can create and join
     class CalendarTeam 
     {
-        constructor(id, name, description, users, joinCode, usersQueued, autoJoin, joinPerms)
+        constructor(id, name, description, users, joinCode, usersQueued, autoJoin, joinPerms, notifications = {})
         {
             this.id = id;
             this.name = name;
@@ -161,7 +123,7 @@
             this.usersQueued = usersQueued;
             this.autoJoin = autoJoin;
             this.joinPerms = joinPerms;
-            this.notifications = new Notifications();
+            this.notifications = notifications;
         }
 
         // Getter for name
@@ -252,7 +214,7 @@
     //general user class
     class User 
     {
-        constructor(name, password, events = null, teams = null, settings = null, friends = null, id = null, timezone = null) 
+        constructor(name, password, events = null, teams = null, settings = null, friends = null, id = null, timezone = null, notifications = {}) 
         {
             this.name = name;
             this.password = password;
@@ -262,7 +224,7 @@
             this.friends = friends; //array of users
             this.id = id;
             this.timezone = timezone;
-            this.notifications = new Notifications();
+            this.notifications = notifications;
         }
         // Getter for name
         get name() 
@@ -353,7 +315,7 @@
     if (typeof module !== 'undefined' && module.exports) 
     {
         // Node.js Context
-        module.exports = { CalendarEvent, User, CalendarTeam, Notifications };
+        module.exports = { CalendarEvent, User, CalendarTeam };
     } 
     else 
     {
@@ -361,6 +323,5 @@
         exports.User = User;
         exports.CalendarEvent = CalendarEvent;
         exports.CalendarTeam = CalendarTeam;
-        exports.Notifications = Notifications;
     }
 }) (typeof window === 'undefined' ? module.exports : window);

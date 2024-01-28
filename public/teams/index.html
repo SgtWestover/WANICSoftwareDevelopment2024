@@ -87,14 +87,21 @@
         <input type="button" value="Join Team" id="joinTeamButton">
     </div>
   </div>
-
-
+  <div id="notificationInteractionModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeNotificationModal()">&times;</span>
+      <h2 id="notificationMessage"></h2>
+      <div id="notificationActions">
+        <!-- Buttons will be dynamically added here -->
+      </div>
+    </div>
+  </div>
   <!-- The user list modal -->
   <div id="userListModal" class="modal">
     <!-- Modal Content -->
     <div class="modal-content">
-      <div id="UserListModalContainer"
-      <span class="close">&times;</span>      
+      <div id="UserListModalContainer">
+      <span> class="close">&times;</span>      
     </div>
   </div>
 
