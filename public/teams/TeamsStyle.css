@@ -10,6 +10,7 @@ Description: style for the teams page
 
 body /* Document body*/
 {
+  color: white;
   font-family: Arial, sans-serif;
   background-color: #3a3e41; /*#181a1b*/
   margin: 0;
@@ -75,6 +76,7 @@ header
   justify-content: center; /* Center items horizontally */
   height: 50px; /* Adjust height to fit buttons */
 }
+/*#endregion*/
 
 /* General Sidebar ---------------------------------------------------------- */
 /*#region General Sidebar Styles*/
@@ -200,7 +202,7 @@ div.content
 /* Modal Content/Box */
 .modal-content 
 {
-  background-color: #fefefe;
+  background-color: #2b2e30;
   margin: 15% auto; /* 15% from the top and centered */
   padding: 20px;
   border: 1px solid #888;
@@ -219,7 +221,7 @@ div.content
 .close:hover,
 .close:focus 
 {
-  color: black;
+  color: white;
   text-decoration: none;
   cursor: pointer;
 }
@@ -293,6 +295,7 @@ div.content
 }
 
 /*#endregion Header Teams panels*/
+
 /*#region Notification Style*/
 
 #teams-notifs 
@@ -352,3 +355,58 @@ div.content
   background-color: #f1f1f1;
   color: black;
 }
+
+/*#endregion */
+
+
+/*#region Team user list modal*/
+#userListModal
+{
+  width: fit-content;
+}
+
+.modal-team-user
+{
+  position: relative;
+  color: white;
+  cursor: pointer;
+  min-width: fit-content;
+  width: fit-content;
+}
+
+#UserListModalContainer
+{
+  width: 200px;
+  height: 400px;
+  overflow-y: scroll;
+  scrollbar-color: #2b2e30;
+
+}
+
+/*#endregion */
+
+/*#region Team description modal*/
+#descriptionModal
+{
+  width: fit-content;
+}
+
+.modal-team-description
+{
+  position: relative;
+  color: white;
+  cursor: pointer;
+  width: 100%;
+  word-wrap: break-word;
+  overflow-y: hidden;
+}
+
+#descriptionModalContainer
+{
+  width: 200px;
+  height: 400px;
+  overflow-y: scroll;
+  scrollbar-color: #2b2e30;
+}
+
+/*#endregion */

@@ -98,11 +98,74 @@ function teamsCreateStart()
     form.onsubmit = handleTeamCreation;
 }
 
-function showUserList() 
+function showUserList(event) 
 {
     var modal = document.getElementById('userListModal');
     var closeButton = document.querySelector('#userListModal .close');
     var userlistContainer = document.getElementById("UserListModalContainer");
+    var joinCode = event.target.parentElement.parentElement.childNodes[3].innerHTML;
+    
+    userlistContainer.innerHTML = "";
+
+    //Get list of users and show them all
+    teamsList.teams.forEach(team => 
+    {
+        if (team._joinCode === joinCode)
+        {
+            for (const [username, role] of Object.entries(team._users)) 
+            {
+                for (var i = 0; i < 4; i++)
+                {
+                    let userElement = document.createElement("div");
+                    userElement.classList.add("modal-team-user");
+                    userElement.innerHTML = `${username} - ${role}`;
+                    userlistContainer.appendChild(userElement); // Append the user element to the user list container
+                }
+                
+            }
+        }
+    });
+    // Show the modal
+    modal.style.display = 'block';
+    // When the user clicks on <span> (x), close the modal
+    closeButton.onclick = function() 
+    {
+        modal.style.display = 'none';
+
+    };
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function() 
+    {
+        if (event.target === modal) 
+        {
+            modal.style.display = 'none';
+        }
+    };
+}
+
+function showTeamDescription(event) 
+{
+    var modal = document.getElementById('descriptionModal');
+    var closeButton = document.querySelector('#descriptionModal .close');
+    var descriptionContainer = document.getElementById("descriptionModalContainer");
+    console.log(descriptionContainer);
+    var joinCode = event.target.parentElement.childNodes[3].innerHTML;
+    console.log(event.target.parentElement.parentElement);
+
+    descriptionContainer.innerHTML = "";
+
+    //Get description for the tean and show it
+    teamsList.teams.forEach(team => 
+    {
+        if (team._joinCode === joinCode)
+        {
+            let descriptionElement = document.createElement("div");
+            console.log(descriptionElement);
+            descriptionElement.classList.add("modal-team-description");
+            descriptionElement.innerHTML = `${team._description}`;
+            descriptionContainer.appendChild(descriptionElement);
+        }
+    });
     // Show the modal
     modal.style.display = 'block';
     // When the user clicks on <span> (x), close the modal
@@ -111,7 +174,7 @@ function showUserList()
         modal.style.display = 'none';
     };
     // When the user clicks anywhere outside of the modal, close it
-    window.onclick = function(event) 
+    window.onclick = function() 
     {
         if (event.target === modal) 
         {
@@ -119,6 +182,7 @@ function showUserList()
         }
     };
 }
+
 
 document.getElementById('submitUsername').onclick = async function() 
 {
@@ -430,6 +494,10 @@ function renderTeamPanel(team, teamCount)
     let description = document.createElement("div");
     description.classList.add("team-description");
     description.innerHTML = team._description;
+    description.onclick = function(event)
+    {
+        showTeamDescription(event);
+    };
     let userList = document.createElement("div");
     userList.classList.add("team-userList-container");
     // Iterate over the team._users object
@@ -438,9 +506,9 @@ function renderTeamPanel(team, teamCount)
         let userElement = document.createElement("div");
         userElement.classList.add("team-user");
         userElement.innerHTML = `${username} - ${role}`;
-        userElement.onclick = function()
+        userElement.onclick = function(event)
         {
-            showUserList();
+            showUserList(event);
         };
         userList.appendChild(userElement); // Append the user element to the user list container
     }
