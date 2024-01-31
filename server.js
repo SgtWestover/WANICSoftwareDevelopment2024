@@ -261,6 +261,7 @@ router.post('/deleteaccount/', async (req, res) =>
         {
             await deleteUser(user._name);
             await deleteUserEvents(req.session.userID);
+            await deleteUserTeams(user._name);
             req.session.destroy();
             res.send({ result: 'OK', message: "Account deleted" });
         } 
@@ -312,6 +313,79 @@ async function deleteUserEvents(userID)
     const calendarDB = dbclient.db("calendarApp");
     const eventsCollection = calendarDB.collection("events");
     await eventsCollection.deleteMany({ _users: { $in: [userID] } });
+}
+
+/**
+ * Deletes the user from a specific team they are associated with using the username
+ * @param {string} username - The name of the user to be removed
+ * @returns {Promise<void>}
+ */
+async function deleteUserTeams(username)
+{
+    const calendarDB = dbclient.db("calendarApp");
+    const teamsCollection = calendarDB.collection("teams");
+    // Find all teams where the user is a member or queued
+    const teams = await teamsCollection.find
+    (
+        {
+            $or: 
+            [
+                { [`_users.${username}`]: { $exists: true } },
+                { [`_usersQueued.${username}`]: { $exists: true } }
+            ]
+        }
+    ).toArray();
+    for (const team of teams)
+    {
+        if (team._users[username])
+        {
+            // If user is the only member, delete the team
+            if (Object.keys(team._users).length === 1)
+            {
+                await teamsCollection.deleteOne({ _id: team._id });
+            }
+            else
+            {
+                // If user is the owner, transfer ownership
+                if (team._users[username] === "owner")
+                {
+                    const newOwner = findNewOwner(team._users);
+                    if (newOwner)
+                    {
+                        team._users[newOwner] = "owner";
+                    }
+                }
+                // Remove user from _users
+                delete team._users[username];
+                // Update the team in the database
+                await teamsCollection.updateOne({ _id: team._id }, { $set: { _users: team._users } });
+            }
+        }
+        else if (team._usersQueued[username])
+        {
+            // Remove user from _usersQueued
+            delete team._usersQueued[username];
+            // Update the team in the database
+            await teamsCollection.updateOne({ _id: team._id }, { $set: { _usersQueued: team._usersQueued } });
+        }
+    }
+}
+
+// Finds the new owner based on role priority and also implicitly join order
+function findNewOwner(users)
+{
+    const rolesPriority = ["admin", "user", "viewer"];
+    for (const role of rolesPriority)
+    {
+        for (const [username, userRole] of Object.entries(users))
+        {
+            if (userRole === role)
+            {
+                return username;
+            }
+        }
+    }
+    return null;
 }
 
 /**
@@ -620,6 +694,7 @@ router.post('/findUserName', async (req, res) =>
         res.send({ result: 'ERROR', message: 'An error occurred' });
     }
 });
+
 router.post('/createTeam', async (req, res) => 
 {
     if (!req.body._name || !req.body._usersQueued) 
@@ -631,32 +706,37 @@ router.post('/createTeam', async (req, res) =>
         const teamJoinCode = await getNewCode();
         let users = {};
         let usersQueued = {};
-        let teamNotifications = {};
+        const currentDate = new Date();
+        const ownerUsername = Object.keys(req.body._usersQueued).find(username => req.body._usersQueued[username].role === 'owner');
+        let notificationID;
+        // First loop: Create notifications for each user and collect their IDs
         for (const [username, info] of Object.entries(req.body._usersQueued)) 
         {
             if (info.status === 'JOINED') 
             {
                 users[username] = info.role;
             } 
-            else 
+            else if (info.status === 'INVITE') 
             {
                 usersQueued[username] = { role: info.role, status: info.status };
-            }
-        }
-        const ownerUsername = Object.keys(users).find(username => users[username] === 'owner');
-        for (const [username, info] of Object.entries(req.body._usersQueued)) 
-        {
-            if (info.status === 'INVITE') 
-            {
                 const message = `${ownerUsername} invited you to join their team ${req.body._name}`;
-                const notificationId = await addNotificationToUser(username, "TEAM_INVITE", message);
-                teamNotifications[notificationId] = { type: "TEAM_INVITE", message, username };
+                notificationID = await addNotificationToUser(username, "TEAM_INVITE", message, ownerUsername, currentDate);
+                console.log(notificationID);
             }
         }
-        const newTeam = new CalendarTeam(null, req.body._name, req.body._description, users, teamJoinCode, usersQueued, req.body._autoJoin, req.body._joinPerms, teamNotifications);
+        const newTeam = new CalendarTeam(null, req.body._name, req.body._description, users, teamJoinCode, usersQueued, req.body._autoJoin, req.body._joinPerms);
         const result = await addTeam(newTeam);
         if (result.insertedId) 
         {
+            // Second loop: Add notifications to the team
+            for (const [username, info] of Object.entries(usersQueued)) 
+            {
+                if (info.status === 'INVITE') 
+                {
+                    const message = `${ownerUsername} invited you to join their team ${req.body._name}`;
+                    await addNotificationToTeam(result.insertedId, notificationID, "TEAM_INVITE", message, ownerUsername, username, "admin", currentDate);
+                }
+            }
             await notifyTeamUpdate(newTeam);
             res.status(201).send({ result: 'OK', message: "Team Created", teamID: result.insertedId, teamJoinCode: teamJoinCode });
         } 
@@ -679,22 +759,34 @@ async function addTeam(teamData)
     return await teamsCollection.insertOne(teamData);
 }
 
-async function addNotificationToUser(username, type, message) 
+async function addNotificationToUser(username, type, message, sender, sendDate) 
 {
     const calendarDB = dbclient.db("calendarApp");
     const usersCollection = calendarDB.collection("users");
-    const notificationId = new ObjectId().toString(); // Unique ID for the notification
-    const notification = { id: notificationId, type, message };
+    const notificationId = new ObjectId().toString();
+    const notification = { type, message, sender, sendDate };
 
     await usersCollection.updateOne
     (
         { _name: username },
         { $set: { [`_notifications.${notificationId}`]: notification } }
     );
-    return notificationId; // Return the notification ID for team notifications
+    return notificationId; // Return the unique ID of the notification
 }
 
-
+async function addNotificationToTeam(teamID, notifID, type, message, sender, receiver, viewable, sendDate) {
+    const calendarDB = dbclient.db("calendarApp");
+    const teamsCollection = calendarDB.collection("teams");
+    const team = await teamsCollection.findOne({ _id: new ObjectId(teamID) });
+    if (!team) 
+    {
+        throw new Error("Team not found");
+    }
+    const teamNotifications = team._notifications || {};
+    const notification = { type, message, sender, receiver, viewable, sendDate };
+    teamNotifications[notifID] = notification;
+    await teamsCollection.updateOne({ _id: teamID }, { $set: { _notifications: teamNotifications } });
+}
 
 async function addTeam(teamData) 
 {
@@ -703,7 +795,6 @@ async function addTeam(teamData)
     const result = await teamsCollection.insertOne(teamData);
     return result;
 }
-
 
 /**
  * Creates a new unique random code of 8 characters, including URL-safe special characters.
@@ -714,7 +805,6 @@ async function addTeam(teamData)
 async function getNewCode() 
 {
     let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_~';
-
     // Function to generate a random code of a given length
     const generateRandomCode = (length) => 
     {
@@ -732,7 +822,6 @@ async function getNewCode()
         const count = await Code.countDocuments({ code: code });
         return count > 0;
     }
-
     // Starting with 8 characters, try to find a unique 9th character
     for (let i = 8; i >= 0; i--) 
     {
@@ -919,6 +1008,8 @@ router.post('/handleTeamInvite', async (req, res) =>
         if (action === 'accept') 
         {
             team._users[user._name] = team._joinPerms;
+            let newNotifID = new ObjectId().toString();
+            await addNotificationToTeam(team._id, newNotifID, "TEAM_JOIN", `${user._name} joined the team`, user._name, null, "viewer", new Date());
             delete team._usersQueued[user._name];
         } 
         else if (action === 'reject') 
@@ -938,6 +1029,33 @@ router.post('/handleTeamInvite', async (req, res) =>
         res.status(500).send({ result: 'ERROR', message: 'An error occurred' });
     }
 });
+
+router.post('/deleteNotification', async (req, res) => 
+{
+    const { userID, notificationID } = req.body;
+    if (!userID || !notificationID) 
+    {
+        return res.status(400).send({ result: 'FAIL', message: 'how did this even happen' });
+    }
+    try 
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const usersCollection = calendarDB.collection("users");
+        const teamsCollection = calendarDB.collection("teams");
+        //remove the notification from the user's notifications
+        const userNotificationRemovalQuery = { $unset: { [`_notifications.${notificationID}`]: "" } };
+        await usersCollection.updateOne({ _id: new ObjectId(userID) }, userNotificationRemovalQuery);
+        const teamNotificationRemovalQuery = { $unset: { [`_notifications.${notificationID}`]: "" } };
+        await teamsCollection.updateMany({}, teamNotificationRemovalQuery);
+        res.send({ result: 'OK', message: 'Notification deleted' });
+    } 
+    catch (error) 
+    {
+        console.error('Error deleting notification:', error);
+        res.status(500).send({ result: 'ERROR', message: 'An error occurred' });
+    }
+});
+
 
 //#endregion teams
 
@@ -1067,4 +1185,3 @@ app.get('/', (req, res) =>
 });
 
 // #endregion
-

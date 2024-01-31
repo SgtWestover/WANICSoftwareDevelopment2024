@@ -400,16 +400,58 @@ function showTeamsNotifs()
 function renderNotifications(notifications) 
 {
     const dropdown = document.getElementById('notificationDropdown');
-    dropdown.innerHTML = '';
+    dropdown.innerHTML = ''; // Clear the HTML first
     notifications.forEach(notification => 
     {
         const notificationDiv = document.createElement('div');
         notificationDiv.className = 'notification-item';
-        notificationDiv.textContent = `${notification.type}: ${notification.message}`;
+        // Create and append the time element
+        const timeElement = document.createElement('span');
+        timeElement.className = 'notification-time';
+        timeElement.textContent = new Date(notification.sendDate).toLocaleTimeString();
+        notificationDiv.appendChild(timeElement);
+        const messageElement = document.createElement('span');
+        messageElement.className = 'notification-message';
+        messageElement.textContent = `${notification.type}: ${notification.message}`;
+        notificationDiv.appendChild(messageElement);
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'notification-delete';
+        deleteButton.textContent = '×';
+        deleteButton.onclick = (event) => 
+        {
+            event.stopPropagation(); //Stop it from popping up the notif
+            deleteNotification(notification.id, notificationDiv);
+        };        
+        notificationDiv.appendChild(deleteButton);
+        // Set the click event for the entire notification div
         notificationDiv.onclick = () => openNotificationModal(notification, notificationDiv);
+
         dropdown.appendChild(notificationDiv);
     });
 }
+
+function deleteNotification(notificationId, notificationDiv) 
+{
+    // Call backend to delete the notification, with global userID
+    sendRequest('/deleteNotification', { userID: userID, notificationID: notificationId })
+    .then(response => 
+    {
+        if (response.result === 'OK') 
+        {
+            notificationDiv.remove();
+        } 
+        else 
+        {
+            console.error('Failed to delete notification:', response.message);
+        }
+    })
+    .catch(error => 
+    {
+        console.error('Error deleting notification:', error);
+    });
+}
+
+
 
 function openNotificationModal(notification, notificationDiv) 
 {
