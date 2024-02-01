@@ -755,7 +755,8 @@ async function addTeam(teamData)
     return await teamsCollection.insertOne(teamData);
 }
 
-async function addNotificationToUser(username, type, message, sender, sendDate) {
+async function addNotificationToUser(username, type, message, sender, sendDate) 
+{
     const calendarDB = dbclient.db("calendarApp");
     const usersCollection = calendarDB.collection("users");
     const notificationId = new ObjectId().toString();
@@ -766,7 +767,8 @@ async function addNotificationToUser(username, type, message, sender, sendDate) 
 }
 
 
-async function addNotificationToTeam(teamID, notifID, type, message, sender, receiver, viewable, sendDate) {
+async function addNotificationToTeam(teamID, notifID, type, message, sender, receiver, viewable, sendDate) 
+{
     const calendarDB = dbclient.db("calendarApp");
     const teamsCollection = calendarDB.collection("teams");
     const notification = { type, message, sender, receiver, viewable, sendDate };
@@ -1043,6 +1045,27 @@ router.post('/deleteNotification', async (req, res) =>
     }
 });
 
+router.post('/getUser', async (req, res) =>
+{
+    try
+    {
+        const userID = req.body.userID;
+        if (!userID)
+        {
+            return res.send({ result: 'FAIL', message: 'UserID is required' });
+        }
+        const user = await findUserByID(userID);
+        if (user)
+        {
+            res.send({ result: 'OK', user: user });
+        }
+    }
+    catch(error)
+    {
+        console.error('Error finding user:', error);
+        res.send({ result: 'ERROR', message: 'An error occurred' });
+    }
+});
 
 //#endregion teams
 

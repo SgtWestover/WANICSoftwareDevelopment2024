@@ -1,5 +1,5 @@
 /*
-Name: Kaelin Wang Hu and Jason Leech
+Name: Kaelin Wang Hu and Zach Rojas
 Date: 1/16/2024
 Last Edit: 1/16/2024
 Description: Handles account settings and deletion
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function()
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.50.42:8080');
+    ws = new WebSocket('ws://10.12.246.83:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
@@ -104,37 +104,50 @@ function showUserList(event)
     var closeButton = document.querySelector('#userListModal .close');
     var userlistContainer = document.getElementById("UserListModalContainer");
     var joinCode = event.target.parentElement.parentElement.childNodes[3].innerHTML;
-    
     userlistContainer.innerHTML = "";
-
-    //Get list of users and show them all
-    teamsList.teams.forEach(team => 
+    // Fetch the user object from the backend
+    sendRequest('/getUser', { userID: userID })
+    .then(response => 
     {
-        if (team._joinCode === joinCode)
+        if (response.result === 'OK') 
         {
-            for (const [username, role] of Object.entries(team._users)) 
+            var user = response.user; //render the user first
+            teamsList.teams.forEach(team => 
             {
-                for (var i = 0; i < 4; i++)
+                if (team._joinCode === joinCode) 
                 {
-                    let userElement = document.createElement("div");
-                    userElement.classList.add("modal-team-user");
-                    userElement.innerHTML = `${username} - ${role}`;
-                    userlistContainer.appendChild(userElement); // Append the user element to the user list container
+                    let thisUserElement = document.createElement("div");
+                    thisUserElement.classList.add("modal-team-user");
+                    thisUserElement.innerHTML = `${user._name} - ${team._users[user._name]}`; //render the viewing user first
+                    userlistContainer.appendChild(thisUserElement);
+                    for (const [username, role] of Object.entries(team._users)) 
+                    {
+                        if (username === user._name) continue; // Skip the current user
+                        let userElement = document.createElement("div");
+                        userElement.classList.add("modal-team-user");
+                        userElement.innerHTML = `${username} - ${role}`;
+                        userlistContainer.appendChild(userElement); // Append the user element to the user list container
+                    }
                 }
-                
-            }
+            });
+            modal.style.display = 'block';
+        } 
+        else 
+        {
+            console.error('Failed to fetch user:', response.message);
         }
+    })
+    .catch(error => 
+    {
+        console.error('Error fetching user:', error);
     });
-    // Show the modal
-    modal.style.display = 'block';
     // When the user clicks on <span> (x), close the modal
     closeButton.onclick = function() 
     {
         modal.style.display = 'none';
-
     };
     // When the user clicks anywhere outside of the modal, close it
-    window.onclick = function() 
+    window.onclick = function(event) 
     {
         if (event.target === modal) 
         {
@@ -148,12 +161,8 @@ function showTeamDescription(event)
     var modal = document.getElementById('descriptionModal');
     var closeButton = document.querySelector('#descriptionModal .close');
     var descriptionContainer = document.getElementById("descriptionModalContainer");
-    console.log(descriptionContainer);
     var joinCode = event.target.parentElement.childNodes[3].innerHTML;
-    console.log(event.target.parentElement.parentElement);
-
     descriptionContainer.innerHTML = "";
-
     //Get description for the tean and show it
     teamsList.teams.forEach(team => 
     {
@@ -241,6 +250,7 @@ function resetAddPeopleModal()
     document.getElementById('usernameToAdd').value = '';
     // Clear any previous error message
     document.getElementById('addPeopleError').textContent = '';
+    document.getElementById('userRole').value = 'viewer';
 }
 
 function handleTeamCreation(event) 
@@ -522,14 +532,14 @@ function teamsSort()
 }
 
 //creates the html elements to display the team panel
-function renderTeamPanel(team, teamCount)
+function renderTeamsPanel(team, teamCount)
 {
     const teamPadding = 30;
     const teamListVertOffset = 82 /*Height of header*/ + teamPadding;
-    const teamVetricalSpacing = teamHeight + teamPadding;
+    const teamVerticalSpacing = teamHeight + teamPadding;
     let container = document.createElement("div");
     container.classList.add("team-container");
-    container.style.top = `${teamVetricalSpacing * (teamCount - 1) + teamListVertOffset}px`;
+    container.style.top = `${teamVerticalSpacing * (teamCount - 1) + teamListVertOffset}px`;
     let teamName = document.createElement("div"); 
     teamName.classList.add("team-name");
     teamName.innerHTML = team._name;
@@ -542,23 +552,40 @@ function renderTeamPanel(team, teamCount)
     };
     let userList = document.createElement("div");
     userList.classList.add("team-userList-container");
-    // Iterate over the team._users object
-    for (const [username, role] of Object.entries(team._users)) 
+    sendRequest('/getUser', { userID: userID })
+    .then(response =>
     {
-        let userElement = document.createElement("div");
-        userElement.classList.add("team-user");
-        userElement.innerHTML = `${username} - ${role}`;
-        userElement.onclick = function(event)
+        if (response.result === 'OK')
         {
-            showUserList(event);
-        };
-        userList.appendChild(userElement); // Append the user element to the user list container
-    }
+            let user = response.user;
+            let thisUserElement = document.createElement("div");
+            thisUserElement.classList.add("modal-team-user");
+            thisUserElement.innerHTML = `${user._name} - ${team._users[user._name]}`; //render the viewing user first
+            userList.appendChild(thisUserElement);
+            for (const [username, role] of Object.entries(team._users)) 
+            {
+                if (username === user._name) continue; // Skip the current user
+                let userElement = document.createElement("div");
+                userElement.classList.add("team-user");
+                userElement.innerHTML = `${username} - ${role}`;
+                userElement.onclick = function(event)
+                {
+                    showUserList(event);
+                };
+                userList.appendChild(userElement); // Append the user element to the user list container
+            }        
+        }
+    })
+    .catch(error =>
+    {
+        console.error('Error fetching user:', error);
+    });
     let teamCode = document.createElement("div");
     teamCode.classList.add("team-code");
     teamCode.innerHTML = team._joinCode;
-
-    // Append all created elements to the container
+    let teamNotification = document.createElement("div");
+    teamNotification.classList.add("team-notification");
+    // Append all created elements to the container. That's a lotta appends
     container.appendChild(teamName);
     container.appendChild(description);
     container.appendChild(userList);
@@ -591,7 +618,7 @@ async function renderAllTeams()
         teamsList.teams.forEach(team => 
         {
             teamCount++;
-            renderTeamPanel(team, teamCount);
+            renderTeamsPanel(team, teamCount);
         });
         repositionTeams();
     } 
