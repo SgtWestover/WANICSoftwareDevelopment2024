@@ -702,3 +702,12 @@ div.content
 }
 
 /*#endregion*/
+
+.button 
+{
+  border: none;
+  background-color: #04aa6d;
+  color: white;
+  border-color: black;
+  border-radius: 5px;
+}

@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function()
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://10.12.246.83:8080');
+    ws = new WebSocket('ws://192.168.50.42:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
@@ -327,31 +327,40 @@ document.getElementById('joinTeamButton').onclick = async function()
             // Handle different responses
             if (response.result === 'OK') 
             {
-                alert('Successfully joined the team!'); //replace alerts later with actual html lol
+                updateJoinTeamMessage('Successfully joined the team!', 'Green');
                 closeTeamJoinModal();
                 renderAllTeams();
             } 
             else if (response.result === 'QUEUED') 
             {
-                alert('You have been added to the queue.');
+                updateJoinTeamMessage('You have been added to the queue.', 'White');
                 closeTeamJoinModal();
             } 
             else 
             {
-                alert('Failed to join the team.');
+                updateJoinTeamMessage('Failed to join the team.', 'Red');
             }
         } 
         catch (error) 
         {
             console.error('Error:', error);
-            alert('An error occurred while trying to join the team.');
+            updateJoinTeamMessage('An error occurred while trying to join the team.', 'Red');
         }
     } 
     else 
     {
-        alert('Invalid team join code.');
+        updateJoinTeamMessage('Invalid team join code.', 'Red');
     }
 };
+
+function updateJoinTeamMessage(message, color)
+{
+    messageElement = document.getElementById("joinTeamMessage");
+    messageElement.innerHTML = message
+    messageElement.style.color = color
+}
+
+
 
 /**
  * Start the process to join a team, with a modal to enter the team code
@@ -385,7 +394,7 @@ function closeTeamJoinModal()
 {
     joinTeamModal.style.display = 'none';
     document.getElementById('teamJoinCode').value = '';
-
+    document.getElementById('joinTeamMessage').value = '';
 }
 
 /**
@@ -561,6 +570,10 @@ function renderTeamsPanel(team, teamCount)
             let thisUserElement = document.createElement("div");
             thisUserElement.classList.add("modal-team-user");
             thisUserElement.innerHTML = `${user._name} - ${team._users[user._name]}`; //render the viewing user first
+            thisUserElement.onclick = function(event)
+            {
+                showUserList(event);
+            };
             userList.appendChild(thisUserElement);
             for (const [username, role] of Object.entries(team._users)) 
             {

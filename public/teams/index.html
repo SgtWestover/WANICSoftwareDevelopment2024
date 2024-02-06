@@ -38,22 +38,22 @@
       <span class="close">&times;</span>
       <form id="createTeamForm">
         <h2>Create a Team</h2>
-        <label for="teamName">Team Name (required):</label>
-        <input type="text" id="teamName" name="teamName" required>
+        <label for="teamName ">Team Name (required):</label>
+        <input type="text" id="teamName" name="teamName" required class="button">
         <label for="teamDescription">Team Description (optional):</label>
-        <textarea id="teamDescription" name="teamDescription"></textarea>
-        <input type="button" value="Add People" id="addPeople">
-        <input type="submit" value="Create Team">
+        <textarea id="teamDescription" class="button" name="teamDescription"></textarea>
+        <input type="button" value="Add People" id="addPeople" class="button">
+        <input type="submit" value="Create Team" class="button">
         <label for="autoJoin">Join Code Is Automatic</label>
-        <select id="autoJoin">
-          <option value="true">Yes</option>
-          <option value="false">No</option>
+        <select id="autoJoin" class="button">
+          <option value="true" class="button">Yes</option>
+          <option value="false" class="button">No</option>
         </select>
         <label for="joinPerms">Join Permissions:</label>
-        <select id="joinPerms">
-          <option value="viewer">Viewer</option>
-          <option value="user">User</option>
-          <option value="admin">Admin</option>
+        <select id="joinPerms" class="button">
+          <option value="viewer" class="button">Viewer</option>
+          <option value="user" class="button">User</option>
+          <option value="admin" class="button">Admin</option>
         </select>
         <div id="addedPeopleList"></div>
       </form>
@@ -67,14 +67,14 @@
     <div class="modal-content">
         <span class="close" id="closeAddPeopleModal">&times;</span>
         <h2>Add People</h2>
-        <input type="text" id="usernameToAdd" placeholder="Enter username">
+        <input type="text" id="usernameToAdd" placeholder="Enter username" class="button">
         <label for="userRole">Role:</label>
-        <select id="userRole">
-          <option value="viewer">Viewer</option>
-          <option value="user">User</option>
-          <option value="admin">Admin</option>
+        <select id="userRole" class="button">
+          <option value="viewer" class="button">Viewer</option>
+          <option value="user" class="button">User</option>
+          <option value="admin" class="button">Admin</option>
         </select>
-        <button type="button" id="submitUsername">Add</button>
+        <button type="button" id="submitUsername" class="button">Add</button>
         <p id="addPeopleError" style="color: red;"></p> <!-- Error message display -->
     </div>
   </div>
@@ -83,8 +83,9 @@
         <span class="close">&times;</span>
         <h2>Join a Team</h2>
         <label for="teamJoinCode">Enter Team Code:</label>
-        <input type="text" id="teamJoinCode" name="teamJoinCode">
-        <input type="button" value="Join Team" id="joinTeamButton">
+        <input type="text" id="teamJoinCode" class="button" name="teamJoinCode">
+        <input type="button" value="Join Team" id="joinTeamButton" class="button">
+        <div id="joinTeamMessage"></div>
     </div>
   </div>
   <div id="notificationInteractionModal" class="modal">

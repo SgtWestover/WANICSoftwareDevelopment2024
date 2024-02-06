@@ -71,10 +71,15 @@ const router = express.Router();
 const server = http.createServer(app);
 // Function to log WebSocket errors
 // Serve static files from 'public' directory
-app.use(express.static(path.join(__dirname, '/public')));
+app.use(express.static(path.join(__dirname, 'public')));
 // Serve shared scripts from 'shared' directory
 app.use('/scripts', express.static(path.join(__dirname, '/shared')));
 // Middleware to redirect unauthenticated users to login page
+const ejs = require('ejs');
+// Set the view engine to ejs
+app.set('view engine', 'ejs');
+// Set the directory where the template files are located
+app.set('views', path.join(__dirname, 'teamCalendar'));
 app.use((req, res, next) => 
 {
     if (!req.session.userID && !['/signin', '/signup'].includes(req.path)) 
@@ -88,6 +93,28 @@ app.use((req, res, next) =>
 });
 // Use the defined router for handling requests
 app.use('/', router);
+
+// Dynamic team route
+router.get('/teams/:teamCode/', async (req, res) => 
+{
+    const { teamCode } = req.params;
+    const teamData = await getTeamData(teamCode);
+    if (!teamData) 
+    {
+        return res.status(404).send('Team not found');
+    }
+    console.log(JSON.stringify(teamData));
+    res.render('teamPage', { teamData });
+});
+
+// Dynamic route for serving static files for teams
+router.get('/teams/:teamCode/*', (req, res) => 
+{
+    // Extract the file path from the URL
+    const filePath = req.params[0];
+    console.log("file path: " + filePath);
+    res.sendFile(path.join(__dirname, `/public/teams/${filePath}`));
+});
 
 // #endregion Imports of necessary modules and libraries
 
@@ -1068,6 +1095,35 @@ router.post('/getUser', async (req, res) =>
 });
 
 //#endregion teams
+
+router.get('/teams/:teamCode/data', async (req, res) => 
+{
+    const { teamCode } = req.params;
+    // Fetch team-specific data from the database
+    const teamData = await getTeamData(teamCode);
+    if (!teamData) 
+    {
+        return res.status(404).send('Team not found');
+    }
+    res.json(teamData);
+});
+
+async function getTeamData(teamCode) 
+{
+    try 
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        // Find the team by its code
+        const teamData = await teamsCollection.findOne({ _joinCode: teamCode });
+        return teamData;
+    } 
+    catch (error) 
+    {
+        console.error('Error fetching team data:', error);
+        return null;
+    }
+}
 
 // #region Websockets and server
 
