@@ -1,13 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= teamData.name %></title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team: <%= teamData.name %></title>
+  <link rel="stylesheet" href="../teamCalendar/TeamStyle.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-    <h1>Welcome to the <%= teamData._name %> Team Page</h1>
-    <p>Description: <%= teamData._description %></p>
-    <!-- Add more team-specific content here -->
+  <h1>Team <%= teamData._name %>'s Page</h1>
+  <p>Description: <%= teamData._description %></p>
+  <header>
+    <h1> 
+      <div id="teams-notifs">
+        <button class="icon-button" onclick="showTeamsNotifs()">
+          <i class="fa fa-bell"></i>
+          
+        </button>
+        <div id="notificationDropdown" class="notification-dropdown">
+          <!-- Notifications will be dynamically added here -->
+        </div>
+      </div>  <i class="fa fa-arrow-left back-arrow"></i>  
+    </h1>
+  </header>
+
+  <!-- The sidebar and its components (unfinished)-->
+  <div class="sidebar">
+    <a class="active" href="#home">Home</a>
+    <a href="../teams/index.html">Calendar</a>
+    <a href="#">Members</a>
+    <a href="#">Chat</a>
+    <a href="#">Settings</a> 
+  </div>
 </body>
 </html>

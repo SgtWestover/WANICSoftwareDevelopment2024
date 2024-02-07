@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function()
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.50.42:8080');
+    ws = new WebSocket('ws://192.168.73.235:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
@@ -561,6 +561,18 @@ function renderTeamsPanel(team, teamCount)
     };
     let userList = document.createElement("div");
     userList.classList.add("team-userList-container");
+    let teamViewButtonIcon = document.createElement("i");
+    //teamViewButtonIcon.classList.add("button");
+    teamViewButtonIcon.classList.add("fa", "fa-caret-right");
+    teamViewButtonIcon.classList.add("team-viewButton-icon");
+    teamViewButtonIcon.onclick = function(event)
+    {
+        window.location.href = `/teams/${team._joinCode}`;
+    };
+    let teamViewButton = document.createElement("div");
+    teamViewButtonIcon.classList.add("button");
+    teamViewButtonIcon.classList.add("team-viewButton");
+
     sendRequest('/getUser', { userID: userID })
     .then(response =>
     {
@@ -599,8 +611,10 @@ function renderTeamsPanel(team, teamCount)
     let teamNotification = document.createElement("div");
     teamNotification.classList.add("team-notification");
     // Append all created elements to the container. That's a lotta appends
-    container.appendChild(teamName);
+    teamViewButton.appendChild(teamViewButtonIcon);
+    container.appendChild(teamViewButton);
     container.appendChild(description);
+    container.appendChild(teamName);
     container.appendChild(userList);
     container.appendChild(teamCode);
     document.body.append(container);

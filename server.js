@@ -104,7 +104,7 @@ router.get('/teams/:teamCode/', async (req, res) =>
         return res.status(404).send('Team not found');
     }
     console.log(JSON.stringify(teamData));
-    res.render('teamPage', { teamData });
+    res.render('TeamPage', { teamData });
 });
 
 // Dynamic route for serving static files for teams
@@ -115,6 +115,13 @@ router.get('/teams/:teamCode/*', (req, res) =>
     console.log("file path: " + filePath);
     res.sendFile(path.join(__dirname, `/public/teams/${filePath}`));
 });
+
+// Corrected route to serve TeamStyle.css
+router.get('/teamCalendar/TeamStyle.css', (req, res) => 
+{
+    res.sendFile(path.join(__dirname, 'teamCalendar/TeamStyle.css'));
+});
+  
 
 // #endregion Imports of necessary modules and libraries
 
