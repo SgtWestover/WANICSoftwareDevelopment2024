@@ -110,6 +110,29 @@ td
   transform: scale(1.05);
 }
 
+.back-arrow-container 
+{
+  scale: 1.25;
+  position: fixed;
+  left: 32px;
+  top: 20px;
+  height: 40px;
+  width: 40px;
+  background-color: #04AA6D;
+  border-radius: 30%;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.back-arrow 
+{
+  font-size: 10px;
+  color: white; /* For some reason this has to be specified */
+}
+
 .modal /* Modal for the delete account window */
 {
   display: none;

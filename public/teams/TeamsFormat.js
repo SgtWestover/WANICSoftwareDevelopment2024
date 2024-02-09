@@ -100,6 +100,8 @@ function teamsCreateStart()
 
 function showUserList(event) 
 {
+    var descriptionModal= document.getElementById('descriptionModal');
+    descriptionModal.style.display = 'none';
     var modal = document.getElementById('userListModal');
     var closeButton = document.querySelector('#userListModal .close');
     var userlistContainer = document.getElementById("UserListModalContainer");
@@ -158,10 +160,12 @@ function showUserList(event)
 
 function showTeamDescription(event) 
 {
+    var userModal = document.getElementById('userListModal');
+    userModal.style.display = 'none';
     var modal = document.getElementById('descriptionModal');
     var closeButton = document.querySelector('#descriptionModal .close');
     var descriptionContainer = document.getElementById("descriptionModalContainer");
-    var joinCode = event.target.parentElement.childNodes[3].innerHTML;
+    var joinCode = event.target.parentElement.childNodes[4].innerHTML;
     descriptionContainer.innerHTML = "";
     //Get description for the tean and show it
     teamsList.teams.forEach(team => 

@@ -8,7 +8,7 @@
     //Event class for an event on the calendar
     class CalendarEvent 
     {
-        constructor(id, users, name, startDate, endDate, description, location = null, teams = null) 
+        constructor(id, users, name, startDate, endDate, description, location = null) 
         {
             this.id = id;
             this.users = users;
@@ -17,7 +17,6 @@
             this.endDate = endDate;
             this.description = description;
             this.location = location;
-            this.teams = teams;
         }
         
         // Getter for name
@@ -211,6 +210,158 @@
         }
     }
 
+    // Calendar event for specifically teams with extra features built in to facilitate communication, coordination, and cooperation
+    class CalendarTeamEvent 
+    {
+        constructor(id, team, users, permissions, viewable, history, name, startDate, endDate, description, location = null) 
+        {
+            this.id = id;
+            this.team = team;
+            this.users = users;
+            this.permissions = permissions;
+            this.viewable = viewable;
+            this.history = history;
+            this.name = name;
+            this.startDate = startDate;
+            this.endDate = endDate;
+            this.description = description;
+            this.location = location;
+        }
+        // Getter for team
+        get team()
+        {
+            return this._teams;
+        }
+        // Setter for team
+        set team(value)
+        {
+            this._team = value;
+        }
+
+        // Getter for permissions 
+        get permissions()
+        {
+            return this._permissions;
+
+        }
+        // Setter for permissions
+        set permissions(value)
+        {
+            this._permissions = value;
+        }
+
+        // Getter for viewable
+        get viewable()
+        {
+            return this._viewable;
+        }
+        // Setter for viewable
+        set viewable(value)
+        {
+            this._viewable = value;
+        }
+
+        //Getter for history
+        get history()
+        {
+            return this._history;
+        }
+        // Setter for history
+        set history(value)
+        {
+            this._history = value;
+        }
+
+        // Getter for name
+        get name() 
+        {
+            return this._name;
+        }
+        // Setter for name
+        set name(value) 
+        {
+            this._name = value;
+        }
+
+        // Getter for start date
+        get startDate() 
+        {
+            return this._startDate;
+        }
+        // Setter for start date
+        set startDate(value) 
+        {
+            this._startDate = value;
+        }
+
+        // Getter for end date
+        get endDate() 
+        {
+            return this._endDate;
+        }
+        // Setter for end date
+        set endDate(value) 
+        {
+            this._endDate = value;
+        }
+
+        // Getter for location
+        get location() 
+        {
+            return this._location;
+        }
+        // Setter for location
+        set location(value) 
+        {
+            this._location = value;
+        }
+
+        // Getter for description
+        get description() 
+        {
+            return this._description;
+        }
+        // Setter for description
+        set description(value) 
+        {
+            this._description = value;
+        }
+
+        // Getter for teams
+        get teams() 
+        {
+            return this._teams;
+        }
+
+        // Setter for teams
+        set teams(value) 
+        {
+            this._teams = value;
+        }
+
+        // Getter for users
+        get users() 
+        {
+            return this._users;
+        }
+
+        // Setter for users
+        set users(value)
+        {
+            this._users = value;
+        }
+
+        get id()
+        {
+            return this._id;
+        }
+
+        set id(value)
+        {
+            this._id = value;
+        }
+    }
+
     //general user class
     class User 
     {
@@ -307,6 +458,7 @@
         {
             return this._notifications;
         }
+
         set notifications(value)
         {
             this._notifications = value;
@@ -315,7 +467,7 @@
     if (typeof module !== 'undefined' && module.exports) 
     {
         // Node.js Context
-        module.exports = { CalendarEvent, User, CalendarTeam };
+        module.exports = { CalendarEvent, User, CalendarTeam, CalendarTeamEvent };
     } 
     else 
     {
@@ -323,5 +475,6 @@
         exports.User = User;
         exports.CalendarEvent = CalendarEvent;
         exports.CalendarTeam = CalendarTeam;
+        exports.CalendarTeamEvent = CalendarTeamEvent;
     }
 }) (typeof window === 'undefined' ? module.exports : window);

@@ -271,6 +271,7 @@ div.content
   max-height: 200px;
   height: 90px;
   overflow-y: hidden;
+  cursor: pointer;
 }
 
 .team-userList-container

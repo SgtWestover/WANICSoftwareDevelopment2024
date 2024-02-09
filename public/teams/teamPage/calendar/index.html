@@ -30,32 +30,10 @@
     <a id="prev-month">&lt;</a>
     <a id="next-month">&gt;</a>
   </div>
-
-  <!-- Sign out and delete account buttons on the upper right hand corner-->
-  <button id="signout" style="position: fixed; top: 10px; right: 10px; z-index: 9;" onclick="signout()" class="button">Logout</button>
-  <button id ="deleteaccount" style = "position:fixed; top: 40px; right: 10px; z-index: 9;" onclick="deleteAccount()" class="button">Delete Account</button>
-  <!-- Custom Password Modal for the delete account logic-->
-  <div id="passwordModal" class="modal">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <p>Please enter your password to delete your account</p>
-        <input type="password" id="passwordInput" class="password-input"> <!-- Password input field -->
-        <i id="togglePassword" class="fa fa-eye"></i> <!-- Toggle password visibility -->
-        <button id="submitPassword">Submit</button>
-        <div id="passwordError" style="color: red;"></div> <!-- Error message element -->
-    </div>
+  <!-- Back arrow to exit out of team page -->
+  <div class="back-arrow-container" onclick="window.location='../../';">
+    <i class="fa fa-arrow-left back-arrow"></i>  
   </div>
-
-      <!-- Confirmation Modal for the second step of the delete account logic-->
-  <div id="confirmationModal" class="modal">
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <p>Are you sure you want to delete your account?</p>
-      <button id="confirmDelete">Yes, delete my account</button>
-      <button id="cancelDelete">Cancel</button>
-    </div>
-  </div>
-
   <!-- Day Popup box where a lot of the events is handled-->
   <div id="popup1" class="overlay">
     <div class="popup">
@@ -137,7 +115,6 @@
     <div id="year-dropdown" class="year-dropdown-content">
     </div>
   </div>
-
   <!-- Calendar content -->
   <div class="content">
     <table id="calendar">
@@ -161,6 +138,5 @@
   <script src="/scripts/CalendarClasses.js"></script>
   <script src="TeamCalendarFormat.js"></script>
   <script src="TeamDayScheduleFormat.js"></script>
-  <script src="/calendar/Account.js"></script>
 </body>
 </html>

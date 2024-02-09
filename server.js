@@ -25,7 +25,7 @@ const cookieParser = require("cookie-parser");
 // Core module in Node.js for handling file and directory paths
 const path = require('path');
 // Custom classes for User and CalendarEvent
-const { User, CalendarEvent, CalendarTeam} = require('./shared/CalendarClasses');
+const { User, CalendarEvent, CalendarTeam, CalendarTeamEvent} = require('./shared/CalendarClasses');
 // MongoDB's utility for handling ObjectIDs
 const { ObjectId } = require('mongodb');
 // Core module in Node.js for writing logs to the console

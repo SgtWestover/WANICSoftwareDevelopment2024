@@ -902,7 +902,6 @@ function convertCalendarEvent(data)
         new Date(data._endDate),
         data._description,
         data._location,
-        data._teams
     );
 }
 
