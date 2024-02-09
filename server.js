@@ -37,7 +37,6 @@ const map = new Map();
 // Map for tracking users and session management
 const users = new Map();
 // MongoDB Client setup with connection string
-// Security note: Connection strings should be stored in environment variables or config files
 const uri = "mongodb://127.0.0.1/";
 const dbclient = new MongoClient(uri);
 //mongoose for schemas to store unique team codes to check against
@@ -75,11 +74,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Serve shared scripts from 'shared' directory
 app.use('/scripts', express.static(path.join(__dirname, '/shared')));
 // Middleware to redirect unauthenticated users to login page
-const ejs = require('ejs');
-// Set the view engine to ejs
-app.set('view engine', 'ejs');
-// Set the directory where the template files are located
-app.set('views', path.join(__dirname, 'teamCalendar'));
 app.use((req, res, next) => 
 {
     if (!req.session.userID && !['/signin', '/signup'].includes(req.path)) 
@@ -93,35 +87,6 @@ app.use((req, res, next) =>
 });
 // Use the defined router for handling requests
 app.use('/', router);
-
-// Dynamic team route
-router.get('/teams/:teamCode/', async (req, res) => 
-{
-    const { teamCode } = req.params;
-    const teamData = await getTeamData(teamCode);
-    if (!teamData) 
-    {
-        return res.status(404).send('Team not found');
-    }
-    console.log(JSON.stringify(teamData));
-    res.render('TeamPage', { teamData });
-});
-
-// Dynamic route for serving static files for teams
-router.get('/teams/:teamCode/*', (req, res) => 
-{
-    // Extract the file path from the URL
-    const filePath = req.params[0];
-    console.log("file path: " + filePath);
-    res.sendFile(path.join(__dirname, `/public/teams/${filePath}`));
-});
-
-// Corrected route to serve TeamStyle.css
-router.get('/teamCalendar/TeamStyle.css', (req, res) => 
-{
-    res.sendFile(path.join(__dirname, 'teamCalendar/TeamStyle.css'));
-});
-  
 
 // #endregion Imports of necessary modules and libraries
 
@@ -568,7 +533,7 @@ async function deleteEvent(eventID)
     const calendarDB = dbclient.db("calendarApp");
     const eventsCollection = calendarDB.collection("events");
     const eventObjectID = new ObjectId(eventID);
-    await eventsCollection.deleteOne({ _id: eventObjectID });
+    await eventsCollection.deleteOne({ _id: eventObjectID }); 
 }
 
 // #endregion Event deletion

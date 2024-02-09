@@ -14,14 +14,66 @@ header /* Document header*/
   background-color: #333;
   color: #fff;
   text-align: center;
-  padding: 1em;
+  padding: 0.5em;
   position: fixed;
   top: 0;
   width: 100%;
-  height: 50px;
+  height: 64px;
   z-index: 1;
 }
 
+.team-name
+{
+  font-size: xx-large;
+  max-width: 600px;
+  overflow: hidden;
+  margin:0 auto;
+  word-wrap: break-word;
+  max-height: 2em;
+}
+/* 28 vw for width of each section*/
+.team-desc
+{
+  left: 12%;
+  top: 85px;;
+  padding: 5px;
+  width: 38vw;
+  height: fit-content;
+  margin:0 auto;
+  word-wrap: break-word;
+  position: absolute;
+}
+
+.team-notifications
+{
+  left: 51%;
+  top: 85px;;
+  padding: 5px;
+  width: 28vw;
+  height: fit-content;
+  margin:0 auto;
+  word-wrap: break-word;
+  position: absolute;
+  text-align: center;
+}
+
+.team-users
+{
+  left: 80%;
+  top: 85px;;
+  padding: 5px;
+  width: 18vw;
+  height: fit-content;
+  margin:0 auto;
+  word-wrap: break-word;
+  position: absolute;
+  text-align: center;
+}
+
+.team-users-categories
+{
+  padding-top: 20px;
+}
 
 /* General Sidebar ---------------------------------------------------------- */
 /*#region General Sidebar Styles*/
@@ -31,7 +83,7 @@ header /* Document header*/
 {
   margin: 0;
   padding: 0;
-  width: 200px;
+  width: 12vw;
   background-color: #2b2e30;
   position: fixed;
   height: 100%;
@@ -110,10 +162,24 @@ div.content
 
 /*#endregion General sidebar*/
 
-
-.back-arrow
+.back-arrow-container 
 {
-  left: 0px;
-  top: 15px;
-  text-align: left;
+  scale: 1.25;
+  position: fixed;
+  left: 32px;
+  top: 20px;
+  height: 40px;
+  width: 40px;
+  background-color: #04AA6D;
+  border-radius: 30%;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.back-arrow 
+{
+  font-size: 10px;
 }

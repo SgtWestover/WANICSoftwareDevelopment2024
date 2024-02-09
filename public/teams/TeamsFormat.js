@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function()
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.73.235:8080');
+    ws = new WebSocket('ws://192.168.50.42:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
@@ -103,7 +103,7 @@ function showUserList(event)
     var modal = document.getElementById('userListModal');
     var closeButton = document.querySelector('#userListModal .close');
     var userlistContainer = document.getElementById("UserListModalContainer");
-    var joinCode = event.target.parentElement.parentElement.childNodes[3].innerHTML;
+    var joinCode = event.target.parentElement.parentElement.childNodes[4].innerHTML;
     userlistContainer.innerHTML = "";
     // Fetch the user object from the backend
     sendRequest('/getUser', { userID: userID })
@@ -561,18 +561,17 @@ function renderTeamsPanel(team, teamCount)
     };
     let userList = document.createElement("div");
     userList.classList.add("team-userList-container");
+    let teamViewButton = document.createElement("div");
+    teamViewButton.classList.add("button");
+    teamViewButton.classList.add("team-viewButton");
+    teamViewButton.onclick = function(event)
+    {
+        window.location.href = `teamPage/TeamPage.html`;
+    };
     let teamViewButtonIcon = document.createElement("i");
     //teamViewButtonIcon.classList.add("button");
-    teamViewButtonIcon.classList.add("fa", "fa-caret-right");
+    teamViewButtonIcon.classList.add("fa", "fa-arrow-right");
     teamViewButtonIcon.classList.add("team-viewButton-icon");
-    teamViewButtonIcon.onclick = function(event)
-    {
-        window.location.href = `/teams/${team._joinCode}`;
-    };
-    let teamViewButton = document.createElement("div");
-    teamViewButtonIcon.classList.add("button");
-    teamViewButtonIcon.classList.add("team-viewButton");
-
     sendRequest('/getUser', { userID: userID })
     .then(response =>
     {
