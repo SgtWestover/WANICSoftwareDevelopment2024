@@ -25,6 +25,14 @@ var startTime = 0;
 var endTime = 24;
 //day container for the majority of popup stuff
 var dayContainer;
+var teamData = JSON.parse(localStorage.getItem("teamData"));
+const roleLevels = 
+{
+    'viewer': 1, 
+    'user': 2,
+    'admin': 3,
+    'owner': 4
+};
 
 //#region Popup initialization
 
@@ -34,6 +42,11 @@ var dayContainer;
  */
 document.addEventListener('DOMContentLoaded', function() 
 {
+    (async () => 
+    {
+        userRole = getCurrentUserRole();
+        if (userRole != null) localStorage.setItem("userRole", userRole);
+    })();
     //upon loading, initialize the events
     initializeEvents();
     // Listen for the dateSelected event
@@ -303,6 +316,7 @@ function updatePopupHeader(eventDetail)
     //immediately store the components of eventDetail
     let newDate = eventDetail.date;
     let isToday = eventDetail.isToday;
+    let username;
     //names of days in the week as a string array (can be literal because they're not gonna change)
     let dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     //get the month of the date as a string and format it.
@@ -332,18 +346,26 @@ function updatePopupHeader(eventDetail)
     //set the header text to the new header text
     document.getElementById('popupHeader').innerText = headerText;
     document.getElementById('popupHeader').setAttribute('data-date', newDate.toISOString().split('T')[0]);
-    //check through events to see if any match the new date, and render them if they do
-    if (userEvents && userEvents.length > 0) 
+    sendRequest('/getUser', {userID: localStorage.getItem("userID")})
+    .then(response =>
     {
-        userEvents.forEach(event => 
+        if (response.result === "OK")
         {
-            let eventDate = new Date(event._startDate);
-            if (eventDate.toISOString().split('T')[0] === newDate.toISOString().split('T')[0]) //split so that only the date, month, and year are compared
+            username = response.user._name;
+            //check through events to see if any match the new date, and render them if they do
+            if (userEvents && userEvents.length > 0) 
             {
-                renderEvent(event); //if the eventDate's date is the same as the newDate's date, render the event
+                userEvents.forEach(event => 
+                {
+                    let eventDate = new Date(event._startDate);
+                    if (eventDate.toISOString().split('T')[0] === newDate.toISOString().split('T')[0]) //split so that only the date, month, and year are compared
+                    {
+                        renderEvent(event); //if the eventDate's date is the same as the newDate's date, render the event
+                    }
+                });
             }
-        });
-    }
+        }
+    });
 }
 
 /**
@@ -366,8 +388,20 @@ function updateCurrentTimeLine()
  */
 function dayContainerClick(event)
 {
-    document.getElementById('eventPopup').style.display = 'block';
-    return;
+    let username;
+    sendRequest('/getUser', {userID: localStorage.getItem("userID")})
+    .then(response =>
+    {
+        if (response.result === "OK")
+        {
+            username = response.user._name;
+            if (roleLevels[teamData._users[username]] > 1)
+            {
+                document.getElementById('eventPopup').style.display = 'block';
+            }
+        }
+    });
+
 }
 
 // #endregion Popup update
@@ -382,10 +416,26 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     // Get form values and the userID from local storage
     var userIDString = localStorage.getItem('userID');
     var eventUsers = userIDString ? [userIDString] : [];
+    const addedUsersDiv = document.getElementById('addedUsers');
+    const userDivs = addedUsersDiv.getElementsByClassName('addedUser');
+    Array.from(userDivs).forEach(div => 
+    {
+        const userID = div.getAttribute('data-user-id');
+        if (userID !== userIDString) 
+        {
+            eventUsers.push(userID);
+        }
+    });
+    while (addedUsersDiv.firstChild) 
+    {
+        addedUsersDiv.removeChild(addedUsersDiv.firstChild);
+    }
     var eventName = document.getElementById('eventName').value;
     var startTime = document.getElementById('startTime').value;
     var endTime = document.getElementById('endTime').value;
     var eventDesc = document.getElementById('eventDesc').value;
+    var permissions = document.getElementById('eventPermissions').value;
+    var viewable = document.getElementById('eventViewable').value;
     // Convert time to Date objects
     var currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
     var currentDate = new Date(currentPopupDateAttr);
@@ -410,13 +460,21 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
         displayErrorMessage("Invalid start and end times");
         return;
     }
+    if (roleLevels[viewable] > roleLevels[permissions]) 
+    {
+        displayErrorMessage("Viewable role cannot be higher than permissions role");
+        return;
+    }
     // Function to handle event creation or update
     const handleEventCreationOrUpdate = () => 
     {
         //create a new object with the CalendarDate components and send it to be created on the database as well
         const eventDetails = 
         {
+            _team: teamData._joinCode,
             _users: eventUsers,
+            _permissions: permissions,
+            _viewable: viewable,
             _name: eventName,
             _startDate: startDate,
             _endDate: endDate,
@@ -432,6 +490,10 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
         // Compare current form data with original event data
         const currentEventData = 
         {
+            team: teamData._joinCode,
+            users: null,
+            permissions: permissions,
+            viewable: viewable,
             name: document.getElementById('eventName').value,
             startTime: document.getElementById('startTime').value,
             endTime: document.getElementById('endTime').value,
@@ -484,7 +546,7 @@ function createNewEvent(eventDetails)
             initializeEvents();
             populateEventsSidebar();
             closeEventForm();
-        } 
+        }
         else 
         {
             displayErrorMessage(response.message); //otherwise, display the error message
@@ -499,40 +561,53 @@ function createNewEvent(eventDetails)
  * @returns {void} - but creates a new event element in the schedule day container
  */
 function renderEvent(calendarEvent)
-{    
-    // Create event element
-    let eventElement = document.createElement("div");
-    eventElement.classList.add('schedule-event');
-    // Set the "header" of the eventElement to the name
-    eventElement.innerHTML = calendarEvent._name;
-    let eventDateID = calendarEvent._startDate.toISOString().split('T')[0]; // YYYY-MM-DD format, gives identifiers to be more easily found
-    // Moderate z index so it can be shown on dayContainer without blocking the sidebar or the event frm
-    eventElement.style.zIndex = 20;
-    // Attach the current day it has as well as the backend mongoDB ID to the element for easy search access
-    eventElement.setAttribute('data-event-date', eventDateID);
-    eventElement.setAttribute('data-event-id', calendarEvent._id);
-    //when the event is clicked, it should populate the event form to go into editing mode
-    eventElement.addEventListener('click', function() 
+{
+    let username;
+    sendRequest('/getUser', {userID: localStorage.getItem("userID")})
+    .then(response =>
     {
-        findEventID(calendarEvent) //first find the ID so that can be used for populateEventForm
-        .then(eventID => 
+        console.log(response.result);
+        if (response.result === 'OK')
         {
-            populateEventForm(eventID, calendarEvent, eventElement);
-        })
-        .catch(error => 
-        {
-            console.error('Error:', error);
-        });
+            username = response.user._name;
+            if (roleLevels[teamData._users[username]] >= roleLevels[calendarEvent._viewable])
+            {
+                // Create event element
+                let eventElement = document.createElement("div");
+                eventElement.classList.add('schedule-event');
+                // Set the "header" of the eventElement to the name
+                eventElement.innerHTML = calendarEvent._name;
+                let eventDateID = calendarEvent._startDate.toISOString().split('T')[0]; // YYYY-MM-DD format, gives identifiers to be more easily found
+                // Moderate z index so it can be shown on dayContainer without blocking the sidebar or the event frm
+                eventElement.style.zIndex = 20;
+                // Attach the current day it has as well as the backend mongoDB ID to the element for easy search access
+                eventElement.setAttribute('data-event-date', eventDateID);
+                eventElement.setAttribute('data-event-id', calendarEvent._id);
+                //when the event is clicked, it should populate the event form to go into editing mode
+                eventElement.addEventListener('click', function() //TODO: CHECK THAT THEY CAN EDIT!
+                {
+                    findEventID(calendarEvent) //first find the ID so that can be used for populateEventForm
+                    .then(eventID => 
+                    {
+                        populateEventForm(eventID, calendarEvent, eventElement);
+                    })
+                    .catch(error => 
+                    {
+                        console.error('Error:', error);
+                    });
+                });
+                // set the event element width based on the start and end time as a percentage of the total day container
+                let hourLength = (calendarEvent._endDate.getHours() * 60 + calendarEvent._endDate.getMinutes()) - (calendarEvent._startDate.getHours() * 60 + calendarEvent._startDate.getMinutes());
+                let eventWidth = ((hourLength * parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))
+                eventElement.style.width = `${eventWidth}px` 
+                // Gets the selected time based on mouse position
+                selectedHour = ((calendarEvent._startDate.getHours()) * 60 + calendarEvent._startDate.getMinutes());
+                // Finally, set the ultimate position and append it to the day container
+                eventElement.style.left = `${selectedHour * ((parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))}px`;
+                dayContainer.appendChild(eventElement);   
+            }
+        }
     });
-    // set the event element width based on the start and end time as a percentage of the total day container
-    let hourLength = (calendarEvent._endDate.getHours() * 60 + calendarEvent._endDate.getMinutes()) - (calendarEvent._startDate.getHours() * 60 + calendarEvent._startDate.getMinutes());
-    let eventWidth = ((hourLength * parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))
-    eventElement.style.width = `${eventWidth}px` 
-    // Gets the selected time based on mouse position
-    selectedHour = ((calendarEvent._startDate.getHours()) * 60 + calendarEvent._startDate.getMinutes());
-    // Finally, set the ultimate position and append it to the day container
-    eventElement.style.left = `${selectedHour * ((parseInt(dayContainer.offsetWidth)) / ((endTime - startTime) * 60))}px`;
-    dayContainer.appendChild(eventElement);   
 }
 
 /**
@@ -628,6 +703,8 @@ function populateEventForm(eventID, calendarEvent, eventElement)
     eventForm.setAttribute('data-editing', 'true');
     eventForm.setAttribute('data-event-id', eventID);
     document.getElementById('submitEventButton').value = 'Edit Event';
+    document.getElementById('eventPermissions').value = calendarEvent._permissions;
+    document.getElementById('eventViewable').value = calendarEvent._viewable;
     let fragment = document.createDocumentFragment(); //create fragment for more efficiency when it is appended later on
     let deleteButton = document.getElementById('deleteEventButton');
     // If the delete button doesn't exist, create it with the appropriate changes
@@ -638,9 +715,51 @@ function populateEventForm(eventID, calendarEvent, eventElement)
         deleteButton.textContent = 'Delete Event';
         fragment.appendChild(deleteButton);
     }
+    const addedUsersDiv = document.getElementById('addedUsers');
+    addedUsersDiv.innerHTML = ''; 
+    let usersLabel = document.createElement('div');
+    usersLabel.textContent = 'USERS:';
+    usersLabel.className = 'usersLabel';
+    addedUsersDiv.appendChild(usersLabel);
+    async function displayAddedUsers(userIDs) 
+    {
+        for (let userID of userIDs) 
+        {
+            try 
+            {
+                const response = await sendRequest('/getUser', { userID: userID });
+                if (response.result === 'OK') 
+                {
+                    const user = response.user;
+                    const userDiv = document.createElement('div');
+                    userDiv.textContent = `User: ${user._name}`;
+                    userDiv.className = 'addedUser';
+                    userDiv.setAttribute('data-user-id', userID);
+                    addedUsersDiv.appendChild(userDiv);
+                } 
+                else 
+                {
+                    console.error('Failed to fetch user:', response.message);
+                }
+            } 
+            catch (error) 
+            {
+                console.error('Error fetching user details:', error);
+                // Optionally handle network errors or other exceptions
+            }
+        }
+    }
+    if (calendarEvent._users && calendarEvent._users.length > 0) 
+    {
+        displayAddedUsers(calendarEvent._users);
+    }
     // Save the original event data to be compared later to see if there are duplicates
     const originalEventData = 
     {
+        team: calendarEvent._team,
+        users: null, // Users are not included in the comparison
+        permissions: calendarEvent._permissions,
+        viewable: calendarEvent._viewable,
         name: calendarEvent._name,
         startTime: formatToTime(calendarEvent._startDate), //format the times to military so that it can be easily compared later on
         endTime: formatToTime(calendarEvent._endDate),
@@ -667,7 +786,7 @@ function deleteEvent(eventID)
     let eventBody = { eventID: eventID };
     //removes the current globally selected event element if it exists, and sends a request to delete the event given the ID
     if (currentEventElement) currentEventElement.remove();
-    return sendRequest('/deleteEvent', eventBody)
+    return sendRequest('/deleteTeamEvent', eventBody)
     .then(response => 
     {
         if (response.result === 'OK') 
@@ -741,34 +860,36 @@ function populateEventsSidebar()
     const eventsList = document.getElementById('eventsList');
     eventsList.innerHTML = '';
     const selectedDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
-    getUserEvents(localStorage.getItem('userID'))
-    .then(events => 
-    {
-        // Filter events by whether they are on the same day as the popup
-        const filteredEvents = events.filter(event => 
-        {
-            let eventDate = new Date(event._startDate);
-            return eventDate.toISOString().split('T')[0] === selectedDateAttr;
-        });
-        // Sort events as per the specified criteria
-        filteredEvents.sort((a, b) => 
-        {
-            // Compare by start time
-            if (a._startDate < b._startDate) return -1;
-            if (a._startDate > b._startDate) return 1;
-            // Compare by end time if start times are equal
-            if (a._endDate < b._endDate) return -1;
-            if (a._endDate > b._endDate) return 1;
-            // Compare by name length if end times are equal
-            if (a._name.length < b._name.length) return -1;
-            if (a._name.length > b._name.length) return 1;
-            // Compare by description length if names are equal
-            return a._description.length - b._description.length;
-        });
-        // Create event cards for each sorted event
-        filteredEvents.forEach(event => createEventCard(event, eventsList));
-    })
-    .catch(error => console.error('Error loading events:', error));
+    getUserEvents(localStorage.getItem('userID')) 
+        .then(events => 
+            {
+                // Filter events by whether they are on the same day as the popup
+                const filteredEvents = events.filter(event => 
+                {
+                    let eventDate = new Date(event._startDate);
+                    return eventDate.toISOString().split('T')[0] === selectedDateAttr;
+                });
+                // Sort events as per the specified criteria
+                filteredEvents.sort((a, b) => 
+                {
+                    // Compare by start time
+                    if (a._startDate < b._startDate) return -1;
+                    if (a._startDate > b._startDate) return 1;
+                    // Compare by end time if start times are equal
+                    if (a._endDate < b._endDate) return -1;
+                    if (a._endDate > b._endDate) return 1;
+                    // Compare by name length if end times are equal
+                    if (a._name.length < b._name.length) return -1;
+                    if (a._name.length > b._name.length) return 1;
+                    // Compare by description length if names are equal
+                    return a._description.length - b._description.length;
+                });
+                // Create event cards for each sorted event
+                filteredEvents.forEach(event => createEventCard(event, eventsList));
+            })
+            .catch(error => console.error('Error loading events:', error));
+    
+   
 }
 
 /**
@@ -870,7 +991,7 @@ function formatTimeString(timeString)
 function getUserEvents(userID) 
 {
     //call the backend function to do the heavy lifting
-    return fetch(`/getUserEvents/${userID}`)
+    return fetch(`/getTeamUserEvents/${userID}`)
     .then(response => 
     {
         if (!response.ok) 
@@ -881,7 +1002,7 @@ function getUserEvents(userID)
     })
     .then(events =>
     {
-        userEvents = events.map(eventData => convertCalendarEvent(eventData)); //map each eventData into a new calendar event
+        userEvents = events.map(eventData => convertTeamCalendarEvent(eventData)); //map each eventData into a new calendar event
         return userEvents;
     });
 }
@@ -891,12 +1012,16 @@ function getUserEvents(userID)
  * @param {Object} data - the object containing field with strings to be converted
  * @returns {CalendarEvent}
  */
-function convertCalendarEvent(data)
+function convertTeamCalendarEvent(data)
 {
-    return new CalendarEvent
+    return new CalendarTeamEvent
     (
         data._id, //id
+        data._team,
         data._users,
+        data._permissions,
+        data._viewable,
+        data._history,
         data._name,
         new Date(data._startDate), //automatically converts the UTC date stored in server back to local time
         new Date(data._endDate),
@@ -913,7 +1038,7 @@ function convertCalendarEvent(data)
 function sendEventToDatabase(event)
 {
     //send a request to create an event in the backend with the CalendarEvent
-    return sendRequest('/createEvent', event)
+    return sendRequest('/createTeamEvent', event)
     .then(message => 
     {
         console.log(message.message);
@@ -933,9 +1058,13 @@ function sendEventToDatabase(event)
  */
 function findEventID(event) 
 {
-    return sendRequest('/findEvent', 
+    return sendRequest('/findTeamEvent', 
     {
+        _team: event._team,
         _users: event._users,
+        _permissions: event._permissions,
+        _viewable: event._viewable,
+        _history: event._history,
         _name: event._name,
         _startDate: event._startDate,
         _endDate: event._endDate,
@@ -985,3 +1114,154 @@ async function sendRequest(endpoint, data)
 }
 
 //#endregion Events server communication
+
+async function getCurrentUserRole() 
+{
+    const userID = localStorage.getItem('userID');
+    const response = await sendRequest('/getUser', { userID: userID });
+    if (response.result === "OK") 
+    {
+        const userRole = teamData._users[response.user._name];
+        document.getElementById('currentUserRoleDisplay').textContent = `Your Role: ${userRole}`;
+        adjustFormOptionsRole(userRole);
+        return userRole;
+    } 
+    else 
+    {
+        // Handle error or invalid response
+        console.error('Failed to retrieve user role');
+        return null;
+    }
+}
+
+function adjustFormOptionsRole(userRole)
+{
+    const permissionsSelect = document.getElementById('eventPermissions');
+    const viewableSelect = document.getElementById('eventViewable');
+    function adjustSelectOptions(select, userLevel) 
+    {
+        const options = Array.from(select.options);
+        options.forEach(option => 
+        {
+            if (roleLevels[option.value] > userLevel) 
+            {
+                option.remove();
+            }
+        });
+    }
+    // Adjust both select elements based on the user's role
+    adjustSelectOptions(permissionsSelect, roleLevels[userRole]);
+    adjustSelectOptions(viewableSelect, roleLevels[userRole]);
+}
+
+function openUserManagementModal()
+{
+    document.getElementById('manageUsersModal').style.display = 'block';
+}
+
+function resetUserManagementModal()
+{
+    resetUserManagementError();
+    document.getElementById('usernameToManage').value = '';
+}
+
+function closeUserManagementModal()
+{
+    document.getElementById('manageUsersModal').style.display = 'none';
+    resetUserManagementModal();
+}
+
+function addUserToEvent() 
+{
+    const username = document.getElementById('usernameToManage').value;
+    sendRequest('/findUser', { username: username })
+    .then(response => 
+    {
+        if (response.result === 'OK') 
+        {
+            let userID = response.userID;
+            if (teamData._users[username])
+            {
+                const addedUsersDiv = document.getElementById('addedUsers');
+                let usersLabel = addedUsersDiv.querySelector('.usersLabel');
+                if (!usersLabel) 
+                {
+                    usersLabel = document.createElement('div');
+                    usersLabel.textContent = 'USERS:';
+                    usersLabel.className = 'usersLabel';
+                    addedUsersDiv.appendChild(usersLabel);
+                }
+                const existingUserDiv = addedUsersDiv.querySelector(`[data-user-id="${userID}"]`);
+                if (existingUserDiv) 
+                {
+                    displayUserManagementError('User already added.');
+                    return;
+                }
+                console.log('User added', response.message);
+                const userDiv = document.createElement('div');
+                userDiv.textContent = `User: ${username}`;
+                userDiv.className = 'addedUser';
+                userDiv.setAttribute('data-user-id', userID);
+                addedUsersDiv.appendChild(userDiv);
+                resetUserManagementModal();    
+            }
+            else
+            {
+                displayUserManagementError('User not in team.');
+            }
+        }
+        else 
+        {
+            displayUserManagementError('Failed to add user to event: ' + response.message);
+        }        
+    })
+    .catch(error => 
+    {
+        console.error('Error adding user to event:', error);
+        displayUserManagementError('Error adding user to event.');
+    });
+}
+
+function removeUserFromEvent() 
+{
+    const username = document.getElementById('usernameToManage').value;
+    sendRequest('/findUser', { username: username })
+    .then(response => 
+    {
+        if (response.result === 'OK') 
+        {
+            const userID = response.userID;
+            const addedUsersDiv = document.getElementById('addedUsers');
+            const userDiv = addedUsersDiv.querySelector(`[data-user-id="${userID}"]`);
+            if (userDiv) 
+            {
+                addedUsersDiv.removeChild(userDiv);
+            }
+            else 
+            {
+                displayUserManagementError('User not found in event.');
+            }
+        } 
+        else 
+        {
+            displayUserManagementError('Failed to find user: ' + response.message);
+        }
+    })
+    .catch(error => 
+    {
+        console.error('Error removing user from event:', error);
+        displayUserManagementError('Error removing user from event.');
+    });
+}
+
+function displayUserManagementError(message)
+{
+    const errorMessageDiv = document.getElementById('manageUsersErrorMessage');
+    errorMessageDiv.textContent = message;
+    errorMessageDiv.style.display = 'block';
+}
+
+function resetUserManagementError()
+{
+    document.getElementById('manageUsersErrorMessage').textContent = '';
+}

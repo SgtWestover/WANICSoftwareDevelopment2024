@@ -9,26 +9,44 @@
 </head>
 <body>
   <header>
-    <div class="team-name"></div>
-    
-    <div id="teams-notifs"> 
-      <button class="icon-button" onclick="showTeamsNotifs()">
-        <i class="fa fa-bell"></i>      
-      </button>
-      <div id="notificationDropdown" class="notification-dropdown">
-        <!-- Notifications will be dynamically added here -->
-      </div>
-    </div>  
+    <div class="team-name" id="teamName"></div>  
   </header>
-  
-  <div class="team-desc"></div>
-  <div class="team-notifications">Notifications</div>
-  <div class="team-users"> UserList
-    <div class="team-users-owner team-users-categories"> Owner: </div>
-    <div class="team-users-admin team-users-categories"> Admins: </div>
-    <div class="team-users-user team-users-categories"> Users: </div>
-    <div class="team-users-viewer team-users-categories"> Viewes: </div>  
+    <div class="team-description team-home-content" > Description
+      <div class="team-description-content" id="teamDescription"></div>
   </div>
+
+    <div class="team-upcomingEvents team-home-content" >Upcoming Events
+      <div class="team-upcomingEvents-content" id="teamEvents">
+        <div class="team-upcomingEvents-content-container">
+          <div class="team-upcomingEvents-content-container-name"></div>
+          <div class="team-upcomingEvents-content-container-description"></div>
+          <div class="team-upcomingEvents-content-container-users"></div>
+          <div class="team-upcomingEvents-content-container-startTime"></div>
+          <div class="team-upcomingEvents-content-container-endTime"></div>
+        </div>
+        <div class="team-upcomingEvents-content-container">I eat pinatas</div>
+        <div class="team-upcomingEvents-content-container">In the life of a true Brexit Geezer</div>
+        <div class="team-upcomingEvents-content-container">In the life of a true Brexit Geezer</div>
+        <div class="team-upcomingEvents-content-container">In the life of a true Brexit Geezer</div>
+        <div class="team-upcomingEvents-content-container">In the life of a true Brexit Geezer</div>
+        
+      </div>
+    </div>
+
+    <div class="team-notifications team-home-content">Notifications
+      <div class="team-notifications-content" id="teamNotifications">
+        
+      </div>
+    </div>
+
+    <div class="team-users team-home-content"> UserList
+      <div class="team-users-content">
+        <div class="team-users-owner team-users-categories" id="ownerContainer"> Owner: </div>
+        <div class="team-users-admin team-users-categories" id="adminContainer"> Admins: </div>
+        <div class="team-users-user team-users-categories" id="userContainer"> Users: </div>
+        <div class="team-users-viewer team-users-categories" id="viewerContainer"> Viewes: </div>  </div>
+    </div>
+
   
   <div class="back-arrow-container" onclick="window.location='../';">
     <i class="fa fa-arrow-left back-arrow"></i>  
@@ -41,5 +59,6 @@
     <a href="settings">Settings</a>
   </div>
   <script src="/scripts/CalendarClasses.js"></script>
+  <script src ="TeamPage.js";></script>
 </body>
 </html>

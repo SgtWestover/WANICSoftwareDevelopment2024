@@ -829,6 +829,26 @@ async function getNewCode()
     throw new Error('Unable to generate a unique code.');
 }
 
+router.post('/getTeamWithJoinCode', async (req, res) => 
+{
+    const joinCode = req.body.joinCode;
+    if (!joinCode)
+    {
+        res.status(400).send({ result: 'FAIL', message: "Missing joinCode"});
+        return;
+    }
+    const teamData = await getTeamData(joinCode);
+    if(!teamData)
+    {
+        res.status(404).send({result: 'FAIL', message: "Team not found"});
+        return;
+    }
+    else
+    {
+        res.send({result: 'OK', team: teamData});
+    }
+});
+
 router.post('/getUserTeams', async (req, res) => 
 {
     try 
@@ -1066,19 +1086,176 @@ router.post('/getUser', async (req, res) =>
     }
 });
 
+router.post('/createTeamEvent', async (req, res) => 
+{
+    // Validate required information
+    if (!req.body._team || !req.body._users || !req.body._permissions || !req.body._viewable || !req.body._name || !req.body._startDate || !req.body._endDate) 
+    {
+        res.send({ result: 'OK', message: "Missing information" });
+        return;
+    }
+    // Check for event duplication
+    if (await findTeamEvent(req.body._team, req.body._users, req.body._permissions, req.body._viewable, null, req.body._name, req.body._startDate, req.body._endDate, req.body._description) == null) 
+    {
+        const newEvent = new CalendarTeamEvent(null, req.body._team, req.body._users, req.body._permissions, req.body._viewable, null, req.body._name, req.body._startDate, req.body._endDate, req.body._description);
+        const result = await addTeamEvent(newEvent);
+        res.status(201).send({ result: 'OK', message: "Event Created", eventID: result.insertedId });
+    } 
+    else 
+    {
+        res.send({ result: 'OK', message: "Event Duplicate" });
+    }
+});
+
+router.post('/findTeamEvent', async (req, res) => 
+{
+    // Validate required information
+    if (!req.body._team || !req.body._users || !req.body._permissions || !req.body._viewable || !req.body._name || !req.body._startDate || !req.body._endDate) 
+    {
+        res.send({ result: 'ERROR', message: "Missing information" });
+        return;
+    }
+    // Find the event
+    const foundEventID = await findTeamEvent(req.body._team, req.body._users, req.body._permissions, req.body._viewable, req.body._history, req.body._name, req.body._startDate, req.body._endDate, req.body._description);
+    if (foundEventID) 
+    {
+        res.send({ result: 'OK', eventID: foundEventID });
+    } 
+    else 
+    {
+        res.send({ result: 'ERROR', message: "Event not found" });
+    }
+});
+
+async function findTeamEvent(team, users, permissions, viewable, history, name, startDate, endDate, description) 
+{
+    try 
+    {
+        const calendar = dbclient.db("calendarApp");
+        const eventList = calendar.collection("teamEvents");
+        // Create a query to find an event matching all the given criteria
+        const query = 
+        {
+            _team: team,
+            _users: users,
+            _permissions: permissions,
+            _viewable: viewable,
+            _history: history,
+            _name: name,
+            _startDate: startDate,
+            _endDate: endDate,
+            _description: description
+        };
+        // Find one event that matches the query
+        const event = await eventList.findOne(query);
+        // If an event is found, return it; otherwise return null
+        return event ? event._id.toString() : null;
+    } 
+    catch (error) 
+    {
+        console.error("Error finding event: ", error);
+        return null;
+    }
+}
+
+async function addTeamEvent(eventData) 
+{
+    const calendarDB = dbclient.db("calendarApp");
+    const eventsCollection = calendarDB.collection("teamEvents");
+    const result = await eventsCollection.insertOne(eventData);
+    return result;
+}
+
+router.post('/deleteTeamEvent', async (req, res) => 
+{
+    const eventID = req.body.eventID;
+    // Validate event ID presence
+    if (!eventID) 
+    {
+        res.send({ result: 'ERROR', message: "Missing event ID" });
+        return;
+    }
+    try 
+    {
+        const eventDetails = await findEventDetails(eventID);
+        if (!eventDetails) 
+        {
+            res.send({ result: 'ERROR', message: "Event not found" });
+            return;
+        }
+
+        await deleteTeamEvent(eventID);
+        res.send({ result: 'OK', message: "Event deleted successfully" });
+    } 
+    catch (error) 
+    {
+        console.error("Error deleting event: ", error);
+        res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
+    }
+});
+
+async function deleteTeamEvent(eventID) 
+{
+    const calendarDB = dbclient.db("calendarApp");
+    const eventsCollection = calendarDB.collection("teamEvents");
+    const eventObjectID = new ObjectId(eventID);
+    await eventsCollection.deleteOne({ _id: eventObjectID }); 
+}
+
+router.get('/getTeamUserEvents/:userID', async (req, res) => 
+{
+    try 
+    {
+        const userID = req.params.userID;
+        const events = await findTeamEventsByUserID(userID);
+        res.json(events);
+    } 
+    catch (error) 
+    {
+        console.error(error);
+        res.status(500).send({ error: 'Internal Server Error' });
+    }
+});
+
+async function findTeamEventsByUserID(userID) 
+{
+    const calendarDB = dbclient.db("calendarApp");
+    const eventsCollection = calendarDB.collection("teamEvents");
+    // Use the $in operator to find events where the _users array contains the userID, using the mongodb array accessors
+    const eventsCursor = eventsCollection.find({ _users: { $in: [userID] } });
+    const userEvents = await eventsCursor.toArray();
+    return userEvents;
+}
+
+router.post('/getTeamEvents', async (req, res) => 
+{
+    try
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const eventsCollection = calendarDB.collection("teamEvents");
+        const teamCode = req.body.teamCode;
+        if (!teamCode) 
+        {
+            return res.status(500).send({ result: 'ERROR', message: "Bruh" });
+        }
+        const teamEvents = await eventsCollection.find({ _team: teamCode }).toArray();
+        res.status(200).send({ result: 'OK', teamEvents: teamEvents});
+    }
+    catch (error)
+    {
+        console.error("Failed to fetch team events:", error);
+        res.status(500).send({ message: "Failed to fetch team events" });
+    }
+});
+
+
+router.post('removeUserFromTeam', async (req, res) =>
+{
+
+});
+
 //#endregion teams
 
-router.get('/teams/:teamCode/data', async (req, res) => 
-{
-    const { teamCode } = req.params;
-    // Fetch team-specific data from the database
-    const teamData = await getTeamData(teamCode);
-    if (!teamData) 
-    {
-        return res.status(404).send('Team not found');
-    }
-    res.json(teamData);
-});
 
 async function getTeamData(teamCode) 
 {

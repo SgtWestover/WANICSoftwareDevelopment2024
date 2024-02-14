@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function()
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.50.42:8080');
+    ws = new WebSocket('ws://192.168.232.15:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
@@ -571,6 +571,7 @@ function renderTeamsPanel(team, teamCount)
     teamViewButton.onclick = function(event)
     {
         window.location.href = `teamPage/TeamPage.html`;
+        localStorage.setItem("joinCode", team._joinCode);
     };
     let teamViewButtonIcon = document.createElement("i");
     //teamViewButtonIcon.classList.add("button");

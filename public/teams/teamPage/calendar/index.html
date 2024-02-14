@@ -24,7 +24,7 @@
     <a class="active" href="#home">Calendar</a>
     <a href="../chat/">Chat</a>
     <a href="../settings/">Settings</a>
-  </div>  
+  </div>
       <!-- Previous and next month buttons that navigate the months (big arrows) -->
   <div class="button-container">
     <a id="prev-month">&lt;</a>
@@ -60,8 +60,11 @@
     <!-- Popup formatting including all the text, the fields, and the buttons-->
     <h2 id="eventPopupHeader">Create Event</h2>
       <form id="eventForm">
+      <div id="currentUserRoleDisplay"></div>
+      <div id="addedUsers"></div>
+      <button type="button" onclick="openUserManagementModal()">Add/Remove Users</button><br> <!-- Button that opens the user management modal-->
       <label for="eventName">Event Name:</label><br>
-      <!--All the stuff that has the required keyword attached means they cannot be submitted missing-->
+      <!-- All the stuff that has the required keyword attached means they cannot be submitted missing -->
       <input type="text" id="eventName" name="eventName" required><br>
       <label for="startTime">Start Time:</label><br>
       <input type="time" id="startTime" name="startTime" step="60" required><br> <!-- 60 steps makes the field go up a minute at a time-->
@@ -70,12 +73,38 @@
       <label for="eventDesc">Description:</label><br>
       <!-- Description is NOT required-->
       <textarea id="eventDesc" name="eventDesc" style="resize: none;"></textarea><br>
+      <!-- Permissions dropdown -->
+      <label for="eventPermissions">Permissions:</label><br>
+      <select id="eventPermissions" name="eventPermissions" required>
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+        <option value="owner">Owner</option>
+      </select><br>
+      <!-- Viewable dropdown -->
+      <label for="eventViewable">Viewable By:</label><br>
+      <select id="eventViewable" name="eventViewable" required>
+        <!-- Need to check the user notification and if its sent or not-->
+        <option value="viewer">Viewer</option>
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+        <option value="owner">Owner</option>
+      </select><br>
       <input type="submit" id="submitEventButton" value="Create Event">
       <div id="errorMessage" style="color: red; display: none;"></div> <!-- Error message element -->
       <button type="button" onclick="closeEventForm()">Cancel</button> <!-- Cancel button that closes and resets the event form-->
     </form>
  </div>
-
+ <div id="manageUsersModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeUserManagementModal()">&times;</span>
+      <h2>Add/Remove Users</h2>
+      <label for="usernameToManage">Enter User Name:</label>
+      <input type="text" id="usernameToManage" class="button" name="usernameToManage">
+      <input type="button" onclick="addUserToEvent()" value="Add User" id="addUserButton" class="button">
+      <input type="button" onclick="removeUserFromEvent()" value="Remove User" id="removeUserButton" class="button">
+      <div id="manageUsersErrorMessage" style="color: red; display: none;"></div>
+    </div>
+  </div>
     <!-- Actual events sidebar, hidden unless the Show Events button is clicked -->
   <div id="eventsSidebar" class="sidebar-overlay">
     <div class="sidebar-content">

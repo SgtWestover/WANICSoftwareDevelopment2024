@@ -24,24 +24,59 @@ header /* Document header*/
 
 .team-name
 {
-  font-size: xx-large;
+  font-size: 45px;
   max-width: 600px;
   overflow: hidden;
   margin:0 auto;
   word-wrap: break-word;
-  max-height: 2em;
+  max-height: 2.3em;
 }
 /* 28 vw for width of each section*/
-.team-desc
+
+.team-home-content
 {
-  left: 12%;
-  top: 85px;;
-  padding: 5px;
-  width: 38vw;
-  height: fit-content;
-  margin:0 auto;
   word-wrap: break-word;
   position: absolute;
+  text-align: center;
+  overflow: hidden;
+  border-radius: 10px;
+  background-color: #2b2e30;
+}
+
+
+.team-description
+{
+  left: 13%;
+  top: 85px;;
+  padding: 5px;
+  width: 37vw;
+  height: calc(45% - 90px);
+  margin:0 auto;
+}
+
+.team-description-content
+{
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  height: 100%;
+}
+
+.team-upcomingEvents
+{
+  left: 13%;
+  top: calc(45% + 10px);
+  padding: 5px;
+  width: 37vw;
+  height: calc(55% - 25px);
+  margin:0 auto;
+  word-wrap: break-word;
+}
+
+.team-upcomingEvents-content
+{
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  height: 100%;
 }
 
 .team-notifications
@@ -50,11 +85,15 @@ header /* Document header*/
   top: 85px;;
   padding: 5px;
   width: 28vw;
-  height: fit-content;
+  height: calc(100% - 100px);
   margin:0 auto;
-  word-wrap: break-word;
-  position: absolute;
-  text-align: center;
+}
+
+.team-notifications-content
+{
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  height: 100%;
 }
 
 .team-users
@@ -63,17 +102,79 @@ header /* Document header*/
   top: 85px;;
   padding: 5px;
   width: 18vw;
-  height: fit-content;
+  height: calc(100% - 100px);
   margin:0 auto;
-  word-wrap: break-word;
-  position: absolute;
-  text-align: center;
+}
+
+.team-users-content
+{
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  height: 100%;
 }
 
 .team-users-categories
 {
   padding-top: 20px;
 }
+
+/* Event Content ------------------------------------------------------------ */
+/*#region Event Content Styles*/
+
+.team-upcomingEvents-content-container
+{
+  position: relative;
+  border-radius: 10px;
+  background-color: #3a3e41;
+  height: 22%;
+  padding: 3%;
+  margin: 15px;
+}
+
+.team-upcomingEvents-content-container-content
+{
+
+}
+
+.team-upcomingEvents-content-container-name
+{
+  background-color: #04AA6D;
+  position: absolute;
+  height: 25%;
+  width: 40%;
+  top: 15%
+}
+
+.team-upcomingEvents-content-container-description
+{
+  background-color: #04AA6D;
+  position: absolute;
+  top: 45%;
+  height: 45%;
+  width: 40%;
+}
+
+.team-upcomingEvents-content-container-users
+{
+  background-color: #04AA6D;
+  position: relative;
+  width: 30%;
+  left: 44%;
+  height: 106%;
+}
+
+.team-upcomingEvents-content-container-startTime
+{
+  background-color: #04AA6D;
+}
+
+.team-upcomingEvents-content-container-endTime
+{
+  background-color: #04AA6D;
+}
+
+
+/*#endregion*/
 
 /* General Sidebar ---------------------------------------------------------- */
 /*#region General Sidebar Styles*/
