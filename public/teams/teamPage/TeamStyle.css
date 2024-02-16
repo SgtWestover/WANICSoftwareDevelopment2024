@@ -133,44 +133,47 @@ header /* Document header*/
 
 .team-upcomingEvents-content-container-content
 {
-
+  position: absolute;
 }
 
 .team-upcomingEvents-content-container-name
 {
-  background-color: #04AA6D;
-  position: absolute;
   height: 25%;
-  width: 40%;
-  top: 15%
+  width: 48%;
+  top: 15%;
+  left: 3%;
 }
 
 .team-upcomingEvents-content-container-description
 {
-  background-color: #04AA6D;
-  position: absolute;
   top: 45%;
   height: 45%;
-  width: 40%;
+  width: 48%;
+  left: 3%;
 }
 
 .team-upcomingEvents-content-container-users
 {
-  background-color: #04AA6D;
-  position: relative;
+  top: 15%;
   width: 30%;
-  left: 44%;
-  height: 106%;
+  left: 52%;
+  height: 75%;
 }
 
 .team-upcomingEvents-content-container-startTime
 {
-  background-color: #04AA6D;
+  top: 15%;
+  left: 83%;
+  width: 15%;
+  height: 36%;
 }
 
 .team-upcomingEvents-content-container-endTime
 {
-  background-color: #04AA6D;
+  top: 54%;
+  left: 83%;
+  width: 15%;
+  height: 36%;
 }
 
 

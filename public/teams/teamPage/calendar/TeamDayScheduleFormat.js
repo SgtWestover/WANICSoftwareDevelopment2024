@@ -12,6 +12,8 @@ Description: Handles the formatting for the day schedule
  * @returns {type}
  */
 
+
+let ws;
 //line for indicating the current time
 var currentTimeLine;
 //lines that mark each hour on the popup
@@ -49,6 +51,7 @@ document.addEventListener('DOMContentLoaded', function()
     })();
     //upon loading, initialize the events
     initializeEvents();
+    connectWebSocket();
     // Listen for the dateSelected event
     document.addEventListener('dateSelected', function(event) 
     {
@@ -64,6 +67,31 @@ document.addEventListener('DOMContentLoaded', function()
         navigateDay(1);
     });
 });
+
+function connectWebSocket() 
+{
+    // Establish a WebSocket connection. Change when IP is different
+    ws = new WebSocket('ws://192.168.50.42:8080');
+    ws.onopen = function()
+    {
+        console.log("WebSocket connection established.");
+    };
+    ws.onmessage = function(event)  //important :3
+    {
+        console.log("message received");
+        handleWebSocketMessage(event.data);
+    };
+    ws.onerror = function(error) 
+    {
+        console.error("WebSocket error:", error);
+    };
+    ws.onclose = function(event) 
+    {
+        console.log("WebSocket connection closed:", event);
+        setTimeout(connectWebSocket, 3000); // Reconnect after 3 seconds
+    };
+}
+
 
 /**
  * Initializes the user events from the database into the global userEvents variable
@@ -570,7 +598,7 @@ function renderEvent(calendarEvent)
         if (response.result === 'OK')
         {
             username = response.user._name;
-            if (roleLevels[teamData._users[username]] >= roleLevels[calendarEvent._viewable])
+            if (roleLevels[teamData._users[username]] >= roleLevels[calendarEvent._viewable] || calendarEvent._users.includes(response.user._id)) 
             {
                 // Create event element
                 let eventElement = document.createElement("div");
@@ -586,15 +614,18 @@ function renderEvent(calendarEvent)
                 //when the event is clicked, it should populate the event form to go into editing mode
                 eventElement.addEventListener('click', function() //TODO: CHECK THAT THEY CAN EDIT!
                 {
-                    findEventID(calendarEvent) //first find the ID so that can be used for populateEventForm
-                    .then(eventID => 
+                    if ((roleLevels[teamData._users[username]] >= roleLevels[calendarEvent._permissions] || calendarEvent._users.includes(response.user._id)) && roleLevels[teamData._users[username]] > 1)
                     {
-                        populateEventForm(eventID, calendarEvent, eventElement);
-                    })
-                    .catch(error => 
-                    {
-                        console.error('Error:', error);
-                    });
+                        findEventID(calendarEvent) //first find the ID so that can be used for populateEventForm
+                        .then(eventID => 
+                        {
+                            populateEventForm(eventID, calendarEvent, eventElement);
+                        })
+                        .catch(error => 
+                        {
+                            console.error('Error:', error);
+                        });
+                    }
                 });
                 // set the event element width based on the start and end time as a percentage of the total day container
                 let hourLength = (calendarEvent._endDate.getHours() * 60 + calendarEvent._endDate.getMinutes()) - (calendarEvent._startDate.getHours() * 60 + calendarEvent._startDate.getMinutes());
@@ -861,35 +892,33 @@ function populateEventsSidebar()
     eventsList.innerHTML = '';
     const selectedDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
     getUserEvents(localStorage.getItem('userID')) 
-        .then(events => 
-            {
-                // Filter events by whether they are on the same day as the popup
-                const filteredEvents = events.filter(event => 
-                {
-                    let eventDate = new Date(event._startDate);
-                    return eventDate.toISOString().split('T')[0] === selectedDateAttr;
-                });
-                // Sort events as per the specified criteria
-                filteredEvents.sort((a, b) => 
-                {
-                    // Compare by start time
-                    if (a._startDate < b._startDate) return -1;
-                    if (a._startDate > b._startDate) return 1;
-                    // Compare by end time if start times are equal
-                    if (a._endDate < b._endDate) return -1;
-                    if (a._endDate > b._endDate) return 1;
-                    // Compare by name length if end times are equal
-                    if (a._name.length < b._name.length) return -1;
-                    if (a._name.length > b._name.length) return 1;
-                    // Compare by description length if names are equal
-                    return a._description.length - b._description.length;
-                });
-                // Create event cards for each sorted event
-                filteredEvents.forEach(event => createEventCard(event, eventsList));
-            })
-            .catch(error => console.error('Error loading events:', error));
-    
-   
+    .then(events => 
+    {
+        // Filter events by whether they are on the same day as the popup
+        const filteredEvents = events.filter(event => 
+        {
+            let eventDate = new Date(event._startDate);
+            return eventDate.toISOString().split('T')[0] === selectedDateAttr;
+        });
+        // Sort events as per the specified criteria
+        filteredEvents.sort((a, b) => 
+        {
+            // Compare by start time
+            if (a._startDate < b._startDate) return -1;
+            if (a._startDate > b._startDate) return 1;
+            // Compare by end time if start times are equal
+            if (a._endDate < b._endDate) return -1;
+            if (a._endDate > b._endDate) return 1;
+            // Compare by name length if end times are equal
+            if (a._name.length < b._name.length) return -1;
+            if (a._name.length > b._name.length) return 1;
+            // Compare by description length if names are equal
+            return a._description.length - b._description.length;
+        });
+        // Create event cards for each sorted event
+        filteredEvents.forEach(event => createEventCard(event, eventsList));
+    })
+    .catch(error => console.error('Error loading events:', error));
 }
 
 /**
@@ -1264,4 +1293,41 @@ function displayUserManagementError(message)
 function resetUserManagementError()
 {
     document.getElementById('manageUsersErrorMessage').textContent = '';
+}
+
+function handleWebSocketMessage(data) 
+{
+    try
+    {
+        console.log("handle web socket message");
+        const message = JSON.parse(data);
+        if (message.type === 'teamEventUpdate') 
+        {
+            getUserEvents(localStorage.getItem('userID'))
+            .then(userEvents=> 
+            {
+                let currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
+                let currentPopupDate = getDateFromAttribute(currentPopupDateAttr);
+                let newDate = new Date(currentPopupDate);
+                userEvents.forEach(event => 
+                {
+                    let eventDate = new Date(event._startDate);
+                    console.log("event Date: " + eventDate);
+                    if (eventDate.toISOString().split('T')[0] === newDate.toISOString().split('T')[0]) 
+                    {
+                        renderEvent(event);
+                    }
+                });
+            })
+            .catch(error => 
+            {
+                console.error('Error initializing events:', error);
+            });
+        }
+        // Handle other message types as needed
+    } 
+    catch (error) 
+    {
+        console.error("Error handling WebSocket message:", error);
+    }
 }

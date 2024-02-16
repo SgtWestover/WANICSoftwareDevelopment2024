@@ -96,8 +96,7 @@ function renderUpcomingEvents()
         {
             teamEvents = response.teamEvents;
             console.log(teamEvents);
-            //TODO: do it
-            
+            //array.sort((a,b)=>a.getTime()-b.getTime());
         }        
     })
 }

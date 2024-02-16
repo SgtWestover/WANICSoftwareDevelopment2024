@@ -523,6 +523,24 @@ async function findEventDetails(eventID)
     }
 }
 
+async function findTeamEventDetails(eventID) 
+{
+    try 
+    {
+        const calendar = dbclient.db("calendarApp");
+        const eventList = calendar.collection("teamEvents");
+        const eventObjectID = new ObjectId(eventID);
+        const query = { _id: eventObjectID };
+        const event = await eventList.findOne(query);
+        return event;
+    } 
+    catch (error) 
+    {
+        console.error("Error finding event: ", error);
+        return null;
+    }
+}
+
 /**
  * Deletes an event from the database based on its ID.
  * @param {string} eventID - The unique identifier of the event to be deleted.
@@ -959,6 +977,22 @@ async function notifyTeamUpdate(team)
     }
 }
 
+async function notifyTeamEventUpdate(teamEvent)
+{
+    const usersToUpdate = teamEvent._users;
+    console.log("test 1");
+    let userID;
+    for (i in usersToUpdate)
+    {
+        userID = usersToUpdate[i];
+        if (userID && map.has(usersToUpdate[i]))
+        {
+            const ws = map.get(userID);
+            ws.send(JSON.stringify({type: 'teamEventUpdate'}));
+        }
+    }
+}
+
 router.post('/getUserNotifications', async (req, res) => 
 {
     const userID = req.body.userID;
@@ -1086,7 +1120,7 @@ router.post('/getUser', async (req, res) =>
     }
 });
 
-router.post('/createTeamEvent', async (req, res) => 
+router.post('/createTeamEvent', async (req, res) => //AHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 {
     // Validate required information
     if (!req.body._team || !req.body._users || !req.body._permissions || !req.body._viewable || !req.body._name || !req.body._startDate || !req.body._endDate) 
@@ -1160,10 +1194,19 @@ async function findTeamEvent(team, users, permissions, viewable, history, name, 
 
 async function addTeamEvent(eventData) 
 {
-    const calendarDB = dbclient.db("calendarApp");
-    const eventsCollection = calendarDB.collection("teamEvents");
-    const result = await eventsCollection.insertOne(eventData);
-    return result;
+    try
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const eventsCollection = calendarDB.collection("teamEvents");
+        const result = await eventsCollection.insertOne(eventData);
+        await notifyTeamEventUpdate(eventData);
+        return result;
+    }
+    catch(error)
+    {
+        console.log("addTeamEvent Error: ", error);
+        return null;
+    }
 }
 
 router.post('/deleteTeamEvent', async (req, res) => 
@@ -1183,7 +1226,6 @@ router.post('/deleteTeamEvent', async (req, res) =>
             res.send({ result: 'ERROR', message: "Event not found" });
             return;
         }
-
         await deleteTeamEvent(eventID);
         res.send({ result: 'OK', message: "Event deleted successfully" });
     } 
@@ -1196,10 +1238,19 @@ router.post('/deleteTeamEvent', async (req, res) =>
 
 async function deleteTeamEvent(eventID) 
 {
-    const calendarDB = dbclient.db("calendarApp");
-    const eventsCollection = calendarDB.collection("teamEvents");
-    const eventObjectID = new ObjectId(eventID);
-    await eventsCollection.deleteOne({ _id: eventObjectID }); 
+    try 
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const eventsCollection = calendarDB.collection("teamEvents");
+        const eventObjectID = new ObjectId(eventID);
+        await eventsCollection.deleteOne({ _id: eventObjectID });
+        findEventDetails(eventID);
+        notifyTeamEventUpdate(teamEvent);
+    } 
+    catch (error)
+    {
+        console.log("Error with the websocket: ", error);
+    }
 }
 
 router.get('/getTeamUserEvents/:userID', async (req, res) => 
@@ -1236,7 +1287,7 @@ router.post('/getTeamEvents', async (req, res) =>
         const teamCode = req.body.teamCode;
         if (!teamCode) 
         {
-            return res.status(500).send({ result: 'ERROR', message: "Bruh" });
+            return res.status(500).send({ result: 'ERROR', message: "No Team Code!" });
         }
         const teamEvents = await eventsCollection.find({ _team: teamCode }).toArray();
         res.status(200).send({ result: 'OK', teamEvents: teamEvents});
@@ -1344,7 +1395,6 @@ function onSocketError(err)
 app.delete('/logout', function (request, response) 
 {
     const ws = map.get(request.session.userID);
-
     request.session.destroy(function () 
     {
         if (ws) ws.close();
