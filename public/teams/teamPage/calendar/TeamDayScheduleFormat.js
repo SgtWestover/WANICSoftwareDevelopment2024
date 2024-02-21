@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function()
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.50.42:8080');
+    ws = new WebSocket('ws://192.168.73.235:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
@@ -374,25 +374,24 @@ function updatePopupHeader(eventDetail)
     //set the header text to the new header text
     document.getElementById('popupHeader').innerText = headerText;
     document.getElementById('popupHeader').setAttribute('data-date', newDate.toISOString().split('T')[0]);
-    sendRequest('/getUser', {userID: localStorage.getItem("userID")})
-    .then(response =>
+    getTeamEvents(teamData._joinCode)
+    .then(teamEvents=> 
     {
-        if (response.result === "OK")
+        let currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
+        let currentPopupDate = getDateFromAttribute(currentPopupDateAttr);
+        let newDate = new Date(currentPopupDate);
+        teamEvents.forEach(event => 
         {
-            username = response.user._name;
-            //check through events to see if any match the new date, and render them if they do
-            if (userEvents && userEvents.length > 0) 
+            let eventDate = new Date(event._startDate);
+            if (eventDate.toISOString().split('T')[0] === newDate.toISOString().split('T')[0]) 
             {
-                userEvents.forEach(event => 
-                {
-                    let eventDate = new Date(event._startDate);
-                    if (eventDate.toISOString().split('T')[0] === newDate.toISOString().split('T')[0]) //split so that only the date, month, and year are compared
-                    {
-                        renderEvent(event); //if the eventDate's date is the same as the newDate's date, render the event
-                    }
-                });
+                renderEvent(event);
             }
-        }
+        });
+    })
+    .catch(error => 
+    {
+        console.error('Error initializing events:', error);
     });
 }
 
@@ -443,21 +442,14 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     e.preventDefault();
     // Get form values and the userID from local storage
     var userIDString = localStorage.getItem('userID');
-    var eventUsers = userIDString ? [userIDString] : [];
+    var eventUsers = [];
     const addedUsersDiv = document.getElementById('addedUsers');
     const userDivs = addedUsersDiv.getElementsByClassName('addedUser');
     Array.from(userDivs).forEach(div => 
     {
         const userID = div.getAttribute('data-user-id');
-        if (userID !== userIDString) 
-        {
-            eventUsers.push(userID);
-        }
+        eventUsers.push(userID);
     });
-    while (addedUsersDiv.firstChild) 
-    {
-        addedUsersDiv.removeChild(addedUsersDiv.firstChild);
-    }
     var eventName = document.getElementById('eventName').value;
     var startTime = document.getElementById('startTime').value;
     var endTime = document.getElementById('endTime').value;
@@ -480,7 +472,7 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     //get the event form from html while setting the isEditing attribute to be true and also getting the eventID
     const eventForm = document.getElementById('eventForm');
     const isEditing = eventForm.getAttribute('data-editing') === 'true';
-    const eventID = eventForm.getAttribute('data-event-id');
+    let eventID = eventForm.getAttribute('data-event-id');
     // Validation to ensure bounds are valid
     if (startDate >= endDate) 
     {
@@ -494,9 +486,8 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
         return;
     }
     // Function to handle event creation or update
-    const handleEventCreationOrUpdate = () => 
+    const processEventCreationOrUpdate = () => 
     {
-        //create a new object with the CalendarDate components and send it to be created on the database as well
         const eventDetails = 
         {
             _team: teamData._joinCode,
@@ -508,18 +499,41 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
             _endDate: endDate,
             _description: eventDesc
         };
-        createNewEvent(eventDetails);
+        return createNewEvent(eventDetails);
     };
     
+    const finalizeEventCreationOrUpdate = (newEventID) => 
+    {
+        const notificationType = isEditing ? '/notificationEditEvent' : '/notificationCreateEvent';
+        const notifResult = sendRequest(notificationType, 
+        {    
+            teamCode: teamData._joinCode, 
+            userID: userIDString, 
+            receivers: eventUsers, 
+            eventID: newEventID
+        });
+        while (addedUsersDiv.firstChild) 
+        {
+            addedUsersDiv.removeChild(addedUsersDiv.firstChild);
+        }
+    };
+
     // Edit mode: first delete the existing event, then create/update
     if (isEditing && eventID) 
     {
+        if (eventUsers.length === 0)
+        {
+            var errorMessageDiv = document.getElementById('errorMessage');
+            errorMessageDiv.textContent = "Need at least one person in event";
+            errorMessageDiv.style.display = 'block';
+            return;
+        }
         const originalEventData = JSON.parse(eventForm.getAttribute('data-original-event'));
         // Compare current form data with original event data
         const currentEventData = 
         {
             team: teamData._joinCode,
-            users: null,
+            users: eventUsers,
             permissions: permissions,
             viewable: viewable,
             name: document.getElementById('eventName').value,
@@ -535,21 +549,24 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
             errorMessageDiv.style.display = 'block';
             return;
         }
-        //If we are in the sidebar and we cannot easily access the form and its data, we can still use the eventID from earlier to check if it's a duplicate
+        // If we are in the sidebar and we cannot easily access the form and its data, we can still use the eventID from earlier to check if it's a duplicate
         if (isDuplicateEventInSidebar(currentEventData, eventID)) 
         {
             displayErrorMessage("Duplicate event data");
             return;
         }
         // Proceed with event update if no errors have been detected so far
-        deleteEvent(eventID).then(response => 
+        deleteEvent(eventID).then(() => 
         {
-            handleEventCreationOrUpdate(); //then, create the event with the new parameters
+            processEventCreationOrUpdate().then(newEventID => finalizeEventCreationOrUpdate(newEventID))
+            .catch(error => console.error("Error processing event creation or update:", error));
         }).catch(error => console.error("Error deleting event:", error));
-    } 
+    }
     else //otherwise, we are in create mode and just create the new event without deleting anything
     {
-        handleEventCreationOrUpdate();
+        eventUsers.unshift(userIDString);
+        processEventCreationOrUpdate().then(newEventID => finalizeEventCreationOrUpdate(newEventID))
+        .catch(error => console.error("Error processing event creation or update:", error));
     }
 });
 
@@ -558,30 +575,33 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
  * @param {Date} eventDetails - the current date to be compared to see what will be removed
  * @returns {void} - but adds a new event to the database and to the calendar with the given details
  */
-function createNewEvent(eventDetails) 
+async function createNewEvent(eventDetails) 
 {
-    //send event to the database first to be processed and created
-    sendEventToDatabase(eventDetails)
-    .then(response => 
-    {
+    try {
+        const response = await sendEventToDatabase(eventDetails);
         if (response.result === 'OK' && response.message === "Event Created") 
         {
-            eventDetails._id = response.eventID; // Assign the new event ID
-            eventDetails._startDate = new Date(eventDetails._startDate.getTime()); // Convert to local time
-            eventDetails._endDate = new Date(eventDetails._endDate.getTime()); // Convert to local time
-            //after creating the event successfully, render it, update the local variable as well as the sidebar, closing the event form in the proces
+            eventDetails._id = response.eventID;
+            eventDetails._startDate = new Date(eventDetails._startDate); 
+            eventDetails._endDate = new Date(eventDetails._endDate); 
             renderEvent(eventDetails);
             initializeEvents();
             populateEventsSidebar();
             closeEventForm();
-        }
-        else 
+            return response.eventID;
+        } else 
         {
-            displayErrorMessage(response.message); //otherwise, display the error message
+            displayErrorMessage(response.message);
+            return null;
         }
-    })
-    .catch(error => displayErrorMessage(error.message));
+    } 
+    catch (error) 
+    {
+        displayErrorMessage(error.message);
+        return null;
+    }
 }
+
 
 /**
  * Creates an event element in the schedule given an event and displays it in the day container
@@ -788,7 +808,7 @@ function populateEventForm(eventID, calendarEvent, eventElement)
     const originalEventData = 
     {
         team: calendarEvent._team,
-        users: null, // Users are not included in the comparison
+        users: calendarEvent._users,
         permissions: calendarEvent._permissions,
         viewable: calendarEvent._viewable,
         name: calendarEvent._name,
@@ -801,7 +821,20 @@ function populateEventForm(eventID, calendarEvent, eventElement)
     deleteButton.onclick = function(e) 
     {
         e.preventDefault();
-        deleteEvent(eventID); 
+        deleteEvent(eventID).then(response =>
+        {
+            if (response === "OK")
+            {
+                console.log("event deleted");
+                sendRequest("/notificationDeleteEvent", 
+                {
+                    teamCode : teamData._joinCode, 
+                    userID: localStorage.getItem("userID"), 
+                    receivers: calendarEvent._users, 
+                    eventID: eventID
+                });
+            }
+        }) 
     };
     document.getElementById('eventForm').appendChild(fragment)
     document.getElementById('eventForm').style.display = 'block'; //inefficent but still works, refactor later?
@@ -815,7 +848,6 @@ function populateEventForm(eventID, calendarEvent, eventElement)
 function deleteEvent(eventID) 
 {
     let eventBody = { eventID: eventID };
-    //removes the current globally selected event element if it exists, and sends a request to delete the event given the ID
     if (currentEventElement) currentEventElement.remove();
     return sendRequest('/deleteTeamEvent', eventBody)
     .then(response => 
@@ -824,25 +856,30 @@ function deleteEvent(eventID)
         {
             // Find and remove the event element with the matching eventID
             const eventElements = document.querySelectorAll('.schedule-event');
-            eventElements.forEach(element => 
-            {
+            eventElements.forEach(element => {
                 if (element.getAttribute('data-event-id') === eventID) 
                 {
                     element.remove();
                 }
             });
-            //after deleting events, update the local side variable and close the event form as well
+            // After deleting events, update the local side variable and close the event form as well
             initializeEvents();
             closeEventForm();
-            return response.message;
+            return "OK";  // Return the string "OK" to indicate success
+        } 
+        else 
+        {
+            // If the result is not 'OK', throw an error to be caught by the catch block
+            throw new Error(response.message || "Failed to delete event");
         }
     })
     .catch(error => 
     {
         console.error('Error:', error);
-        throw error;
+        throw error;  // Rethrow the error to ensure that it can be handled by the caller
     });
 }
+
 
 /**
  * Turns the dates into a string of the HH:MM in UTC
@@ -1036,6 +1073,27 @@ function getUserEvents(userID)
     });
 }
 
+async function getTeamEvents(teamCode)
+{
+    try
+    {
+        const response = await sendRequest('/getTeamEvents', {teamCode : teamCode});
+        if (response.result !== 'OK')
+        {
+            throw new Error('Network response result was not OK');
+        }
+        const teamEvents = response.teamEvents.map(eventData => convertTeamCalendarEvent(eventData));
+        return teamEvents;
+    }
+    catch (error)
+    {
+        console.error('Error fetching team events:', error);
+        throw error;
+    }
+}
+
+
+
 /**
  * Converts an object containing strings into a CalendarEvent object, used for turning backend objects back into events
  * @param {Object} data - the object containing field with strings to be converted
@@ -1228,7 +1286,7 @@ function addUserToEvent()
                 }
                 console.log('User added', response.message);
                 const userDiv = document.createElement('div');
-                userDiv.textContent = `User: ${username}`;
+                userDiv.textContent = `${username}`;
                 userDiv.className = 'addedUser';
                 userDiv.setAttribute('data-user-id', userID);
                 addedUsersDiv.appendChild(userDiv);
@@ -1303,13 +1361,13 @@ function handleWebSocketMessage(data)
         const message = JSON.parse(data);
         if (message.type === 'teamEventUpdate') 
         {
-            getUserEvents(localStorage.getItem('userID'))
-            .then(userEvents=> 
+            getTeamEvents(teamData._joinCode)
+            .then(teamEvents=> 
             {
                 let currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
                 let currentPopupDate = getDateFromAttribute(currentPopupDateAttr);
                 let newDate = new Date(currentPopupDate);
-                userEvents.forEach(event => 
+                teamEvents.forEach(event => 
                 {
                     let eventDate = new Date(event._startDate);
                     console.log("event Date: " + eventDate);
@@ -1324,7 +1382,6 @@ function handleWebSocketMessage(data)
                 console.error('Error initializing events:', error);
             });
         }
-        // Handle other message types as needed
     } 
     catch (error) 
     {

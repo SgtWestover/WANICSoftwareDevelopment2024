@@ -712,7 +712,8 @@ router.post('/findUserName', async (req, res) =>
     }
 });
 
-router.post('/createTeam', async (req, res) => {
+router.post('/createTeam', async (req, res) => 
+{
     if (!req.body._name || !req.body._usersQueued) 
     {
         return res.status(400).send({ result: 'FAIL', message: "Missing information" });
@@ -735,19 +736,20 @@ router.post('/createTeam', async (req, res) => {
             else if (info.status === 'INVITE') 
             {
                 usersQueued[username] = { role: info.role, status: info.status };
+                const notifID = new ObjectId().toString();
                 const message = `${ownerUsername} invited you to join their team ${req.body._name} as a ${info.role}`;
-                const notificationID = await addNotificationToUser(username, "TEAM_INVITE", message, ownerUsername, currentDate);
-                notificationIDs[username] = notificationID; // Store the notification ID
+                await addNotificationToUser(username, notifID, "TEAM_INVITE", message, ownerUsername, currentDate);
+                notificationIDs[username] = notifID; // Store the notification ID
             }
         }
         const newTeam = new CalendarTeam(null, req.body._name, req.body._description, users, teamJoinCode, usersQueued, req.body._autoJoin, req.body._joinPerms);
         const result = await addTeam(newTeam);
         if (result.insertedId) 
         {
-            for (const [username, notificationID] of Object.entries(notificationIDs)) 
+            for (const [username, notifID] of Object.entries(notificationIDs)) 
             {
                 const message = `${ownerUsername} invited you to join their team ${req.body._name}`;
-                await addNotificationToTeam(result.insertedId, notificationID, "TEAM_INVITE", message, ownerUsername, username, "admin", currentDate);
+                await addNotificationToTeam(result.insertedId, notifID, "TEAM_INVITE", message, ownerUsername, username, "admin", currentDate);
             }
             await notifyTeamUpdate(newTeam);
             res.status(201).send({ result: 'OK', message: "Team Created", teamID: result.insertedId, teamJoinCode: teamJoinCode });
@@ -764,7 +766,6 @@ router.post('/createTeam', async (req, res) => {
     }
 });
 
-
 async function addTeam(teamData) 
 {
     const calendarDB = dbclient.db("calendarApp");
@@ -772,17 +773,14 @@ async function addTeam(teamData)
     return await teamsCollection.insertOne(teamData);
 }
 
-async function addNotificationToUser(username, type, message, sender, sendDate) 
+async function addNotificationToUser(username, notifID, type, message, sender, sendDate) 
 {
     const calendarDB = dbclient.db("calendarApp");
     const usersCollection = calendarDB.collection("users");
-    const notificationId = new ObjectId().toString();
     const notification = { type, message, sender, sendDate };
-    const updateQuery = { $set: { [`_notifications.${notificationId}`]: notification } };
+    const updateQuery = { $set: { [`_notifications.${notifID}`]: notification } };
     await usersCollection.updateOne({ _name: username }, updateQuery);
-    return notificationId; // Return the unique ID of the notification
 }
-
 
 async function addNotificationToTeam(teamID, notifID, type, message, sender, receiver, viewable, sendDate) 
 {
@@ -792,6 +790,130 @@ async function addNotificationToTeam(teamID, notifID, type, message, sender, rec
     const updateQuery = { $set: { [`_notifications.${notifID}`]: notification } };
     await teamsCollection.updateOne({ _id: new ObjectId(teamID) }, updateQuery);
 }
+
+router.post('/notificationEditEvent', async (req, res) =>
+{
+    try
+    {
+        const { teamCode, userID, receivers, eventID } = req.body;
+        if (!teamCode || !userID || !receivers || receivers.length === 0 || !eventID)
+        {
+            return res.status(400).send({ result: 'FAIL', message: "Missing required information" });
+        }
+        const teamData = await getTeamData(teamCode);
+        if (!teamData)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        const user = await findUserByID(userID);
+        if (!user)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "User not found" });
+        }
+        const receiverNames = await Promise.all(receivers.map(async (id) => 
+        {
+            const receiverUser = await findUserByID(id);
+            return receiverUser ? receiverUser._name : null;
+        })).then(names => names.filter(Boolean));
+        const notifID = new ObjectId().toString();
+        const sendDate = new Date();
+        const message = `Event details have been edited (ID: ${eventID})`;
+        await addNotificationToTeam(teamData._id, notifID, message, user._name, receiverNames, "viewer", sendDate);
+        res.status(200).send({ result: 'OK', message: "Notification added successfully" });
+    }
+    catch (error)
+    {
+        console.error("Error processing notificationEditEvent:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+
+router.post('/notificationCreateEvent', async (req, res) =>
+{
+    try
+    {
+        const { teamCode, userID, receivers, eventID } = req.body;
+        if (!teamCode || !userID || !receivers || receivers.length === 0 || !eventID)
+        {
+            return res.status(400).send({ result: 'FAIL', message: "Missing required information" });
+        }
+        const teamData = await getTeamData(teamCode);
+        if (!teamData)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        const user = await findUserByID(userID);
+        if (!user)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "User not found" });
+        }
+        const receiverNames = await Promise.all(receivers.map(async (id) => 
+        {
+            const receiverUser = await findUserByID(id);
+            return receiverUser ? receiverUser._name : null;
+        })).then(names => names.filter(Boolean));
+        const notifID = new ObjectId().toString();
+        console.log(notifID);
+        const sendDate = new Date();
+        const message = `A new event has been created (ID: ${eventID})`;
+        for (username of receiverNames)
+        {
+            if (username !== user._name) await addNotificationToUser(username, notifID, "EVENT_CREATE", message, user._name, sendDate);
+        }
+        await addNotificationToTeam(teamData._id, notifID, "EVENT_CREATE", message, user._name, receiverNames, "viewer", sendDate);
+        res.status(200).send({ result: 'OK', message: "Notification added successfully" });
+    }
+    catch (error)
+    {
+        console.error("Error processing notificationCreateEvent:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+
+router.post('/notificationDeleteEvent', async (req, res) => 
+{
+    try
+    {
+        console.log("started function here");
+        const { teamCode, userID, receivers, eventID } = req.body;
+        if (!teamCode || !userID || !receivers || receivers.length === 0 || !eventID) 
+        {
+            return res.status(400).send({ result: 'FAIL', message: "Missing required information" });
+        }
+        const teamData = await getTeamData(teamCode);
+        if (!teamData) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        const user = await findUserByID(userID);
+        if (!user) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "User not found" });
+        }
+        const receiverNames = await Promise.all(receivers.map(async (id) => 
+        {
+            const receiverUser = await findUserByID(id);
+            return receiverUser ? receiverUser._name : null;
+        })).then(names => names.filter(Boolean));
+        const notifID = new ObjectId().toString();
+        const sendDate = new Date();
+        const message = `An event has been deleted (ID: ${eventID})`;
+        for (const username of receiverNames) 
+        {
+            if (username !== user._name) 
+            {
+                await addNotificationToUser(username, notifID, "EVENT_DELETE", message, user._name, sendDate);
+            }
+        }
+        await addNotificationToTeam(teamData._id, notifID, "EVENT_DELETE", message, user._name, receiverNames, "viewer", sendDate);
+        res.status(200).send({ result: 'OK', message: "Notification sent successfully" });
+    } 
+    catch (error) 
+    {
+        console.error("Error processing notificationDeleteEvent:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
 
 
 async function addTeam(teamData) 
@@ -980,7 +1102,6 @@ async function notifyTeamUpdate(team)
 async function notifyTeamEventUpdate(teamEvent)
 {
     const usersToUpdate = teamEvent._users;
-    console.log("test 1");
     let userID;
     for (i in usersToUpdate)
     {
@@ -1003,7 +1124,7 @@ router.post('/getUserNotifications', async (req, res) =>
     try 
     {
         const user = await findUserByID(userID);
-        if (user && user._notifications) 
+        if (user && user._notifications)
         {
             // Convert the _notifications object to an array. I really hate this but it is what it is
             const notificationsArray = Object.entries(user._notifications).map(([id, notification]) => 
@@ -1061,7 +1182,6 @@ router.post('/handleTeamInvite', async (req, res) =>
         await teamsCollection.updateOne({ _id: team._id }, { $set: { _users: team._users, _usersQueued: team._usersQueued } });
         const notificationRemovalQuery = { $unset: { [`_notifications.${notificationID}`]: "" } };
         await usersCollection.updateOne({ _id: user._id }, notificationRemovalQuery);
-        await teamsCollection.updateOne({ _id: team._id }, notificationRemovalQuery);
         await notifyTeamUpdate(team);
         res.send({ result: 'OK', message: `Team invite ${action}ed` });
     } 
@@ -1220,7 +1340,7 @@ router.post('/deleteTeamEvent', async (req, res) =>
     }
     try 
     {
-        const eventDetails = await findEventDetails(eventID);
+        const eventDetails = await findTeamEventDetails(eventID);
         if (!eventDetails) 
         {
             res.send({ result: 'ERROR', message: "Event not found" });
@@ -1236,6 +1356,24 @@ router.post('/deleteTeamEvent', async (req, res) =>
     }
 });
 
+async function findTeamEventDetails(eventID) 
+{
+    try 
+    {
+        const calendar = dbclient.db("calendarApp");
+        const eventList = calendar.collection("teamEvents");
+        const eventObjectID = new ObjectId(eventID);
+        const query = { _id: eventObjectID };
+        const event = await eventList.findOne(query);
+        return event;
+    }
+    catch (error) 
+    {
+        console.error("Error finding event: ", error);
+        return null;
+    }
+}
+
 async function deleteTeamEvent(eventID) 
 {
     try 
@@ -1243,9 +1381,9 @@ async function deleteTeamEvent(eventID)
         const calendarDB = dbclient.db("calendarApp");
         const eventsCollection = calendarDB.collection("teamEvents");
         const eventObjectID = new ObjectId(eventID);
+        let teamEvent = await findTeamEventDetails(eventID);
         await eventsCollection.deleteOne({ _id: eventObjectID });
-        findEventDetails(eventID);
-        notifyTeamEventUpdate(teamEvent);
+        await notifyTeamEventUpdate(teamEvent);
     } 
     catch (error)
     {
@@ -1324,6 +1462,32 @@ async function getTeamData(teamCode)
         return null;
     }
 }
+
+router.post('/findTeamWithNotifID', async (req, res) => 
+{
+    try 
+    {
+        const { notifID } = req.body;
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        const query = { [`_notifications.${notifID}`]: { $exists: true } };
+        const team = await teamsCollection.findOne(query);
+        if (team) 
+        {
+            res.send({ result: 'OK', team: team });
+        } 
+        else 
+        {
+            res.status(404).send({ result: 'FAIL', message: 'Team not found with the provided event ID' });
+        }
+    } 
+    catch (error) 
+    {
+        console.error('Error finding team with eventID:', error);
+        res.status(500).send({ result: 'ERROR', message: 'An error occurred while searching for the team' });
+    }
+});
+
 
 // #region Websockets and server
 

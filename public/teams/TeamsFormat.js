@@ -23,7 +23,7 @@ const Roles =
     OWNER: 'owner'
 };
 var userID = localStorage.getItem('userID');
-
+let modalState = 'add';
 const teamHeight = 180;
 
 document.addEventListener('DOMContentLoaded', function() 
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function()
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.50.42:8080');
+    ws = new WebSocket('ws://192.168.73.235:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
@@ -87,20 +87,89 @@ function teamsCreateStart()
     // Add People button inside modal
     document.getElementById('addPeople').onclick = function() 
     {
-        // Show the Add People modal
+        modalState = 'add';
+        configureAddPeopleModal();
         document.getElementById('addPeopleModal').style.display = 'block';
     };
-    document.getElementById('closeAddPeopleModal').onclick = function() 
+    document.getElementById('removePeople').onclick = function() 
     {
-        document.getElementById('addPeopleModal').style.display = 'none';
+        modalState = 'remove';
+        configureAddPeopleModal();
+        document.getElementById('addPeopleModal').style.display = 'block';
+    };
+    document.getElementById('closeAddPeopleModal').onclick = function()
+    {
         resetAddPeopleModal();
-    };    
+        document.getElementById('addPeopleModal').style.display = 'none';
+    }
     form.onsubmit = handleTeamCreation;
+}
+
+function configureAddPeopleModal() 
+{
+    const submitButton = document.getElementById('submitUsername');
+    const removeButton = document.getElementById('removeUsername');
+    const userRoles = document.getElementById('userRole');
+    const userRolesLabel = document.getElementById('userRoleLabel');
+    const modalHeader = document.getElementById('addPeopleModal').querySelector('h2');
+    if (modalState === 'add') 
+    {
+        modalHeader.textContent = 'Add People';
+        submitButton.style.display = 'block';
+        removeButton.style.display = 'none';
+        submitButton.textContent = 'Add';
+        userRoles.style.display = 'block';
+        userRolesLabel.style.display = 'block';
+        resetAddPeopleModal();
+    } 
+    else 
+    {
+        modalHeader.textContent = 'Remove People';
+        submitButton.style.display = 'none';
+        removeButton.style.display = 'block';
+        removeButton.textContent = 'Remove';
+        userRoles.style.display = 'none';
+        userRolesLabel.style.display = 'none';
+        resetAddPeopleModal();
+    }
+}
+
+document.getElementById('removeUsername').onclick = handleRemovePerson;
+
+function handleRemovePerson() 
+{
+    var username = document.getElementById('usernameToAdd').value;
+    sendRequest('/findUserName', { userID : userID })
+    .then(response =>
+    {
+        if (response.result === "OK")
+        {
+            if (response.username === username)
+            {
+                document.getElementById('addPeopleError').textContent = 'User cannot be yourself.';
+                return;
+            }
+            if (username && addedPeople[username])
+            {
+                delete addedPeople[username];
+                updateAddedPeopleList();
+                document.getElementById('addPeopleModal').style.display = 'none';    
+            }
+            else
+            {
+                document.getElementById('addPeopleError').textContent = 'User not found.';
+            }
+        }
+    })
+    .catch(error => 
+    {
+        console.error('Error fetching user:', error);
+    });
 }
 
 function showUserList(event) 
 {
-    var descriptionModal= document.getElementById('descriptionModal');
+    var descriptionModal= document.getElementById('descriptionModal');R
     descriptionModal.style.display = 'none';
     var modal = document.getElementById('userListModal');
     var closeButton = document.querySelector('#userListModal .close');
@@ -196,7 +265,6 @@ function showTeamDescription(event)
     };
 }
 
-
 document.getElementById('submitUsername').onclick = async function() 
 {
     var username = document.getElementById('usernameToAdd').value;
@@ -237,7 +305,7 @@ document.getElementById('submitUsername').onclick = async function()
     }
 };
 
-function updateAddedPeopleList() 
+function updateAddedPeopleList()
 {
     const addedPeopleList = document.getElementById('addedPeopleList');
     addedPeopleList.innerHTML = '';
@@ -260,16 +328,13 @@ function resetAddPeopleModal()
 function handleTeamCreation(event) 
 {
     event.preventDefault();
-    // Collect form data
     var teamName = document.getElementById('teamName').value;
     var teamDescription = document.getElementById('teamDescription').value;
     var autoJoin = document.getElementById('autoJoin').value === 'true';
     var joinPerms = document.getElementById('joinPerms').value;
-    // Close the modal upon submission
     var modal = document.getElementById('createTeamModal');
     var team;
     modal.style.display = 'none';
-    // Assuming teamCreatorID is available in the scope
     sendRequest('/findUserName', { userID: userID })
     .then(response => 
     {
@@ -364,8 +429,6 @@ function updateJoinTeamMessage(message, color)
     messageElement.style.color = color
 }
 
-
-
 /**
  * Start the process to join a team, with a modal to enter the team code
  * @returns {void} - but opens a modal to join a team
@@ -444,7 +507,7 @@ function renderNotifications(notifications)
         {
             event.stopPropagation(); //Stop it from popping up the notif
             deleteNotification(notification.id, notificationDiv);
-        };        
+        };
         notificationDiv.appendChild(deleteButton);
         // Set the click event for the entire notification div
         notificationDiv.onclick = () => openNotificationModal(notification, notificationDiv);
@@ -474,8 +537,6 @@ function deleteNotification(notificationId, notificationDiv)
     });
 }
 
-
-
 function openNotificationModal(notification, notificationDiv) 
 {
     const modal = document.getElementById('notificationInteractionModal');
@@ -490,8 +551,46 @@ function openNotificationModal(notification, notificationDiv)
         actionsElement.appendChild(acceptButton);
         actionsElement.appendChild(rejectButton);
     }
+    else if (notification.type === "EVENT_CREATE") 
+    {
+        const dismissButton = createActionButton('Dismiss', () => 
+        {
+            closeNotificationModal();
+            deleteNotification(notification.id, notificationDiv);
+        });
+        const goToTeamButton = createActionButton('Go To Team', () => goToTeamPage(notification.id));
+        actionsElement.appendChild(dismissButton);
+        actionsElement.appendChild(goToTeamButton);
+    }
+    else if (notification.type === "EVENT_DELETE")
+    {
+        const dismissButton = createActionButton('Dismiss', () => 
+        {
+            closeNotificationModal();
+            deleteNotification(notification.id, notificationDiv);
+        });
+        const goToTeamButton = createActionButton('Go To Team', () => goToTeamPage(notification.id));
+        actionsElement.appendChild(dismissButton);
+        actionsElement.appendChild(goToTeamButton);
+    }
     modal.style.display = 'block';
 }
+
+function goToTeamPage(notifID) 
+{
+    // Fetch team data using eventID, then navigate to the team's homepage
+    sendRequest('/findTeamWithNotifID', { notifID: notifID })
+    .then(response => 
+    {
+        if (response.result === 'OK' && response.team) 
+        {
+            window.location.href = `teamPage/TeamPage.html`;
+            localStorage.setItem("joinCode", response.team._joinCode);    
+        }
+    })
+    .catch(error => console.error('Error finding team with eventID:', error));
+}
+
 function createActionButton(text, onClick) 
 {
     const button = document.createElement('button');

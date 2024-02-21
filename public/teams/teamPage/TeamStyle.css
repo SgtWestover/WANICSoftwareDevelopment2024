@@ -134,6 +134,8 @@ header /* Document header*/
 .team-upcomingEvents-content-container-content
 {
   position: absolute;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .team-upcomingEvents-content-container-name
@@ -166,6 +168,7 @@ header /* Document header*/
   left: 83%;
   width: 15%;
   height: 36%;
+  border-bottom: #2b2e30;
 }
 
 .team-upcomingEvents-content-container-endTime
