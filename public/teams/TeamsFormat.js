@@ -17,10 +17,10 @@ var addedPeople = {};
 let teamsList;
 const Roles = 
 {
-    VIEWER: 'viewer',
-    USER: 'user',
-    ADMIN: 'admin',
-    OWNER: 'owner'
+    VIEWER: 'Viewer',
+    USER: 'User',
+    ADMIN: 'Admin',
+    OWNER: 'Owner'
 };
 var userID = localStorage.getItem('userID');
 let modalState = 'add';
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function()
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.73.235:8080');
+    ws = new WebSocket('ws://192.168.50.42:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
@@ -322,7 +322,7 @@ function resetAddPeopleModal()
     document.getElementById('usernameToAdd').value = '';
     // Clear any previous error message
     document.getElementById('addPeopleError').textContent = '';
-    document.getElementById('userRole').value = 'viewer';
+    document.getElementById('userRole').value = 'Viewer';
 }
 
 function handleTeamCreation(event) 
@@ -820,4 +820,3 @@ async function sendRequest(endpoint, data)
     }
     return await response.json();
 }
-

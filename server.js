@@ -346,12 +346,12 @@ async function deleteUserTeams(username)
             else
             {
                 // If user is the owner, transfer ownership
-                if (team._users[username] === "owner")
+                if (team._users[username] === "Owner")
                 {
                     const newOwner = findNewOwner(team._users);
                     if (newOwner)
                     {
-                        team._users[newOwner] = "owner";
+                        team._users[newOwner] = "Owner";
                     }
                 }
                 // Remove user from _users
@@ -373,7 +373,7 @@ async function deleteUserTeams(username)
 // Finds the new owner based on role priority and also implicitly join order
 function findNewOwner(users)
 {
-    const rolesPriority = ["admin", "user", "viewer"];
+    const rolesPriority = ["Owner", "Admin", "User", "Viewer"];
     for (const role of rolesPriority)
     {
         for (const [username, userRole] of Object.entries(users))
@@ -522,6 +522,32 @@ async function findEventDetails(eventID)
         return null;
     }
 }
+
+router.post('/findTeamEventByID', async (req, res) => 
+{
+    const { teamEventID } = req.body;
+    if (!teamEventID) 
+    {
+        return res.status(400).send({ message: "Missing teamEventID in request" });
+    }
+    try 
+    {
+        const event = await findTeamEventDetails(teamEventID);
+        if (event) 
+        {
+            res.status(200).send({ result: 'OK', event });
+        } 
+        else 
+        {
+            res.status(404).send({ result: 'FAIL', message: "Event not found" });
+        }
+    } 
+    catch (error) 
+    {
+        console.error("Error in finding team events: ", error);
+        res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
+    }
+});
 
 async function findTeamEventDetails(eventID) 
 {
@@ -725,7 +751,7 @@ router.post('/createTeam', async (req, res) =>
         let users = {};
         let usersQueued = {};
         const currentDate = new Date();
-        const ownerUsername = Object.keys(req.body._usersQueued).find(username => req.body._usersQueued[username].role === 'owner');
+        const ownerUsername = Object.keys(req.body._usersQueued).find(username => req.body._usersQueued[username].role === 'Owner');
         let notificationIDs = {}; // Store notification IDs for each user added
         for (const [username, info] of Object.entries(req.body._usersQueued)) 
         {
@@ -738,7 +764,7 @@ router.post('/createTeam', async (req, res) =>
                 usersQueued[username] = { role: info.role, status: info.status };
                 const notifID = new ObjectId().toString();
                 const message = `${ownerUsername} invited you to join their team ${req.body._name} as a ${info.role}`;
-                await addNotificationToUser(username, notifID, "TEAM_INVITE", message, ownerUsername, currentDate);
+                await addNotificationToUser(username, notifID, "TEAM_INVITE", message, ownerUsername, currentDate, null);
                 notificationIDs[username] = notifID; // Store the notification ID
             }
         }
@@ -749,7 +775,7 @@ router.post('/createTeam', async (req, res) =>
             for (const [username, notifID] of Object.entries(notificationIDs)) 
             {
                 const message = `${ownerUsername} invited you to join their team ${req.body._name}`;
-                await addNotificationToTeam(result.insertedId, notifID, "TEAM_INVITE", message, ownerUsername, username, "admin", currentDate);
+                await addNotificationToTeam(result.insertedId, notifID, "TEAM_INVITE", message, ownerUsername, username, "Admin", currentDate, null);
             }
             await notifyTeamUpdate(newTeam);
             res.status(201).send({ result: 'OK', message: "Team Created", teamID: result.insertedId, teamJoinCode: teamJoinCode });
@@ -773,20 +799,20 @@ async function addTeam(teamData)
     return await teamsCollection.insertOne(teamData);
 }
 
-async function addNotificationToUser(username, notifID, type, message, sender, sendDate) 
+async function addNotificationToUser(username, notifID, type, message, sender, sendDate, misc)
 {
     const calendarDB = dbclient.db("calendarApp");
     const usersCollection = calendarDB.collection("users");
-    const notification = { type, message, sender, sendDate };
+    const notification = { type, message, sender, sendDate, misc };
     const updateQuery = { $set: { [`_notifications.${notifID}`]: notification } };
     await usersCollection.updateOne({ _name: username }, updateQuery);
 }
 
-async function addNotificationToTeam(teamID, notifID, type, message, sender, receiver, viewable, sendDate) 
+async function addNotificationToTeam(teamID, notifID, type, message, sender, receiver, viewable, sendDate, misc)
 {
     const calendarDB = dbclient.db("calendarApp");
     const teamsCollection = calendarDB.collection("teams");
-    const notification = { type, message, sender, receiver, viewable, sendDate };
+    const notification = { type, message, sender, receiver, viewable, sendDate, misc };
     const updateQuery = { $set: { [`_notifications.${notifID}`]: notification } };
     await teamsCollection.updateOne({ _id: new ObjectId(teamID) }, updateQuery);
 }
@@ -795,8 +821,8 @@ router.post('/notificationEditEvent', async (req, res) =>
 {
     try
     {
-        const { teamCode, userID, receivers, eventID } = req.body;
-        if (!teamCode || !userID || !receivers || receivers.length === 0 || !eventID)
+        const { teamCode, userID, receivers, eventID, prevEvent } = req.body;
+        if (!teamCode || !userID || !receivers || receivers.length === 0 || !eventID || !prevEvent)
         {
             return res.status(400).send({ result: 'FAIL', message: "Missing required information" });
         }
@@ -818,7 +844,8 @@ router.post('/notificationEditEvent', async (req, res) =>
         const notifID = new ObjectId().toString();
         const sendDate = new Date();
         const message = `Event details have been edited (ID: ${eventID})`;
-        await addNotificationToTeam(teamData._id, notifID, message, user._name, receiverNames, "viewer", sendDate);
+        const notifExtras = { prevEvent : prevEvent };
+        await addNotificationToTeam(teamData._id, notifID, message, user._name, receiverNames, "Viewer", sendDate, notifExtras);
         res.status(200).send({ result: 'OK', message: "Notification added successfully" });
     }
     catch (error)
@@ -858,9 +885,9 @@ router.post('/notificationCreateEvent', async (req, res) =>
         const message = `A new event has been created (ID: ${eventID})`;
         for (username of receiverNames)
         {
-            if (username !== user._name) await addNotificationToUser(username, notifID, "EVENT_CREATE", message, user._name, sendDate);
+            if (username !== user._name) await addNotificationToUser(username, notifID, "EVENT_CREATE", message, user._name, sendDate, null);
         }
-        await addNotificationToTeam(teamData._id, notifID, "EVENT_CREATE", message, user._name, receiverNames, "viewer", sendDate);
+        await addNotificationToTeam(teamData._id, notifID, "EVENT_CREATE", message, user._name, receiverNames, "Viewer", sendDate, null);
         res.status(200).send({ result: 'OK', message: "Notification added successfully" });
     }
     catch (error)
@@ -875,8 +902,8 @@ router.post('/notificationDeleteEvent', async (req, res) =>
     try
     {
         console.log("started function here");
-        const { teamCode, userID, receivers, eventID } = req.body;
-        if (!teamCode || !userID || !receivers || receivers.length === 0 || !eventID) 
+        const { teamCode, userID, receivers, eventID, deletedEvent } = req.body;
+        if (!teamCode || !userID || !receivers || receivers.length === 0 || !eventID || !deletedEvent) 
         {
             return res.status(400).send({ result: 'FAIL', message: "Missing required information" });
         }
@@ -895,6 +922,7 @@ router.post('/notificationDeleteEvent', async (req, res) =>
             const receiverUser = await findUserByID(id);
             return receiverUser ? receiverUser._name : null;
         })).then(names => names.filter(Boolean));
+        const notifExtras = { deletedEvent : deletedEvent};
         const notifID = new ObjectId().toString();
         const sendDate = new Date();
         const message = `An event has been deleted (ID: ${eventID})`;
@@ -902,10 +930,10 @@ router.post('/notificationDeleteEvent', async (req, res) =>
         {
             if (username !== user._name) 
             {
-                await addNotificationToUser(username, notifID, "EVENT_DELETE", message, user._name, sendDate);
+                await addNotificationToUser(username, notifID, "EVENT_DELETE", message, user._name, sendDate, notifExtras);
             }
         }
-        await addNotificationToTeam(teamData._id, notifID, "EVENT_DELETE", message, user._name, receiverNames, "viewer", sendDate);
+        await addNotificationToTeam(teamData._id, notifID, "EVENT_DELETE", message, user._name, receiverNames, "Viewer", sendDate, notifExtras);
         res.status(200).send({ result: 'OK', message: "Notification sent successfully" });
     } 
     catch (error) 
@@ -1172,7 +1200,7 @@ router.post('/handleTeamInvite', async (req, res) =>
         {
             team._users[user._name] = team._usersQueued[user._name].role;
             let newNotifID = new ObjectId().toString();
-            await addNotificationToTeam(team._id, newNotifID, "TEAM_JOIN", `${user._name} joined the team`, user._name, null, "viewer", new Date());
+            await addNotificationToTeam(team._id, newNotifID, "TEAM_JOIN", `${user._name} joined the team`, user._name, null, "Viewer", new Date(), null);
             delete team._usersQueued[user._name];
         } 
         else if (action === 'reject') 
@@ -1347,7 +1375,7 @@ router.post('/deleteTeamEvent', async (req, res) =>
             return;
         }
         await deleteTeamEvent(eventID);
-        res.send({ result: 'OK', message: "Event deleted successfully" });
+        res.send({ result: 'OK', deletedEvent: eventDetails, message: "Event deleted successfully" });
     } 
     catch (error) 
     {
@@ -1416,6 +1444,32 @@ async function findTeamEventsByUserID(userID)
     return userEvents;
 }
 
+router.post('/getTeamNotifications', async (req, res) => 
+{
+    const { teamCode } = req.body;
+    if (!teamCode) 
+    {
+        return res.status(400).send({ message: "Missing teamCode in request" });
+    }
+    try 
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        const team = await teamsCollection.findOne({ _joinCode: teamCode });
+        if (!team) 
+        {
+            return res.status(404).send({ message: "Team not found" });
+        }
+        const notifications = team._notifications || {};
+        res.status(200).send({ notifications : notifications });
+    } 
+    catch (error) 
+    {
+        console.error("Error getting team notifications:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+
 router.post('/getTeamEvents', async (req, res) => 
 {
     try
@@ -1437,13 +1491,102 @@ router.post('/getTeamEvents', async (req, res) =>
     }
 });
 
-
-router.post('removeUserFromTeam', async (req, res) =>
+router.post('/inviteUser', async (req, res) =>
 {
+    try
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        const { teamCode, userID, receiver, role, status } = req.body;
+        if (!teamCode || !userID || !receiver || !role || !status)
+        {
+            return res.status(400).send({ result: 'FAIL', message: "Missing required information" });
+        }
+        const teamData = await getTeamData(teamCode);
+        if (!teamData)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        const user = await findUserByID(userID);
+        if (!user)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "User not found" });
+        }
+        const receiverUser = await findUser(receiver);
+        if (!receiverUser)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Receiver not found" });
+        }
+        const notifID = new ObjectId().toString();
+        const sendDate = new Date();
 
-});
+        const message = `${user._name} invited you to join their team ${teamData._name} as a ${role}`;
+        teamsCollection.updateOne({ _id: teamData._id }, { $set: { [`_usersQueued.${receiver}`]: { role, status: "INVITE" } } })
+        await addNotificationToUser(receiver, notifID, "TEAM_INVITE", message, user._name, sendDate, null);
+        await addNotificationToTeam(teamData._id, notifID, "TEAM_INVITE", message, user._name, receiver, "Admin", sendDate, null);
+        res.status(200).send({ result: 'OK', message: "Invitation sent successfully" });
+    }
+    catch (error)
+    {
+        console.error("Error processing team invite:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+})
+
 
 //#endregion teams
+
+router.post('/leaveTeam', async (req, res) => 
+{
+    try 
+    {
+        const { userID, teamCode } = req.body;
+        if (!userID || !teamCode) 
+        {
+            return res.status(400).send({ result: 'FAIL', message: "Missing userID or teamCode" });
+        }
+        const user = await findUserByID(userID);
+        if (!user) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "User not found" });
+        }
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        const team = await teamsCollection.findOne({ _joinCode: teamCode });
+        if (!team) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        if (!team._users[user._name]) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "User not part of the team" });
+        }
+        delete team._users[user._name];
+        if (Object.keys(team._users).length === 0)
+        {
+            await teamsCollection.deleteOne({ _id: team._id });
+        }
+        else
+        {
+            let newOwner = findNewOwner(team._users)
+            if (newOwner)
+            {
+                team._users[newOwner] = "Owner";
+            }
+            else
+            {
+                return res.status(206).send({ result: 'OK', message: "No New Owner Found" });
+            }
+            await teamsCollection.updateOne({ _joinCode: teamCode }, { $set: { _users: team._users }});
+        }
+        res.status(200).send({ result: 'OK', message: "User removed from team successfully" });
+    } 
+    catch (error) 
+    {
+        console.error("Error leaving team:", error);
+        res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
+    }
+});
 
 
 async function getTeamData(teamCode) 
@@ -1488,6 +1631,40 @@ router.post('/findTeamWithNotifID', async (req, res) =>
     }
 });
 
+router.post('/deleteTeam', async (req, res) => 
+{
+    try 
+    {
+        const { teamCode, userID } = req.body;
+        if (!teamCode || !userID)
+        {
+            res.status(404).send({ result: 'FAIL', message: 'Team code or userID not' });
+        }
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        const usersCollection = calendarDB.collection("users");
+        const team = await teamsCollection.findOne({ _joinCode: teamCode });
+        if (!team) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        await teamsCollection.deleteOne({ _joinCode: teamCode });
+        const notifID = new ObjectId().toString();
+        const sendDate = new Date();
+        const senderUser = await findUserByID(userID);
+        const message = `${senderUser._name} deleted the team ${team._name}`;
+        await Promise.all(Object.keys(team._users).map(async (username) => 
+        {
+            await addNotificationToUser(username, notifID, "TEAM_DELETE", message, senderUser._name, sendDate, null);
+        }));
+        res.status(200).send({ result: 'OK', message: "Team deleted successfully and notifications sent" });
+    } 
+    catch (error) 
+    {
+        console.error("Error deleting team:", error);
+        res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
+    }
+});
 
 // #region Websockets and server
 

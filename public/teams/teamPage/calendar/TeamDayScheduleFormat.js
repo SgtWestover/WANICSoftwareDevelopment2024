@@ -30,10 +30,10 @@ var dayContainer;
 var teamData = JSON.parse(localStorage.getItem("teamData"));
 const roleLevels = 
 {
-    'viewer': 1, 
-    'user': 2,
-    'admin': 3,
-    'owner': 4
+    'Viewer': 1, 
+    'User': 2,
+    'Admin': 3,
+    'Owner': 4
 };
 
 //#region Popup initialization
@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function()
 {
     (async () => 
     {
-        userRole = getCurrentUserRole();
+        userRole = await getCurrentUserRole();
         if (userRole != null) localStorage.setItem("userRole", userRole);
     })();
     //upon loading, initialize the events
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function()
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.73.235:8080');
+    ws = new WebSocket('ws://192.168.50.42:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
@@ -426,6 +426,10 @@ function dayContainerClick(event)
             {
                 document.getElementById('eventPopup').style.display = 'block';
             }
+        } 
+        else 
+        {
+            console.error("GET USER ERROR");
         }
     });
 
@@ -505,12 +509,14 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     const finalizeEventCreationOrUpdate = (newEventID) => 
     {
         const notificationType = isEditing ? '/notificationEditEvent' : '/notificationCreateEvent';
+        const prevEvent = isEditing ? JSON.parse(eventForm.getAttribute('data-original-event')) : null
         const notifResult = sendRequest(notificationType, 
         {    
             teamCode: teamData._joinCode, 
             userID: userIDString, 
             receivers: eventUsers, 
-            eventID: newEventID
+            eventID: newEventID,
+            prevEvent : prevEvent
         });
         while (addedUsersDiv.firstChild) 
         {
@@ -555,6 +561,7 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
             displayErrorMessage("Duplicate event data");
             return;
         }
+        //TODO: Make it so that only added users, or those with one level higher than the access permission, can delete the event.
         // Proceed with event update if no errors have been detected so far
         deleteEvent(eventID).then(() => 
         {
@@ -823,7 +830,7 @@ function populateEventForm(eventID, calendarEvent, eventElement)
         e.preventDefault();
         deleteEvent(eventID).then(response =>
         {
-            if (response === "OK")
+            if (response.result === "OK")
             {
                 console.log("event deleted");
                 sendRequest("/notificationDeleteEvent", 
@@ -831,7 +838,8 @@ function populateEventForm(eventID, calendarEvent, eventElement)
                     teamCode : teamData._joinCode, 
                     userID: localStorage.getItem("userID"), 
                     receivers: calendarEvent._users, 
-                    eventID: eventID
+                    eventID: eventID,
+                    deletedEvent : response.deletedEvent
                 });
             }
         }) 
@@ -856,7 +864,8 @@ function deleteEvent(eventID)
         {
             // Find and remove the event element with the matching eventID
             const eventElements = document.querySelectorAll('.schedule-event');
-            eventElements.forEach(element => {
+            eventElements.forEach(element => 
+            {
                 if (element.getAttribute('data-event-id') === eventID) 
                 {
                     element.remove();
@@ -865,7 +874,7 @@ function deleteEvent(eventID)
             // After deleting events, update the local side variable and close the event form as well
             initializeEvents();
             closeEventForm();
-            return "OK";  // Return the string "OK" to indicate success
+            return { result : "OK", deletedEvent : response.deletedEvent };  // Return the string "OK" to indicate success
         } 
         else 
         {
@@ -1202,25 +1211,6 @@ async function sendRequest(endpoint, data)
 
 //#endregion Events server communication
 
-async function getCurrentUserRole() 
-{
-    const userID = localStorage.getItem('userID');
-    const response = await sendRequest('/getUser', { userID: userID });
-    if (response.result === "OK") 
-    {
-        const userRole = teamData._users[response.user._name];
-        document.getElementById('currentUserRoleDisplay').textContent = `Your Role: ${userRole}`;
-        adjustFormOptionsRole(userRole);
-        return userRole;
-    } 
-    else 
-    {
-        // Handle error or invalid response
-        console.error('Failed to retrieve user role');
-        return null;
-    }
-}
-
 function adjustFormOptionsRole(userRole)
 {
     const permissionsSelect = document.getElementById('eventPermissions');
@@ -1351,6 +1341,25 @@ function displayUserManagementError(message)
 function resetUserManagementError()
 {
     document.getElementById('manageUsersErrorMessage').textContent = '';
+}
+
+async function getCurrentUserRole() 
+{
+    const userID = localStorage.getItem('userID');
+    const response = await sendRequest('/getUser', { userID: userID });
+    if (response.result === "OK") 
+    {
+        const userRole = teamData._users[response.user._name];
+        document.getElementById('currentUserRoleDisplay').textContent = `Your Role: ${userRole}`;
+        adjustFormOptionsRole(userRole);
+        return userRole;
+    } 
+    else 
+    {
+        // Handle error or invalid response
+        console.error('Failed to retrieve user role');
+        return null;
+    }
 }
 
 function handleWebSocketMessage(data) 

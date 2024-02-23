@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function ()
 {
     if (window.location.hash === '#popup1') //if the user is in the popup upon reload, force them back to index.html
     {
-        window.location.href = 'index.ejs';
+        window.location.href = 'index.html';
         return;
     }
     addNavigationEventListeners(); //add the previous and next month button functionalities

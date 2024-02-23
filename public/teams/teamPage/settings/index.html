@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--title and external dependencies and stylesheet-->
+  <title>Team Settings</title>
+  <link rel="stylesheet" href="TeamSettingsStyle.css"> 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+    <h1>
+      <!-- Month and year headers at the top, doubling as dropdown menus-->
+      <div id="invite-people" onclick="invitePeopleStart()">Invite People</div>
+      <div id="team-leave" onclick="teamLeaveStart()">Leave Team</div>
+    </h1>
+  </header>
+  <div class="sidebar">
+    <a href="../TeamPage.html">Home</a>
+    <a href="../calendar/">Calendar</a>
+    <a href="../chat/">Chat</a>
+    <a class="active" href="#home">Settings</a>
+  </div>
+  <div id="addPeopleModal" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+        <span class="close" id="closeAddPeopleModal">&times;</span>
+        <h2>Add People</h2>
+        <input type="text" id="usernameToAdd" placeholder="Enter username" class="button">
+        <label for="userRole" id="userRoleLabel">Role:</label>       
+        <select id="userRole" class="button">
+        </select>
+        <button type="button" id="submitUsername" class="button">Add</button>
+        <p id="addPeopleError" style="color: red;"></p> <!-- Error message display -->
+    </div>
+  </div>
+  <div id="teamLeaveModal" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+        <span class="close" id="closeTeamLeaveModal">&times;</span>
+        <h2>Leave Team</h2>
+        <p>Are you sure you want to leave the team?</p>
+        <button type="button" id="leaveTeam" class="button">Leave</button>
+        <p id="leaveTeamError" style="color: red;"></p> <!-- Error message display -->
+    </div>
+  </div>
+  <div id="deleteTeamModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeDeleteTeamModal">&times;</span>
+        <h2>Delete Team</h2>
+        <p>Enter your password to proceed with deletion:</p>
+        <input type="password" id="passwordForDeletion" placeholder="Enter your password" class="button">
+        <button type="button" id="verifyPassword" class="button">Verify Password</button> 
+        <div id="teamConfirmSection" style="display:none;">
+            <div id="teamConfirmText">Are you sure you want to delete the team?</div>
+            <button type="button" id="confirmDeleteTeam" class="button">Delete Team</button>
+        </div>
+        <p id="deleteTeamError" style="color: red;"></p>
+    </div>
+  </div>
+  <script src="/scripts/CalendarClasses.js"></script>
+  <script src="TeamSettings.js"></script>
+</body>
+</html>

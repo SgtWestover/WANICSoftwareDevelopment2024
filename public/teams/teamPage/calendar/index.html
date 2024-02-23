@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!--title and external dependencies and stylesheet-->
-  <title>Calendar</title>
+  <title>Team Calendar</title>
   <link rel="stylesheet" href="TeamCalendarStyle.css"> 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
@@ -76,18 +76,18 @@
       <!-- Permissions dropdown -->
       <label for="eventPermissions">Permissions:</label><br>
       <select id="eventPermissions" name="eventPermissions" required>
-        <option value="user">User</option>
-        <option value="admin">Admin</option>
-        <option value="owner">Owner</option>
+        <option value="User">User</option>
+        <option value="Admin">Admin</option>
+        <option value="Owner">Owner</option>
       </select><br>
       <!-- Viewable dropdown -->
       <label for="eventViewable">Viewable By:</label><br>
       <select id="eventViewable" name="eventViewable" required>
         <!-- Need to check the user notification and if its sent or not-->
-        <option value="viewer">Viewer</option>
-        <option value="user">User</option>
-        <option value="admin">Admin</option>
-        <option value="owner">Owner</option>
+        <option value="Viewer">Viewer</option>
+        <option value="User">User</option>
+        <option value="Admin">Admin</option>
+        <option value="Owner">Owner</option>
       </select><br>
       <input type="submit" id="submitEventButton" value="Create Event">
       <div id="errorMessage" style="color: red; display: none;"></div> <!-- Error message element -->

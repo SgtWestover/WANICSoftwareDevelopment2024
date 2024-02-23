@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', function()
         renderDescription();
         renderUserList();
         renderUpcomingEvents();
+        //renderNotifications("a")
+        userRole = await getCurrentUserRole();
+        if (userRole != null) localStorage.setItem("userRole", userRole);
     })();
 });
 
@@ -79,26 +82,39 @@ function renderUserList()
         userElement.innerHTML = `${username} - ${role}`;
         switch (role) 
         {
-            case "owner":
+            case "Owner":
                 var container = document.getElementById("ownerContainer");
                 container.appendChild(userElement);
                 break;
-            case "admin":
+            case "Admin":
                 var container = document.getElementById("adminContainer");
                 container.appendChild(userElement);
                 break;
-            case "user":
+            case "User":
                 var container = document.getElementById("userContainer");
                 container.appendChild(userElement);
                 break;
-            case "viewer":
+            case "Viewer":
                 var container = document.getElementById("viewerContainer");
                 container.appendChild(userElement);
                 break;
             default:
-                console.logError("User role: " + role + " is not correct");
+                console.error("User role: " + role + " is not correct");
                 break;
         }
+    }
+
+    if(document.getElementById("adminContainer").childElementCount === 0)
+    {
+        document.getElementById("adminContainer").remove();
+    }
+    if(document.getElementById("userContainer").childElementCount === 0)
+    {
+        document.getElementById("userContainer").remove();
+    }
+    if(document.getElementById("viewerContainer").childElementCount === 0)
+    {
+        document.getElementById("viewerContainer").remove();
     }
 }
 
@@ -111,7 +127,6 @@ function renderUpcomingEvents()
         if (response.result === "OK")
         {
             teamEvents = response.teamEvents;
-            console.log([...teamEvents]);
             teamEvents.sort((a,b)=>Date.parse(a._startDate) - Date.parse(b._startDate));
             for (let i = 0; i < teamEvents.length; i++) 
             {
@@ -162,15 +177,126 @@ function createUpcomingEventElement(event)
 
     let startTime = document.createElement("div");
     startTime.classList.add("team-upcomingEvents-content-container-startTime", "team-upcomingEvents-content-container-content");
-    startTime.innerHTML = new Date(event._startDate).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
+    startTime.innerHTML = "Start Time: ".bold() + new Date(event._startDate).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
     container.append(startTime);
 
     let endTime = document.createElement("div");
     endTime.classList.add("team-upcomingEvents-content-container-endTime", "team-upcomingEvents-content-container-content");
-    endTime.innerHTML = new Date(event._endDate).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
+    endTime.innerHTML = "End Time: ".bold() + new Date(event._endDate).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
     container.append(endTime);
 
     document.getElementById("teamEvents").append(container);
+}
+
+function renderNotifications(data)
+{
+    let name = "";
+    let descripion = "";
+    sendRequest('/getTeamNotifications', {teamCode: teamData._joinCode})
+    .then(response =>
+    {
+        if (response.result === "OK")
+        {
+            //get name and description 
+            switch (data._type) 
+            {
+                case "TEAM_INVITE":
+                    name = "Received Team Invite";
+                    descripion = data._sender + "invited " + data._receiver + " to the team as " + notificationMessageCheckRole(data._message);
+                    break;
+                case "EVENT_CREATE":
+                    name = "New Event Created";
+                    description = notificationCreateEventDescription(data._message);
+                    break;
+                case "EVENT_EDIT":
+                    name = "Event Changed";
+                    descripion = notificationEditEventDescription(data._message);
+                    break;
+                case "EVENT_DELETE":
+                    name = "Event Deleted"; 
+                    description = notificationDeleteEventDescription(data._message);
+                    break;
+                default:
+                    console.error("INVALID NOTIFICATION TYPE: " + data._type);
+                    break;
+            }
+            //create html
+
+            let container = document.getElementById('teamNotifications');
+
+            let noficationElement = document.createElement("div");
+            noficationElement.classList.add("team-notifications-content-element");
+            container.append(noficationElement);
+
+            let nameElement = document.createElement('div');
+            nameElement.classList.add('team-notifications-content-element-name');
+            container.append(nameElement);
+
+            let descriptionElement = document.createElement(`div`);
+            descriptionElement.classList.add('team-notifications-content-element-descripion');
+            container.append(descriptionElement);
+        }
+    }).catch(error =>
+    {
+        console.error("Error rendering team notificiations: ", error);
+    })
+}
+
+function notificationMessageCheckRole(message)
+{
+    if(message.split(" ").includes("Viewer")) return "a viewer";
+    if(message.split(" ").includes("User")) return "an user";
+    if(message.split(" ").includes("Admin")) return "an admin";
+    if(message.split(" ").includes("Owner")) return "an owner";
+    console.error("NOTIFICATION MESSAGE DID NOT INCLUDE VALID ROLE " + message);
+}
+
+function notificationCreateEventDescription(data)
+{
+    let id = data._message.split("(ID: ")[1];
+    let event;
+    sendRequest('/findTeamEventByID', { teamEventID : id})
+    .then(response => 
+    {
+        if (response.result === "OK")
+        {
+            userElement.innerHTML = response.username;
+            console.log(response.username);
+        }
+    })
+    .catch(error =>
+    {
+        console.error("screw you there's no way this can activate: ", error);
+    })
+    //USER created an new event: EVENT_NAME from START_TIME to END_TIME. 
+    return data._sender + " created a new event: " + event._name + " from " + event._startDate + " to " + event._startDate;
+}
+
+notificationEditEventDescription(data._message)
+{
+
+}
+
+notificationDeleteEventDescription(data._message)
+{
+
+}
+
+async function getCurrentUserRole() 
+{
+    const userID = localStorage.getItem('userID');
+    const response = await sendRequest('/getUser', { userID: userID });
+    if (response.result === "OK") 
+    {
+        const userRole = teamData._users[response.user._name];
+        return userRole;
+    } 
+    else 
+    {
+        // Handle error or invalid response
+        console.error('Failed to retrieve user role');
+        return null;
+    }
 }
 
 /**
