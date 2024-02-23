@@ -845,7 +845,7 @@ router.post('/notificationEditEvent', async (req, res) =>
         const sendDate = new Date();
         const message = `Event details have been edited (ID: ${eventID})`;
         const notifExtras = { prevEvent : prevEvent };
-        await addNotificationToTeam(teamData._id, notifID, message, user._name, receiverNames, "Viewer", sendDate, notifExtras);
+        await addNotificationToTeam(teamData._id, notifID, "EVENT_EDIT", message, user._name, receiverNames, "Viewer", sendDate, notifExtras);
         res.status(200).send({ result: 'OK', message: "Notification added successfully" });
     }
     catch (error)

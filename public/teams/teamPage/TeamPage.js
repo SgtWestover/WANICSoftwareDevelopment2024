@@ -272,15 +272,15 @@ function notificationCreateEventDescription(data)
     return data._sender + " created a new event: " + event._name + " from " + event._startDate + " to " + event._startDate;
 }
 
-notificationEditEventDescription(data._message)
-{
+// notificationEditEventDescription(data._message)
+// {
 
-}
+// }
 
-notificationDeleteEventDescription(data._message)
-{
+// notificationDeleteEventDescription(data._message)
+// {
 
-}
+// }
 
 async function getCurrentUserRole() 
 {

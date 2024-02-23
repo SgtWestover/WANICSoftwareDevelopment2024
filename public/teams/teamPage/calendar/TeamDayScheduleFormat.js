@@ -509,7 +509,9 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     const finalizeEventCreationOrUpdate = (newEventID) => 
     {
         const notificationType = isEditing ? '/notificationEditEvent' : '/notificationCreateEvent';
-        const prevEvent = isEditing ? JSON.parse(eventForm.getAttribute('data-original-event')) : null
+        const prevEvent = isEditing ? JSON.parse(eventForm.getAttribute('data-original-event')) : null;
+        console.log(JSON.parse(eventForm.getAttribute('data-original-event')));
+        console.log("prevEvent: " + JSON.stringify(prevEvent));
         const notifResult = sendRequest(notificationType, 
         {    
             teamCode: teamData._joinCode, 
