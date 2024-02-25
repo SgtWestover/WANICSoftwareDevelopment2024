@@ -1517,6 +1517,10 @@ router.post('/inviteUser', async (req, res) =>
         {
             return res.status(404).send({ result: 'FAIL', message: "Receiver not found" });
         }
+        if (teamData._usersQueued[receiver] && teamData._usersQueued[receiver].status === 'BANNED')
+        {
+            return res.status(403).send({ result: 'FAIL', message: "User is banned"});
+        }
         const notifID = new ObjectId().toString();
         const sendDate = new Date();
 
@@ -1663,6 +1667,126 @@ router.post('/deleteTeam', async (req, res) =>
     {
         console.error("Error deleting team:", error);
         res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
+    }
+});
+
+router.post('/kickUser', async (req, res) => 
+{
+    const { username, teamCode, senderID } = req.body;
+    if (!username || !teamCode || !senderID) 
+    {
+        return res.status(400).send({ message: "Missing required information" });
+    }
+    try 
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        const team = await teamsCollection.findOne({ _joinCode: teamCode });
+        if (!team) 
+        {
+            return res.status(404).send({result: 'FAIL', message: "Team not found" });
+        }
+        if (!team._users[username]) 
+        {
+            return res.status(200).send({result: 'FAIL', message: "User not part of the team" });
+        }
+        let senderUser = await findUserByID(senderID);
+        senderUser = senderUser ? senderUser : "system";
+        if (senderUser._name === username)
+        {
+            return res.status(206).send({result: 'FAIL', message: "Cannot kick yourself" });
+        }
+        delete team._users[username];
+        await teamsCollection.updateOne({ _joinCode: teamCode }, { $set: { _users: team._users }});
+        const notifID = new ObjectId().toString();
+        const sendDate = new Date();
+        const message = `You have been kicked from the team ${team._name}`;
+        await addNotificationToUser(username, notifID, "TEAM_KICK", message, senderUser._name, sendDate, null);
+        res.status(200).send({ result: 'OK', message: "User kicked successfully and notified" });
+    } 
+    catch (error) 
+    {
+        console.error("Error kicking user:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+
+router.post('/banUser', async (req, res) => //TODO: COmplete with actual banning and updating of teamData with websocket
+{
+    const { username, teamCode, senderID } = req.body;
+    if (!username || !teamCode || !senderID) 
+    {
+        return res.status(400).send({ message: "Missing required information" });
+    }
+    try 
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        const team = await teamsCollection.findOne({ _joinCode: teamCode });
+        if (!team) 
+        {
+            return res.status(206).send({result: 'FAIL', message: "Team not found" });
+        }
+        if (!team._users[username]) 
+        {
+            return res.status(206).send({result: 'FAIL', message: "User not part of the team" });
+        }
+        let senderUser = await findUserByID(senderID);
+        senderUser = senderUser ? senderUser : "system";
+        if (senderUser._name === username)
+        {
+            return res.status(206).send({result: 'FAIL', message: "Cannot ban yourself" });
+        }
+        delete team._users[username];
+        team._usersQueued[username] = { role : null, status : 'BANNED'};
+        await teamsCollection.updateOne({ _joinCode: teamCode }, { $set: { _users: team._users , _usersQueued : team._usersQueued}});
+        const notifID = new ObjectId().toString();
+        const sendDate = new Date();
+        const message = `You have been banned from the team ${team._name}`;
+        await addNotificationToUser(username, notifID, "TEAM_BAN", message, senderUser._name, sendDate, null);
+        res.status(200).send({ result: 'OK', message: "User banned successfully and notified" });
+    } 
+    catch (error) 
+    {
+        console.error("Error kicking user:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+
+router.post('/unbanUser', async (req, res) =>
+{
+    const { username, teamCode, senderID } = req.body;
+    if (!username || !teamCode || !senderID) 
+    {
+        return res.status(400).send({ message: "Missing required information" });
+    }
+    try 
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        const team = await teamsCollection.findOne({ _joinCode: teamCode });
+        if (!team) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        if (!team._usersQueued[username] || team._usersQueued[username].status !== 'BANNED') 
+        {
+            return res.status(206).send({ result: 'FAIL', message: "User not banned from team" });
+        }
+        let senderUser = await findUserByID(senderID);
+        senderUser = senderUser ? senderUser : "system";
+        delete team._usersQueued[username];
+        await teamsCollection.updateOne({ _joinCode: teamCode }, { $set: { _usersQueued : team._usersQueued}});
+        const notifID = new ObjectId().toString();
+        const sendDate = new Date();
+        const message = `You have been unbanned from the team ${team._name}`;
+        await addNotificationToUser(username, notifID, "TEAM_UNBAN", message, senderUser._name, sendDate, null);
+        res.status(200).send({ result: 'OK', message: "User unbanned successfully and notified" });
+    } 
+    catch (error) 
+    {
+        console.error("Error kicking user:", error);
+        res.status(500).send({ message: "Internal Server Error" });
     }
 });
 

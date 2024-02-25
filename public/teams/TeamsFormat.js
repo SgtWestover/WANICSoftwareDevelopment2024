@@ -727,7 +727,7 @@ async function GetTeamList()
 {
     try 
     {
-        const response = sendRequest("/getUserTeams", {userID: userID});
+        const response = sendRequest("/getUserTeams", { userID: userID });
         return response;
     } 
     catch (error) 

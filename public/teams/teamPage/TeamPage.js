@@ -26,8 +26,29 @@ document.addEventListener('DOMContentLoaded', function()
 
 // Make sure fetchTeamData, renderHeader, renderDescription, and renderUserList are defined properly
 
-//38 characters max for name
-
+function connectWebSocket() 
+{
+    // Establish a WebSocket connection. Change when IP is different
+    ws = new WebSocket('ws://192.168.50.42:8080');
+    ws.onopen = function()
+    {
+        console.log("WebSocket connection established.");
+    };
+    ws.onmessage = function(event) 
+    {
+        console.log("message received");
+        handleWebSocketMessage(event.data);
+    };
+    ws.onerror = function(error) 
+    {
+        console.error("WebSocket error:", error);
+    };
+    ws.onclose = function(event) 
+    {
+        console.log("WebSocket connection closed:", event);
+        setTimeout(connectWebSocket, 3000); // Reconnect after 3 seconds
+    };
+}
 
 async function fetchTeamData(joinCode) 
 {
@@ -296,6 +317,33 @@ async function getCurrentUserRole()
         // Handle error or invalid response
         console.error('Failed to retrieve user role');
         return null;
+    }
+}
+
+function handleWebSocketMessage(data) 
+{
+    try
+    {
+        console.log("handle web socket message");
+        const message = JSON.parse(data);
+        // Handle other message types as needed
+    } 
+    catch (error) 
+    {
+        console.error("Error handling WebSocket message:", error);
+    }
+}
+
+function handleWebSocketMessage(data) 
+{
+    try
+    {
+        console.log("handle web socket message");
+        const message = JSON.parse(data);
+    } 
+    catch (error) 
+    {
+        console.error("Error handling WebSocket message:", error);
     }
 }
 

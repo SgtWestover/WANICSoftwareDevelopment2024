@@ -12,7 +12,6 @@
 <body>
   <header>
     <h1>
-      <!-- Month and year headers at the top, doubling as dropdown menus-->
       <div id="invite-people" onclick="invitePeopleStart()">Invite People</div>
       <div id="team-leave" onclick="teamLeaveStart()">Leave Team</div>
     </h1>
@@ -58,6 +57,18 @@
             <button type="button" id="confirmDeleteTeam" class="button">Delete Team</button>
         </div>
         <p id="deleteTeamError" style="color: red;"></p>
+    </div>
+  </div>
+  <div id="removeUserModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeRemoveUserModal">&times;</span>
+        <h2>Remove User</h2>
+        <p>Enter the usernaame:</p>
+        <input type="text" id="userToRemove" placeholder="Enter username" class="button" required>
+        <button type="button" id="kickUser" class="button">Kick User</button>
+          <button type="button" id="banUser" class="button">Ban User</button>
+          <button type="button" id="unbanUser" class="button">Unban User</button>
+        <p id="removeUserError" style="color: red;"></p>
     </div>
   </div>
   <script src="/scripts/CalendarClasses.js"></script>

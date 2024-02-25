@@ -83,7 +83,8 @@ div.content
 
 #invite-people,
 #team-leave,
-#team-delete
+#team-delete,
+#user-remove
 {
   display: inline-block; /* Align buttons horizontally */
   margin: 0 10px; /* Space between buttons */
@@ -96,7 +97,8 @@ div.content
 /* Hover effect for buttons */
 #invite-people:hover,
 #team-leave:hover,
-#team-delete:hover
+#team-delete:hover,
+#user-remove:hover
 {
   background-color: #505050; /* Slightly darker on hover */
   transform: scale(1.05); /* Slightly larger on hover */
@@ -104,8 +106,9 @@ div.content
 
 /* Click effect for buttons */
 #invite-people:active,
-#team-leave:active
-#team-delete:active
+#team-leave:active,
+#team-delete:active,
+#user-remove:active
 {
   transform: scale(0.95); /* Slightly smaller on click */
 }

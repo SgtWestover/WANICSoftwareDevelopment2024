@@ -6,6 +6,31 @@ const roleLevels =
     'Owner': 4
 };
 
+function connectWebSocket() 
+{
+    // Establish a WebSocket connection. Change when IP is different
+    ws = new WebSocket('ws://192.168.50.42:8080');
+    ws.onopen = function()
+    {
+        console.log("WebSocket connection established.");
+    };
+    ws.onmessage = function(event) 
+    {
+        console.log("message received");
+        handleWebSocketMessage(event.data);
+    };
+    ws.onerror = function(error) 
+    {
+        console.error("WebSocket error:", error);
+    };
+    ws.onclose = function(event) 
+    {
+        console.log("WebSocket connection closed:", event);
+        setTimeout(connectWebSocket, 3000); // Reconnect after 3 seconds
+    };
+}
+
+
 let userRole = localStorage.getItem('userRole');
 let userID = localStorage.getItem('userID');
 let teamData = JSON.parse(localStorage.getItem('teamData'));
@@ -24,12 +49,137 @@ document.addEventListener('DOMContentLoaded', function ()
 
 function generateAdminSettings()
 {
-
+    generateRemoveUsers();
 }
 
 function generateOwnerSettings()
 {
     generateDeleteTeam();
+}
+
+function generateRemoveUsers() 
+{
+    const header = document.querySelector('header h1');
+    const removeUserDiv = document.createElement('div');
+    removeUserDiv.id = 'user-remove';
+    removeUserDiv.textContent = 'Remove User';
+    const modal = document.getElementById('removeUserModal');
+    removeUserDiv.onclick = function() 
+    {
+        modal.style.display = 'block';
+    }
+    document.getElementById('closeRemoveUserModal').onclick = function() 
+    {
+        modal.style.display = 'none';
+        resetRemoveUserModal();
+    }
+    window.addEventListener('click', function(event)
+    {
+        if (event.target === modal) 
+        {
+            modal.style.display = 'none';
+            resetRemoveUserModal();
+        }
+    });
+    header.appendChild(removeUserDiv);
+}
+
+document.getElementById('kickUser').onclick = async function()
+{
+    const username = document.getElementById('userToRemove').value;
+    if (username)
+    {
+        try
+        {
+            const response = await sendRequest('/kickUser', { username : username, teamCode : teamData._joinCode , senderID : userID});
+            if (response.result === 'OK')
+            {
+                alert("User kicked successfully.");
+                resetRemoveUserModal();
+                document.getElementById('removeUserModal').style.display = 'none';
+            }
+            else if (response.result === "FAIL")
+            {
+                document.getElementById('removeUserError').textContent = response.message;  
+            }
+        }
+        catch (error)
+        {
+            document.getElementById('removeUserError').textContent = 'An error occured when kicking the user';  
+        }
+    }
+    else
+    {
+        document.getElementById('removeUserError').textContent = 'Please enter a username.';
+    }
+}
+
+document.getElementById('banUser').onclick = async function()
+{
+    const username = document.getElementById('userToRemove').value;
+    if (username)
+    {
+        try
+        {
+            const response = await sendRequest('/banUser', { username : username, teamCode : teamData._joinCode , senderID : userID});
+            if (response.result === 'OK')
+            {
+                alert("User banned successfully.");
+                resetRemoveUserModal();
+                document.getElementById('removeUserModal').style.display = 'none';
+            }
+            else if (response.result === "FAIL")
+            {
+                document.getElementById('removeUserError').textContent = response.message;  
+            }
+        }
+        catch (error)
+        {
+            console.error('Error:', error);
+            document.getElementById('removeUserError').textContent = 'An error occurred when banning the user.';
+        }
+    }
+    else
+    {
+        document.getElementById('removeUserError').textContent = 'Please enter a username.';
+    }
+}
+
+document.getElementById('unbanUser').onclick = async function()
+{
+    const username = document.getElementById('userToRemove').value;
+    if (username)
+    {
+        try
+        {
+            const response = await sendRequest('/unbanUser', { username : username, teamCode : teamData._joinCode , senderID : userID});
+            if (response.result === 'OK')
+            {
+                alert("User unbanned successfully.");
+                resetRemoveUserModal();
+                document.getElementById('removeUserModal').style.display = 'none';
+            }
+            else if (response.result === "FAIL")
+            {
+                document.getElementById('removeUserError').textContent = response.message;  
+            }
+        }
+        catch (error)
+        {
+            console.error('Error:', error);
+            document.getElementById('removeUserError').textContent = 'An error occurred when banning the user.';
+        }
+    }
+    else
+    {
+        document.getElementById('removeUserError').textContent = 'Please enter a username.';
+    }
+}
+
+function resetRemoveUserModal()
+{
+    document.getElementById('userToRemove').value = '';
+    document.getElementById('removeUserError').textContent = '';
 }
 
 function generateDeleteTeam() 
@@ -46,19 +196,20 @@ function generateDeleteTeam()
     document.getElementById('closeDeleteTeamModal').onclick = function() 
     {
         resetDeleteTeamModal();
-        document.getElementById('deleteTeamModal').style.display = 'none';
-        document.getElementById('teamConfirmSection').style.display = 'none';
+        modal.style.display = 'none';
     }
-    window.onclick = function(event) 
+    window.addEventListener('click', function(event)    
     {
         if (event.target === modal) 
         {
+            resetDeleteTeamModal();
             modal.style.display = 'none';
             document.getElementById('teamConfirmSection').style.display = 'none';
         }
-    };
+    });
     header.appendChild(deleteTeamDiv);
 }
+
 
 document.getElementById('verifyPassword').onclick = async function() 
 {
@@ -107,8 +258,8 @@ document.getElementById('confirmDeleteTeam').onclick = async function()
 
 function resetDeleteTeamModal()
 {
-    document.getElementById('deleteTeamModal').innerHTML = '';
-    document.getElementById('teamConfirmSection').innerHTML = '';
+    document.getElementById('passwordForDeletion').innerHTML = '';
+    document.getElementById('teamConfirmSection').style.display = 'none';
 }
 
 
@@ -138,9 +289,10 @@ function invitePeopleStart()
     {
         if (event.target === modal) 
         {
+            resetAddPeopleModal();
             modal.style.display = 'none';
         }
-    };
+    }
 }
 
 function resetAddPeopleModal()
@@ -168,6 +320,10 @@ document.getElementById('submitUsername').onclick = async function()
                     if (response.result === 'OK')
                     {
                         alert('User invited successfully.');
+                    }
+                    else if (response.result === 'FAIL')
+                    {
+                        document.getElementById('addPeopleError').textContent = response.message;
                     }
                 });
                 document.getElementById('addPeopleModal').style.display = 'none';
@@ -217,8 +373,6 @@ document.getElementById('leaveTeam').onclick = async function()
 {
     try
     {
-        console.log(userID);
-        console.log(teamData._joinCode);
         const response = await sendRequest('/leaveTeam', { userID : userID, teamCode : teamData._joinCode } )
         if (response.result === 'OK')
         {
