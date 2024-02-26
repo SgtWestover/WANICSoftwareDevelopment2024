@@ -87,7 +87,9 @@ div.content
 #user-remove,
 #description-update,
 #name-update,
-#manage-queue
+#manage-queue,
+#autojoin-manage,
+#clear-notifications
 {
   display: inline-block; /* Align buttons horizontally */
   margin: 0 10px; /* Space between buttons */
@@ -104,7 +106,9 @@ div.content
 #user-remove:hover,
 #description-update:hover,
 #name-update:hover,
-#manage-queue:hover
+#manage-queue:hover,
+#autojoin-manage:hover,
+#clear-notifications:hover
 {
   background-color: #505050; /* Slightly darker on hover */
   transform: scale(1.05); /* Slightly larger on hover */
@@ -117,7 +121,9 @@ div.content
 #user-remove:active
 #description-update:active,
 #name-update:active,
-#manage-queue:active
+#manage-queue:active,
+#autojoin-manage:active,
+#clear-notifications:hover
 {
   transform: scale(0.95); /* Slightly smaller on click */
 }

@@ -396,17 +396,20 @@ document.getElementById('joinTeamButton').onclick = async function()
             // Handle different responses
             if (response.result === 'OK') 
             {
+                alert('Succesfully joined the team');
                 updateJoinTeamMessage('Successfully joined the team!', 'Green');
                 closeTeamJoinModal();
                 renderAllTeams();
             } 
             else if (response.result === 'QUEUED') 
             {
+                alert('You have been added to the queue');
                 updateJoinTeamMessage('You have been added to the queue.', 'White');
                 closeTeamJoinModal();
             } 
             else 
             {
+                alert('Failed to join the team');
                 updateJoinTeamMessage('Failed to join the team.', 'Red');
             }
         } 

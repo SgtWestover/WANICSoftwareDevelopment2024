@@ -104,31 +104,22 @@
     <div class="modal-content">
         <span class="close" id="closeManageAutoJoinModal">&times;</span>
         <h2>Manage Joining</h2>
-        <input type="text" id="queuedUser" class="button" required>
-        <button type="button" id="admitUser" class="button">Admit User</button>
-        <button type="button" id="rejectUser" class="button">Reject User</button>
-        <button type="button" id="blacklistUser" class="button">Blacklist User</button>
-        <p id="manageQueueError" style="color: red;"></p>
-    </div>
-  </div>
-  <div id="manageAutoJoinModal" class="modal">
-    <div class="modal-content">
-        <span class="close" id="closeManageAutoJoinModal">&times;</span>
-        <h2>Manage Joining</h2>
-        <label for="autoJoinSelect">Autojoin:</label>
+        <label for="autoJoinSelect">AutoJoin:</label>
         <select id="autoJoinSelect" class="button">
             <option value="true">True</option>
             <option value="false">False</option>
         </select>
-        <div id="admitAllSection" style="display: none;">
-            <p>Admit all queued users?</p>
-            <select id="admitAllSelect" class="button">
-                <option value="true">Yes</option>
-                <option value="false">No</option>
-            </select>
-        </div>
         <button type="button" id="updateAutoJoin" class="button">Update Joining</button>
-        <button type="button" id="updateAdmitQueueud" class="button">Update Queue</button>
+        <p id="manageAutoJoinError" style="color: red;"></p>
+    </div>
+  </div>
+  <div id="confirmNotificationsClearModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeConfirmNotificationsClearModal">&times;</span>
+        <h2>Clear Notifications Confirmation</h2>
+        <p>Are you sure you want to clear notifications?</p>
+        <button type="button" id="denyClearNotifications" class="button">No</button>
+        <button type="button" id="confirmClearNotifications" class="button">Yes</button>
         <p id="manageAutoJoinError" style="color: red;"></p>
     </div>
   </div>

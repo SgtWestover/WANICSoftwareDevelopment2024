@@ -844,7 +844,7 @@ router.post('/notificationEditEvent', async (req, res) =>
         const notifID = new ObjectId().toString();
         const sendDate = new Date();
         const message = `Event details have been edited (ID: ${eventID})`;
-        const notifExtras = { prevEvent : prevEvent };
+        const notifExtras = { prevEvent : prevEvent, currentEvent: teamData };
         await addNotificationToTeam(teamData._id, notifID, "EVENT_EDIT", message, user._name, receiverNames, "Viewer", sendDate, notifExtras);
         res.status(200).send({ result: 'OK', message: "Notification added successfully" });
     }
@@ -883,11 +883,12 @@ router.post('/notificationCreateEvent', async (req, res) =>
         console.log(notifID);
         const sendDate = new Date();
         const message = `A new event has been created (ID: ${eventID})`;
+        const notifExtras = { currentEvent: teamData };
         for (username of receiverNames)
         {
-            if (username !== user._name) await addNotificationToUser(username, notifID, "EVENT_CREATE", message, user._name, sendDate, null);
+            if (username !== user._name) await addNotificationToUser(username, notifID, "EVENT_CREATE", message, user._name, sendDate, notifExtras);
         }
-        await addNotificationToTeam(teamData._id, notifID, "EVENT_CREATE", message, user._name, receiverNames, "Viewer", sendDate, null);
+        await addNotificationToTeam(teamData._id, notifID, "EVENT_CREATE", message, user._name, receiverNames, "Viewer", sendDate, notifExtras);
         res.status(200).send({ result: 'OK', message: "Notification added successfully" });
     }
     catch (error)
@@ -1056,7 +1057,8 @@ router.post('/getUserTeams', async (req, res) =>
 router.post('/updateAutoJoin', async (req, res) => 
 {
     const { newAutoJoin, teamCode } = req.body;
-    if (teamCode === undefined || newAutoJoin === undefined)
+
+    if (!teamCode || newAutoJoin === undefined)
     {
         return res.status(400).send({ result: 'FAIL', message: "Missing required information" });
     }
@@ -1069,61 +1071,37 @@ router.post('/updateAutoJoin', async (req, res) =>
         {
             return res.status(404).send({ result: 'FAIL', message: "Team not found" });
         }
-        if (team._autoJoin === newAutoJoin)
+        if (newAutoJoin === team._autoJoin)
         {
-            return res.status(206).send({ result: 'FAIL', message: "Auto-join setting unchanged" });
+            return res.status(206).send({ result: 'FAIL', message: "AutoJoin did not change" });
         }
         await teamsCollection.updateOne({ _joinCode: teamCode }, { $set: { _autoJoin: newAutoJoin } });
+        if (newAutoJoin)
+        {
+            const queuedUsers = team._usersQueued || {};
+            let usersToAdmit = {};
+            for (const [username, {role, status}] of Object.entries(queuedUsers))
+            {
+                if (status === 'QUEUED')
+                {
+                    usersToAdmit[username] = role ; // Prepare users to admit
+                }
+            }
+            Object.keys(usersToAdmit).forEach(username => 
+            {
+                delete queuedUsers[username];
+            });
+            await teamsCollection.updateOne({ _joinCode: teamCode }, { $set: { _usersQueued: queuedUsers } });
+            Object.entries(usersToAdmit).forEach(async ([username, user]) =>
+            {
+                await teamsCollection.updateOne({ _joinCode: teamCode }, { $set: { [`_users.${username}`]: user } });
+            });
+        }
         res.status(200).send({ result: 'OK', message: "Auto-join setting updated successfully" });
     } 
     catch (error)
     {
-        console.error("Error updating auto-join setting:", error);
-        res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
-    }
-});
-
-router.post('/admitAllQueued', async (req, res) => 
-{
-    const { teamCode } = req.body;
-
-    if (!teamCode)
-    {
-        return res.status(400).send({ result: 'FAIL', message: "Missing team code" });
-    }
-
-    try
-    {
-        const calendarDB = dbclient.db("calendarApp");
-        const teamsCollection = calendarDB.collection("teams");
-        const team = await teamsCollection.findOne({ _joinCode: teamCode });
-        if (!team)
-        {
-            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
-        }
-        const queuedUsers = team._usersQueued;
-        const usersToAdmit = {};
-        for (const [username, {role, status}] of Object.entries(queuedUsers))
-        {
-            if (status === 'QUEUED')
-            {
-                usersToAdmit[username] = { role };
-            }
-        }
-        Object.keys(usersToAdmit).forEach(username => 
-        {
-            delete queuedUsers[username];
-        });
-        await teamsCollection.updateOne({ _joinCode: teamCode }, 
-        {
-            $set: { _usersQueued: queuedUsers },
-            $addToSet: { _users: usersToAdmit }
-        });
-        res.status(200).send({ result: 'OK', message: "All queued users have been admitted" });
-    } 
-    catch (error)
-    {
-        console.error("Error admitting all queued users:", error);
+        console.error("Error updating auto-join setting and admitting users:", error);
         res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
     }
 });
@@ -1178,6 +1156,35 @@ router.post('/joinTeam', async (req, res) =>
     }
 });
 
+router.post('/clearAllNotifications', async (req, res) => 
+{
+    const { teamCode } = req.body;
+    if (!teamCode)
+    {
+        return res.status(400).send({ result: 'FAIL', message: "Missing team code" });
+    }
+    try
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        const team = await teamsCollection.findOne({ _joinCode: teamCode });
+        if (!team)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        await teamsCollection.updateOne
+        (
+            { _joinCode: teamCode },
+            { $set: { _notifications: {} } }
+        );
+        res.status(200).send({ result: 'OK', message: "Notifications cleared successfully" });
+    } 
+    catch (error)
+    {
+        console.error("Error clearing notifications:", error);
+        res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
+    }
+});
 
 async function notifyTeamUpdate(team) 
 {
