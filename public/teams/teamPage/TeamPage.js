@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function()
         renderDescription();
         renderUserList();
         renderUpcomingEvents();
-        //renderNotifications("a")
+        renderNotifications()
         userRole = await getCurrentUserRole();
         if (userRole != null) localStorage.setItem("userRole", userRole);
     })();
@@ -209,53 +209,62 @@ function createUpcomingEventElement(event)
     document.getElementById("teamEvents").append(container);
 }
 
-function renderNotifications(data)
+function renderNotifications()
 {
     let name = "";
-    let descripion = "";
+    let description = "";
+    
     sendRequest('/getTeamNotifications', {teamCode: teamData._joinCode})
     .then(response =>
     {
         if (response.result === "OK")
         {
-            //get name and description 
-            switch (data._type) 
+            console.log("AAASDASDASDASD")
+            for(let i = 0; i < response.notifications.length(); i++)
             {
-                case "TEAM_INVITE":
-                    name = "Received Team Invite";
-                    descripion = data._sender + "invited " + data._receiver + " to the team as " + notificationMessageCheckRole(data._message);
-                    break;
-                case "EVENT_CREATE":
-                    name = "New Event Created";
-                    description = notificationCreateEventDescription(data._message);
-                    break;
-                case "EVENT_EDIT":
-                    name = "Event Changed";
-                    descripion = notificationEditEventDescription(data._message);
-                    break;
-                case "EVENT_DELETE":
-                    name = "Event Deleted"; 
-                    description = notificationDeleteEventDescription(data._message);
-                    break;
-                default:
-                    console.error("INVALID NOTIFICATION TYPE: " + data._type);
-                    break;
+                console.log("AAASDASDASDASD")
+                let data = response.notifications[i];
+                //get name and description 
+                switch (data.type) 
+                {
+                    case "TEAM_INVITE":
+                        name = "Received Team Invite";
+                        description = data.sender + "invited " + data.receiver + " to the team as " + notificationMessageCheckRole(data.message);
+                        break;
+                    case "EVENT_CREATE":
+                        name = "New Event Created";
+                        description = notificationDescriptionCreateEvent(data);
+                        break;
+                    case "EVENT_EDIT":
+                        name = "Event Changed";
+                        description = notificationDescriptionEditEvent(data);
+                        break;
+                    case "EVENT_DELETE":
+                        name = "Event Deleted"; 
+                        description = notificationDescriptionDeleteEvent(data);
+                        break;
+                    default:
+                        console.error("INVALID NOTIFICATION TYPE: " + data.type);
+                        break;
+                }
+                //create html
+                console.log("html things")
+                let container = document.getElementById('teamNotifications');
+
+                let noficationElement = document.createElement("div");
+                noficationElement.classList.add("team-notifications-content-element");
+                container.append(noficationElement);
+
+                let nameElement = document.createElement('div');
+                nameElement.classList.add('team-notifications-content-element-name');
+                nameElement.innerText = name;
+                container.append(nameElement);
+
+                let descriptionElement = document.createElement(`div`);
+                descriptionElement.classList.add('team-notifications-content-element-description');
+                descriptionElement.innerText = description;
+                container.append(descriptionElement);
             }
-            //create html
-
-            let container = document.getElementById('teamNotifications');
-
-            let noficationElement = document.createElement("div");
-            noficationElement.classList.add("team-notifications-content-element");
-            container.append(noficationElement);
-
-            let nameElement = document.createElement('div');
-            nameElement.classList.add('team-notifications-content-element-name');
-            container.append(nameElement);
-
-            let descriptionElement = document.createElement(`div`);
-            descriptionElement.classList.add('team-notifications-content-element-descripion');
-            container.append(descriptionElement);
         }
     }).catch(error =>
     {
@@ -272,7 +281,27 @@ function notificationMessageCheckRole(message)
     console.error("NOTIFICATION MESSAGE DID NOT INCLUDE VALID ROLE " + message);
 }
 
-function notificationCreateEventDescription(data)
+function notificationDescriptionCreateEvent(data)
+{
+    let id = data.message.split("(ID: ")[1];
+    let event;
+    sendRequest('/findTeamEventByID', { teamEventID : id})
+    .then(response => 
+    {
+        if (response.result === "OK")
+        {
+            event = response.event;
+        }
+    })
+    .catch(error =>
+    {
+        console.error("screw you there's no way this can activate: ", error);
+    })
+    //USER created an new event: EVENT_NAME from START_TIME to END_TIME. 
+    return data.sender + " created a new event: " + event._name + " from " + event._startDate + " to " + event._endDate;
+}
+
+function notificationDescriptionEditEvent(data)
 {
     let id = data._message.split("(ID: ")[1];
     let event;
@@ -281,27 +310,68 @@ function notificationCreateEventDescription(data)
     {
         if (response.result === "OK")
         {
-            userElement.innerHTML = response.username;
-            console.log(response.username);
+            event = response.event;
         }
     })
     .catch(error =>
     {
         console.error("screw you there's no way this can activate: ", error);
     })
-    //USER created an new event: EVENT_NAME from START_TIME to END_TIME. 
-    return data._sender + " created a new event: " + event._name + " from " + event._startDate + " to " + event._startDate;
+
+    //check what was changed
+    let changeCount = 0;
+    let description = data.sender + " edited the event: " + event._name + ". ";
+    
+    //users
+    if (!(JSON.stringify(event._users) === JSON.stringify(data.misc.prevEvent.users)))
+    {
+        
+        description = description + "users list was changed, ";
+    }
+
+    //permissions
+    if (!event._permissions == data.misc.prevEvent.permissions)
+    {
+        description = description + "edit permissions changed to " + event._permissions + ", ";
+    }
+    
+    //viewable
+    if (!event._viewable == data.misc.prevEvent.viewable)
+    {
+        description = description + "now viewable by " + event._viewable + ", "; 
+    }
+
+    //name
+    if (!event._name == data.misc.prevEvent.name)
+    {
+        description = description + "name changed to " + event._name + ", "; 
+    }
+
+    //start time / end time
+    if (!event._startDate === data.misc.prevEvent.startDate)
+    {
+        description = description + "start time changed to " + event._startDate + ", "; 
+    }
+    if (!event._endDate === data.misc.prevEvent.endDate)
+    {
+        description = description + "end time changed to " + event._endDate + ", "; 
+    }
+
+    // description
+    if (!event._description === data.misc.prevEvent.description)
+    {
+        description = description + "description changed, ";
+    }
+
+    //description[description.lenth - 2] = " ";
+    return description;
 }
 
-// notificationEditEventDescription(data._message)
-// {
-
-// }
-
-// notificationDeleteEventDescription(data._message)
-// {
-
-// }
+function notificationDescriptionDeleteEvent(data)
+{
+    //USER deleted the event: EVENT_NAME 
+    return data._sender + " deleted the event: " + data.misc.deletedEvent._name;
+}
 
 async function getCurrentUserRole() 
 {
