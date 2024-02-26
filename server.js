@@ -1052,6 +1052,82 @@ router.post('/getUserTeams', async (req, res) =>
         res.status(500).send({ result: 'FAIL', message: error.message });
     }
 });
+
+router.post('/updateAutoJoin', async (req, res) => 
+{
+    const { newAutoJoin, teamCode } = req.body;
+    if (teamCode === undefined || newAutoJoin === undefined)
+    {
+        return res.status(400).send({ result: 'FAIL', message: "Missing required information" });
+    }
+    try
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        const team = await teamsCollection.findOne({ _joinCode: teamCode });
+        if (!team)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        if (team._autoJoin === newAutoJoin)
+        {
+            return res.status(206).send({ result: 'FAIL', message: "Auto-join setting unchanged" });
+        }
+        await teamsCollection.updateOne({ _joinCode: teamCode }, { $set: { _autoJoin: newAutoJoin } });
+        res.status(200).send({ result: 'OK', message: "Auto-join setting updated successfully" });
+    } 
+    catch (error)
+    {
+        console.error("Error updating auto-join setting:", error);
+        res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
+    }
+});
+
+router.post('/admitAllQueued', async (req, res) => 
+{
+    const { teamCode } = req.body;
+
+    if (!teamCode)
+    {
+        return res.status(400).send({ result: 'FAIL', message: "Missing team code" });
+    }
+
+    try
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        const team = await teamsCollection.findOne({ _joinCode: teamCode });
+        if (!team)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        const queuedUsers = team._usersQueued;
+        const usersToAdmit = {};
+        for (const [username, {role, status}] of Object.entries(queuedUsers))
+        {
+            if (status === 'QUEUED')
+            {
+                usersToAdmit[username] = { role };
+            }
+        }
+        Object.keys(usersToAdmit).forEach(username => 
+        {
+            delete queuedUsers[username];
+        });
+        await teamsCollection.updateOne({ _joinCode: teamCode }, 
+        {
+            $set: { _usersQueued: queuedUsers },
+            $addToSet: { _users: usersToAdmit }
+        });
+        res.status(200).send({ result: 'OK', message: "All queued users have been admitted" });
+    } 
+    catch (error)
+    {
+        console.error("Error admitting all queued users:", error);
+        res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
+    }
+});
+
 router.post('/joinTeam', async (req, res) => 
 {
     const { userID, joinCode } = req.body;
@@ -1458,10 +1534,10 @@ router.post('/getTeamNotifications', async (req, res) =>
         const team = await teamsCollection.findOne({ _joinCode: teamCode });
         if (!team) 
         {
-            return res.status(404).send({ message: "Team not found" });
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
         }
         const notifications = team._notifications || {};
-        res.status(200).send({ notifications : notifications });
+        res.status(200).send({ result: 'OK', notifications : notifications });
     } 
     catch (error) 
     {

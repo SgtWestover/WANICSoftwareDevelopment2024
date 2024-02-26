@@ -30,6 +30,7 @@ function connectWebSocket()
     };
 }
 
+let initialAutoJoinValue = false;
 let userRole = localStorage.getItem('userRole');
 let userID = localStorage.getItem('userID');
 let teamData = JSON.parse(localStorage.getItem('teamData'));
@@ -51,6 +52,7 @@ function generateAdminSettings()
     generateManageQueue();
     generateRemoveUsers();
     generateUpdateDescription();
+    generateManageAutoJoin();
 }
 
 function generateOwnerSettings()
@@ -58,6 +60,170 @@ function generateOwnerSettings()
     generateUpdateName();
     generateDeleteTeam();
 }
+
+function generateManageAutoJoin() 
+{
+    const header = document.querySelector('header h1');
+    const manageAutoJoinDiv = document.createElement('div');
+    manageAutoJoinDiv.id = 'autojoin-manage';
+    manageAutoJoinDiv.textContent = 'Manage AutoJoin';
+    const modal = document.getElementById('manageAutoJoinModal');
+    manageAutoJoinDiv.onclick = function() 
+    {
+        fillAutoJoin();
+        modal.style.display = 'block';
+    };
+    document.getElementById('closeManageAutoJoinModal').onclick = function() 
+    {
+        modal.style.display = 'none';
+    };
+    window.addEventListener('click', function(event) 
+    {
+        if (event.target === modal) 
+        {
+            modal.style.display = 'none';
+        }
+    });
+
+    header.appendChild(manageAutoJoinDiv);
+}
+
+function fillAutoJoin()
+{
+    sendRequest('/getTeamWithJoinCode', { joinCode: teamData._joinCode })
+    .then(response =>
+    {
+        if (response.result === 'OK')
+        {
+            initialAutoJoinValue = response.team._autoJoin;
+            document.getElementById('autoJoinSelect').value = initialAutoJoinValue.toString();
+            document.getElementById('admitAllSection').style.display = 'none';
+            document.getElementById('updateAdmitQueueud').style.display = 'none';
+        }
+        else if (response.result === 'FAIL')
+        {
+            document.getElementById('manageAutoJoinError').textContent = response.message;
+        }
+    })
+    .catch(error =>
+    {
+        document.getElementById('manageAutoJoinError').textContent = 'An error occurred: ' + error;
+    });
+}
+
+document.getElementById('updateAutoJoin').onclick = async function() 
+{
+    const newAutoJoinValue = document.getElementById('autoJoinSelect').value === 'true';
+    try
+    {
+        const response = await sendRequest('/updateAutoJoin', { newAutoJoin : newAutoJoinValue, teamCode : teamData._joinCode })
+        if (response.result === 'OK')
+        {
+            if (!initialAutoJoinValue && newAutoJoinValue) 
+            {
+                document.getElementById('admitAllSection').style.display = 'block';
+                document.getElementById('updateAdmitQueueud').style.display = 'block';
+            } 
+            else 
+            {
+                document.getElementById('admitAllSection').style.display = 'none';
+                document.getElementById('updateAdmitQueueud').style.display = 'none';
+            }    
+        }
+        else if (response.result === 'FAIL')
+        {
+            document.getElementById('manageAutoJoinError').textContent = response.message;
+        }
+    }
+    catch (error)
+    {
+        document.getElementById('manageAutoJoinError').textContent = 'An error occurred: ' + error;
+    }
+};
+
+document.getElementById('updateAdmitQueueud').onclick = async function()
+{
+    const admitAllValue = document.getElementById('admitAllSelect').value === 'true';
+    if (admitAllValue)
+    {
+        try
+        {
+            const response = await sendRequest('/admitAllQueued', { teamCode: teamData._joinCode });
+            if (response.result === 'OK')
+            {
+                alert('All queued users have been admitted.');
+                document.getElementById('manageAutoJoinModal').style.display = 'none';
+            }
+            else if (response.result === 'FAIL')
+            {
+                document.getElementById('manageAutoJoinError').textContent = response.message;
+            }
+        }
+        catch (error)
+        {
+            document.getElementById('manageAutoJoinError').textContent = 'An error occurred: ' + error;
+        }
+    }
+    else
+    {
+        document.getElementById('manageAutoJoinModal').style.display = 'none';
+    }
+};
+
+
+document.getElementById('updateAutoJoin').onclick = async function() 
+{
+    const autoJoinValue = document.getElementById('autoJoinSelect').value;
+    const admitAllValue = document.getElementById('admitAllSelect').value;
+    try 
+    {
+        alert("Settings Updated Successfully");
+        document.getElementById('manageAutoJoinModal').style.display = 'none';
+    } 
+    catch (error) 
+    {
+        document.getElementById('manageAutoJoinError').textContent = 'An error occurred: ' + error;
+    }
+};
+
+function fillAutoJoin() 
+{
+    sendRequest('/getTeamWithJoinCode', { joinCode: teamData._joinCode })
+    .then(response => 
+        {
+        if (response.result === 'OK') 
+        {
+            initialAutoJoinValue = response.team._autoJoin;
+            document.getElementById('autoJoinSelect').value = initialAutoJoinValue.toString();
+        } 
+        else if (response.result === 'FAIL') 
+        {
+            document.getElementById('manageAutoJoinError').textContent = response.message;
+        }
+    })
+    .catch(error => 
+    {
+        document.getElementById('manageAutoJoinError').textContent = 'An error occurred: ' + error;
+    });
+}
+
+document.getElementById('updateAutoJoin').onclick = async function() 
+{
+    const newAutoJoinValue = document.getElementById('autoJoinSelect').value === 'true';
+    if (!initialAutoJoinValue && newAutoJoinValue) 
+    {
+    document.getElementById('admitAllSection').style.display = 'block';
+    document.getElementById('updateAdmitQueueud').style.display = 'block';
+    } 
+    else 
+    {
+        // Otherwise, ensure they are hidden
+        document.getElementById('admitAllSection').style.display = 'none';
+        document.getElementById('updateAdmitQueueud').style.display = 'none';
+    }
+};
+
+
 
 function generateManageQueue() 
 {
