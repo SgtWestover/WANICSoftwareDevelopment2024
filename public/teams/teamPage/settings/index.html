@@ -63,12 +63,41 @@
     <div class="modal-content">
         <span class="close" id="closeRemoveUserModal">&times;</span>
         <h2>Remove User</h2>
-        <p>Enter the usernaame:</p>
+        <p>Enter the username:</p>
         <input type="text" id="userToRemove" placeholder="Enter username" class="button" required>
         <button type="button" id="kickUser" class="button">Kick User</button>
           <button type="button" id="banUser" class="button">Ban User</button>
           <button type="button" id="unbanUser" class="button">Unban User</button>
         <p id="removeUserError" style="color: red;"></p>
+    </div>
+  </div>
+  <div id="updateDescriptionModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeUpdateDescriptionModal">&times;</span>
+        <h2>Update Description</h2>
+        <input type="text" id="updatedDescription" class="button" required>
+        <button type="button" id="updateDescription" class="button">Update Description</button>
+        <p id="updateDescriptionError" style="color: red;"></p>
+    </div>
+  </div>
+  <div id="updateNameModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeUpdateNameModal">&times;</span>
+        <h2>Update Name</h2>
+        <input type="text" id="updatedName" class="button" required>
+        <button type="button" id="updateName" class="button">Update Name</button>
+        <p id="updateNameError" style="color: red;"></p>
+    </div>
+  </div>
+  <div id="manageQueueModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeManageQueueModal">&times;</span>
+        <h2>Manage Queue</h2>
+        <input type="text" id="queuedUser" class="button" required>
+        <button type="button" id="admitUser" class="button">Admit User</button>
+        <button type="button" id="rejectUser" class="button">Reject User</button>
+        <button type="button" id="blacklistUser" class="button">Blacklist User</button>
+        <p id="manageQueueError" style="color: red;"></p>
     </div>
   </div>
   <script src="/scripts/CalendarClasses.js"></script>

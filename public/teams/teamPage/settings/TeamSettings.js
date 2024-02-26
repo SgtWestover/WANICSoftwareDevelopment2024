@@ -30,7 +30,6 @@ function connectWebSocket()
     };
 }
 
-
 let userRole = localStorage.getItem('userRole');
 let userID = localStorage.getItem('userID');
 let teamData = JSON.parse(localStorage.getItem('teamData'));
@@ -49,13 +48,143 @@ document.addEventListener('DOMContentLoaded', function ()
 
 function generateAdminSettings()
 {
+    generateManageQueue();
     generateRemoveUsers();
+    generateUpdateDescription();
 }
 
 function generateOwnerSettings()
 {
+    generateUpdateName();
     generateDeleteTeam();
 }
+
+function generateManageQueue() 
+{
+    const header = document.querySelector('header h1');
+    const manageQueueDiv = document.createElement('div');
+    manageQueueDiv.id = 'manage-queue';
+    manageQueueDiv.textContent = 'Manage Queue';
+    const modal = document.getElementById('manageQueueModal');
+    manageQueueDiv.onclick = function() 
+    {
+        modal.style.display = 'block';
+    };
+    document.getElementById('closeManageQueueModal').onclick = function() 
+    {
+        modal.style.display = 'none';
+        resetManageQueueModal();
+    };
+    window.addEventListener('click', function(event) 
+    {
+        if (event.target === modal) 
+        {
+            modal.style.display = 'none';
+            resetManageQueueModal();
+        }
+    });
+    header.appendChild(manageQueueDiv);
+}
+
+function resetManageQueueModal()
+{
+    document.getElementById('queuedUser').value = '';
+    document.getElementById('manageQueueError').textContent = '';
+}
+
+document.getElementById('admitUser').onclick = async function() 
+{
+    const username = document.getElementById('queuedUser').value;
+    if (username)
+    {
+        try 
+        {
+            const response = await sendRequest('/admitUser', { username: username, teamCode: teamData._joinCode, senderID : userID});
+            if (response.result === 'OK') 
+            {
+                alert("User admitted successfully");
+                document.getElementById('manageQueueModal').style.display = 'none';
+                resetManageQueueModal();        
+            }
+            else if (response.result === 'FAIL')
+            {
+                document.getElementById('manageQueueError').textContent = response.message;
+            }
+        } 
+        catch (error) 
+        {
+            console.log(error);
+            document.getElementById('manageQueueError').textContent = 'An error occurred: ' + error;
+        }
+    }
+    else
+    {
+        document.getElementById('manageQueueError').textContent = "Please enter a username";
+    }
+};
+
+document.getElementById('rejectUser').onclick = async function() 
+{
+    const username = document.getElementById('queuedUser').value;
+    if (username)
+    {
+        try 
+        {
+            const response = await sendRequest('/rejectUser', { username: username, teamCode: teamData._joinCode, senderID : userID });
+            if (response.result === 'OK') 
+            {
+                alert("User rejected successfully");
+                document.getElementById('manageQueueModal').style.display = 'none';
+                resetManageQueueModal();        
+            }
+            else if (response.result === 'FAIL')
+            {
+                document.getElementById('manageQueueError').textContent = response.message;
+            }
+        }
+        catch (error) 
+        {
+            console.log(error);
+            document.getElementById('manageQueueError').textContent = 'An error occurred: ' + error;
+        }
+    }
+    else
+    {
+        document.getElementById('manageQueueError').textContent = 'Please enter a username';
+    }
+};
+
+document.getElementById('blacklistUser').onclick = async function() 
+{
+    const username = document.getElementById('queuedUser').value;
+    if (username)
+    {
+        try 
+        {
+            const response = await sendRequest('/blacklistUser', { username: username, teamCode: teamData._joinCode, senderID : userID });
+            if (response.result === 'OK') 
+            {
+                alert("User blacklisted successfully");
+                document.getElementById('manageQueueModal').style.display = 'none';
+                resetManageQueueModal();        
+            } 
+            else if (response.result === 'FAIL')
+            {
+                document.getElementById('updateNameError').textContent = response.message;
+            }
+        } 
+        catch (error) 
+        {
+            console.log(error);
+            document.getElementById('updateNameError').textContent = 'An error occurred: ' + error;
+        }
+    }
+    else
+    {
+        document.getElementById('manageQueueError').textContent = 'Enter a name you dipshit';
+    }
+};
+
 
 function generateRemoveUsers() 
 {
@@ -82,6 +211,161 @@ function generateRemoveUsers()
         }
     });
     header.appendChild(removeUserDiv);
+}
+
+function generateUpdateDescription() 
+{
+    const header = document.querySelector('header h1');
+    const updateDescriptionDiv = document.createElement('div');
+    updateDescriptionDiv.id = 'description-update';
+    updateDescriptionDiv.textContent = 'Update Description';
+    const modal = document.getElementById('updateDescriptionModal');
+    updateDescriptionDiv.onclick = function() 
+    {
+        fillTeamDescription();
+        modal.style.display = 'block';
+    };
+    document.getElementById('closeUpdateDescriptionModal').onclick = function() 
+    {
+        modal.style.display = 'none';
+        resetUpdateDescriptionModal();
+    };
+    window.addEventListener('click', function(event) 
+    {
+        if (event.target === modal) 
+        {
+            modal.style.display = 'none';
+            resetUpdateDescriptionModal();
+        }
+    });
+    header.appendChild(updateDescriptionDiv);
+}
+
+function fillTeamDescription()
+{
+    sendRequest('/getTeamWithJoinCode', { joinCode : teamData._joinCode })
+    .then(response =>
+    {
+        if (response.result === "OK")
+        {
+            document.getElementById('updatedDescription').value = response.team._description;
+        }
+    })
+    .catch(error =>
+    {
+        document.getElementById('updateDescriptionError').textContent = error;
+    })
+}
+
+
+function generateUpdateName()
+{
+    const header = document.querySelector('header h1');
+    const updateNameDiv = document.createElement('div');
+    updateNameDiv.id = 'name-update';
+    updateNameDiv.textContent = 'Update Name';
+    const modal = document.getElementById('updateNameModal');
+    updateNameDiv.onclick = function() 
+    {
+        fillTeamName();
+        modal.style.display = 'block';
+    };
+    document.getElementById('closeUpdateNameModal').onclick = function() 
+    {
+        modal.style.display = 'none';
+        resetUpdateNameModal();
+    };
+    window.addEventListener('click', function(event) 
+    {
+        if (event.target === modal) 
+        {
+            modal.style.display = 'none';
+            resetUpdateNameModal();
+        }
+    });
+
+    header.appendChild(updateNameDiv);
+}
+
+function resetUpdateNameModal()
+{
+    document.getElementById('updatedName').value = '';
+    document.getElementById('updateNameError').textContent = '';
+}
+
+function resetUpdateDescriptionModal()
+{
+    document.getElementById('updatedDescription').value = '';
+    document.getElementById('updateDescriptionError').textContent = '';
+}
+
+function fillTeamName()
+{
+    sendRequest('/getTeamWithJoinCode', { joinCode : teamData._joinCode })
+    .then(response =>
+    {
+        if (response.result === "OK")
+        {
+            document.getElementById('updatedName').value = response.team._name;
+        }
+    })
+    .catch(error =>
+    {
+        document.getElementById('updateNameError').textContent = error;
+    })
+}
+
+document.getElementById('updateDescription').onclick = async function()
+{
+    const newDesc = document.getElementById('updatedDescription').value;
+    try
+    {
+        const response = await sendRequest('/updateTeamDescription', { newDesc : newDesc, teamCode : teamData._joinCode })
+        if (response.result === 'OK')
+        {
+            alert("Description Updated Successfully");
+            resetUpdateDescriptionModal();
+            document.getElementById('updateDescriptionModal').style.display = 'none';
+        }
+        else if (response.result === "FAIL")
+        {
+            document.getElementById('updateDescriptionError').textContent = response.message;
+        }
+    }
+    catch (error)
+    {
+        document.getElementById('updateDescriptionError').textContent = 'An error occurred when updating the description: ' + error;
+    }
+}
+
+document.getElementById('updateName').onclick = async function()
+{
+    const newName = document.getElementById('updatedName').value;
+    if (newName)
+    {
+        try
+        {
+            const response = await sendRequest('/updateTeamName', { newName : newName , teamCode : teamData._joinCode })
+            if (response.result === 'OK')
+            {
+                alert("Name Updated Successfully");
+                resetUpdateNameModal();
+                document.getElementById('updateNameModal').style.display = 'none';
+            }
+            else if (response.result === "FAIL")
+            {
+                document.getElementById('updateNameError').textContent = response.message;
+            }
+        }
+        catch (error)
+        {
+            document.getElementById('updateNameError').textContent = 'An error occurred when updating the name: ' + error;
+        }
+    }
+    else
+    {
+        document.getElementById('updateNameError').textContent = "Please enter a name";
+    }
 }
 
 document.getElementById('kickUser').onclick = async function()

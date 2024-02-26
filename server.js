@@ -1090,7 +1090,7 @@ router.post('/joinTeam', async (req, res) =>
         else 
         {
             team._usersQueued = team._usersQueued || {};
-            team._usersQueued[userName] = team._joinPerms;
+            team._usersQueued[userName] = { role: team._joinPerms, status: 'QUEUED' };
             await teamsCollection.updateOne({ _id: team._id }, { $set: { _usersQueued: team._usersQueued } });
             res.send({ result: 'QUEUED', message: 'Added to the queue' });
         }
@@ -1635,6 +1635,69 @@ router.post('/findTeamWithNotifID', async (req, res) =>
     }
 });
 
+router.post('/updateTeamDescription', async (req, res) => 
+{
+    const { newDesc, teamCode } = req.body;
+
+    if (!teamCode)
+    {
+        return res.status(400).send({ result: 'FAIL', message: "Missing required information" });
+    }
+    try
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        const team = await teamsCollection.findOne({ _joinCode: teamCode });
+        if (!team)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        if (team._description === newDesc)
+        {
+            return res.status(206).send({ result: 'FAIL', message: "Description unchanged" });
+        }
+        await teamsCollection.updateOne({ _joinCode: teamCode }, { $set: { _description: newDesc } });
+        res.status(200).send({ result: 'OK', message: "Description updated successfully" });
+    } 
+    catch (error)
+    {
+        console.error("Error updating team description:", error);
+        res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
+    }
+});
+
+
+router.post('/updateTeamName', async (req, res) => 
+{
+    const { newName, teamCode } = req.body;
+
+    if (!newName || !teamCode)
+    {
+        return res.status(400).send({ result: 'FAIL', message: "Missing required information" });
+    }
+    try
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        const team = await teamsCollection.findOne({ _joinCode: teamCode });
+        if (!team)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        if (team._name === newName)
+        {
+            return res.status(206).send({ result: 'FAIL', message: "Name unchanged" });
+        }
+        await teamsCollection.updateOne({ _joinCode: teamCode }, { $set: { _name: newName } });
+        res.status(200).send({ result: 'OK', message: "Name updated successfully" });
+    } 
+    catch (error)
+    {
+        console.error("Error updating team name:", error);
+        res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
+    }
+});
+
 router.post('/deleteTeam', async (req, res) => 
 {
     try 
@@ -1788,6 +1851,69 @@ router.post('/unbanUser', async (req, res) =>
         console.error("Error kicking user:", error);
         res.status(500).send({ message: "Internal Server Error" });
     }
+});
+
+//TODO: Add notifications later
+router.post('/admitUser', async (req, res) => 
+{
+    const { username, teamCode, senderID } = req.body;
+    const calendarDB = dbclient.db("calendarApp");
+    const teamsCollection = calendarDB.collection("teams");
+    const sender = await findUserByID(senderID);
+    const team = await teamsCollection.findOne({ _joinCode: teamCode });
+    if (!team || !team._usersQueued[username] || team._usersQueued[username].status !== 'QUEUED')
+    {
+        return res.status(206).send({ result: 'FAIL', message: "No user in queue found" });
+    }
+    if (!sender || sender._name === username)
+    {
+        return res.status(206).send({ result: 'FAIL', message: "Cannot admit yourself" });
+    }
+    const role = team._usersQueued[username].role;
+    delete team._usersQueued[username];
+    team._users[username] = role;
+    await teamsCollection.updateOne({ _joinCode: teamCode }, { $set: { _usersQueued: team._usersQueued, _users: team._users } });
+    res.status(200).send({ result: 'OK', message: "User admitted successfully" });
+});
+
+router.post('/rejectUser', async (req, res) => 
+{
+    const { username, teamCode, senderID } = req.body;
+    const calendarDB = dbclient.db("calendarApp");
+    const teamsCollection = calendarDB.collection("teams");
+    const sender = await findUserByID(senderID);
+    const team = await teamsCollection.findOne({ _joinCode: teamCode });
+    if (!team || !team._usersQueued[username] || team._usersQueued[username].status !== 'QUEUED')
+    {
+        return res.status(206).send({ result: 'FAIL', message: "No user in queue found" });
+    }
+    if (!sender || sender._name === username)
+    {
+        return res.status(206).send({ result: 'FAIL', message: "Cannot reject yourself" });
+    }
+    delete team._usersQueued[username];
+    await teamsCollection.updateOne({ _joinCode: teamCode }, { $set: { _usersQueued: team._usersQueued } });
+    res.status(200).send({ result: 'OK', message: "User rejected successfully" });
+});
+
+router.post('/blacklistUser', async (req, res) => 
+{
+    const { username, teamCode, senderID } = req.body;
+    const calendarDB = dbclient.db("calendarApp");
+    const sender = await findUserByID(senderID);
+    const teamsCollection = calendarDB.collection("teams");
+    const team = await teamsCollection.findOne({ _joinCode: teamCode });
+    if (!team || !team._usersQueued[username] || team._usersQueued[username].status !== 'QUEUED')
+    {
+        return res.status(206).send({ result: 'FAIL', message: "No user in queue found" });
+    }
+    if (!sender || sender._name === username)
+    {
+        return res.status(206).send({ result: 'FAIL', message: "Cannot ban yourself" });
+    }
+    team._usersQueued[username] = { role: null, status: 'BANNED' };
+    await teamsCollection.updateOne({ _joinCode: teamCode }, { $set: { _usersQueued: team._usersQueued } });
+    res.status(200).send({ result: 'OK', message: "User blacklisted successfully" });
 });
 
 // #region Websockets and server

@@ -84,7 +84,10 @@ div.content
 #invite-people,
 #team-leave,
 #team-delete,
-#user-remove
+#user-remove,
+#description-update,
+#name-update,
+#manage-queue
 {
   display: inline-block; /* Align buttons horizontally */
   margin: 0 10px; /* Space between buttons */
@@ -98,7 +101,10 @@ div.content
 #invite-people:hover,
 #team-leave:hover,
 #team-delete:hover,
-#user-remove:hover
+#user-remove:hover,
+#description-update:hover,
+#name-update:hover,
+#manage-queue:hover
 {
   background-color: #505050; /* Slightly darker on hover */
   transform: scale(1.05); /* Slightly larger on hover */
@@ -109,6 +115,9 @@ div.content
 #team-leave:active,
 #team-delete:active,
 #user-remove:active
+#description-update:active,
+#name-update:active,
+#manage-queue:active
 {
   transform: scale(0.95); /* Slightly smaller on click */
 }

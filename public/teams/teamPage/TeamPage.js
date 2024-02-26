@@ -340,6 +340,7 @@ function handleWebSocketMessage(data)
     {
         console.log("handle web socket message");
         const message = JSON.parse(data);
+        
     } 
     catch (error) 
     {
