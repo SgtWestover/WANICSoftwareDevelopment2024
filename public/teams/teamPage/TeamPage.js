@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function()
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.50.42:8080');
+    ws = new WebSocket('ws://192.168.73.235:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
@@ -219,17 +219,14 @@ function renderNotifications()
     {
         if (response.result === "OK")
         {
-            console.log("AAASDASDASDASD")
-            for(let i = 0; i < response.notifications.length(); i++)
+            for(const [key, data] of Object.entries(response.notifications))
             {
-                console.log("AAASDASDASDASD")
-                let data = response.notifications[i];
                 //get name and description 
                 switch (data.type) 
                 {
                     case "TEAM_INVITE":
                         name = "Received Team Invite";
-                        description = data.sender + "invited " + data.receiver + " to the team as " + notificationMessageCheckRole(data.message);
+                        description = data.sender + " invited " + data.receiver + " to the team as " + notificationMessageCheckRole(data.message);
                         break;
                     case "EVENT_CREATE":
                         name = "New Event Created";
@@ -243,27 +240,31 @@ function renderNotifications()
                         name = "Event Deleted"; 
                         description = notificationDescriptionDeleteEvent(data);
                         break;
+                    case "TEAM_JOIN":
+                        name = "User Joined"
+                        description = data.sender +" joined the team!";
+                        break;
                     default:
                         console.error("INVALID NOTIFICATION TYPE: " + data.type);
                         break;
                 }
                 //create html
-                console.log("html things")
                 let container = document.getElementById('teamNotifications');
 
-                let noficationElement = document.createElement("div");
-                noficationElement.classList.add("team-notifications-content-element");
-                container.append(noficationElement);
+                let notificationElement = document.createElement("div");
+                notificationElement.classList.add("team-notifications-content-element");
+                container.append(notificationElement);
+                container.insertBefore(notificationElement, container.firstChild)
 
                 let nameElement = document.createElement('div');
                 nameElement.classList.add('team-notifications-content-element-name');
                 nameElement.innerText = name;
-                container.append(nameElement);
+                notificationElement.append(nameElement);
 
                 let descriptionElement = document.createElement(`div`);
                 descriptionElement.classList.add('team-notifications-content-element-description');
                 descriptionElement.innerText = description;
-                container.append(descriptionElement);
+                notificationElement.append(descriptionElement);
             }
         }
     }).catch(error =>
@@ -275,7 +276,7 @@ function renderNotifications()
 function notificationMessageCheckRole(message)
 {
     if(message.split(" ").includes("Viewer")) return "a viewer";
-    if(message.split(" ").includes("User")) return "an user";
+    if(message.split(" ").includes("User")) return "a user";
     if(message.split(" ").includes("Admin")) return "an admin";
     if(message.split(" ").includes("Owner")) return "an owner";
     console.error("NOTIFICATION MESSAGE DID NOT INCLUDE VALID ROLE " + message);
@@ -285,82 +286,92 @@ function notificationDescriptionCreateEvent(data)
 {
     let id = data.message.split("(ID: ")[1];
     let event;
-    sendRequest('/findTeamEventByID', { teamEventID : id})
-    .then(response => 
-    {
-        if (response.result === "OK")
-        {
-            event = response.event;
-        }
-    })
-    .catch(error =>
-    {
-        console.error("screw you there's no way this can activate: ", error);
-    })
-    //USER created an new event: EVENT_NAME from START_TIME to END_TIME. 
-    return data.sender + " created a new event: " + event._name + " from " + event._startDate + " to " + event._endDate;
+    event = data.misc.currentEvent;
+    
+    let sameDay = false; 
+    if (checkDateSameDay(event._startDate, event._endDate)) sameDay = true;
+    const startDate = sameDay ? formatDate(event._startDate, false) : formatDate(event._startDate, true);
+    //USER created an new event: EVENT_NAME from START_TIME to END_TIME.
+    return data.sender + " created a new event: " + event._name + " from " + startDate + " to " + formatDate(event._endDate, true);
+}
+
+function formatDate(date, showDate)
+{
+    date = new Date(date);
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+
+    return showDate ? `${hours}:${minutes} ${ampm}, ${month}/${day}/${year}` : `${hours}:${minutes} ${ampm}`;
+}
+
+function checkDateSameDay(date1, date2)
+{
+    date1 = new Date(date1);
+    date2 = new Date(date2);
+    return (date1.getFullYear() === date2.getFullYear() && date1.getMonth() === date2.getMonth() && date1.getDate() === date2.getDate());
 }
 
 function notificationDescriptionEditEvent(data)
 {
-    let id = data._message.split("(ID: ")[1];
-    let event;
-    sendRequest('/findTeamEventByID', { teamEventID : id})
-    .then(response => 
-    {
-        if (response.result === "OK")
-        {
-            event = response.event;
-        }
-    })
-    .catch(error =>
-    {
-        console.error("screw you there's no way this can activate: ", error);
-    })
+    let id = data.message.split("(ID: ")[1];
+    let event = data.misc.currentEvent;
 
     //check what was changed
     let changeCount = 0;
-    let description = data.sender + " edited the event: " + event._name + ". ";
-    
+    let description = data.sender + " edited the event " + event._name + ", ";
+    console.log("currenct start: " + event._startDate)
+    console.log("prev end: " + data.misc.prevEvent.startTime)
+    if(event._startDate === data.misc.prevEvent.startTime) console.log("They are the same!")
     //users
-    if (!(JSON.stringify(event._users) === JSON.stringify(data.misc.prevEvent.users)))
+    if (JSON.stringify(event._users) !== JSON.stringify(data.misc.prevEvent.users))
     {
-        
         description = description + "users list was changed, ";
+        changeCount++;
     }
 
     //permissions
-    if (!event._permissions == data.misc.prevEvent.permissions)
+    if (event._permissions !== data.misc.prevEvent.permissions)
     {
         description = description + "edit permissions changed to " + event._permissions + ", ";
+        changeCount++;
     }
     
     //viewable
-    if (!event._viewable == data.misc.prevEvent.viewable)
+    if (event._viewable !== data.misc.prevEvent.viewable)
     {
         description = description + "now viewable by " + event._viewable + ", "; 
+        changeCount++;
     }
 
     //name
-    if (!event._name == data.misc.prevEvent.name)
+    if (event._name !== data.misc.prevEvent.name)
     {
+        console.log("name diff")
         description = description + "name changed to " + event._name + ", "; 
+        changeCount++;
     }
 
     //start time / end time
-    if (!event._startDate === data.misc.prevEvent.startDate)
+    if (event._startDate !== data.misc.prevEvent.startTime)
     {
-        description = description + "start time changed to " + event._startDate + ", "; 
+        description = description + "start time changed to " + formatDate(event._startDate, true) + ", ";
+        changeCount++; 
     }
-    if (!event._endDate === data.misc.prevEvent.endDate)
+    if (event._endDate !== data.misc.prevEvent.endTime)
     {
-        description = description + "end time changed to " + event._endDate + ", "; 
+        description = description + "end time changed to " + formatDate(event._endDate, true) + ", "; 
+        changeCount++;
     }
 
     // description
-    if (!event._description === data.misc.prevEvent.description)
+    if (event._description !== data.misc.prevEvent.description)
     {
         description = description + "description changed, ";
+        changeCount++;
     }
 
     //description[description.lenth - 2] = " ";

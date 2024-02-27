@@ -21,6 +21,40 @@ header /* Document header*/
   z-index: 1;
 }
 
+/*aspect of where buttons reside*/
+usermanagementcolumn
+{
+  position: absolute;
+  border: 10px solid;
+  border-color: #2b2e30;
+  width: 85.25%;
+  left: 11.5%;
+  height: 200px;
+  top: 82px;
+  display:table-cell;
+  vertical-align:middle;
+  text-align:center;  
+}
+
+teamshomemanagementcolumn
+{
+  position: absolute;
+  border: 10px solid;
+  border-color: #2b2e30;
+  width: 85.25%;
+  left: 23%;
+  height: 200px;
+  top: 82px;
+  display:table-cell;
+  vertical-align:middle;
+  text-align:center;  
+}
+
+catagorytext
+{
+  margin-left: 5px;
+}
+
 
 /* Sidebar*/
 .sidebar 
@@ -89,7 +123,8 @@ div.content
 #name-update,
 #manage-queue,
 #autojoin-manage,
-#clear-notifications
+#clear-notifications,
+#manage-user-roles
 {
   display: inline-block; /* Align buttons horizontally */
   margin: 0 10px; /* Space between buttons */
@@ -108,7 +143,8 @@ div.content
 #name-update:hover,
 #manage-queue:hover,
 #autojoin-manage:hover,
-#clear-notifications:hover
+#clear-notifications:hover,
+#manage-user-roles:hover
 {
   background-color: #505050; /* Slightly darker on hover */
   transform: scale(1.05); /* Slightly larger on hover */
@@ -123,7 +159,8 @@ div.content
 #name-update:active,
 #manage-queue:active,
 #autojoin-manage:active,
-#clear-notifications:hover
+#clear-notifications:hover,
+#manage-user-roles:hover
 {
   transform: scale(0.95); /* Slightly smaller on click */
 }
@@ -148,11 +185,11 @@ div.content
 {
   background-color: #2b2e30;
   /*! margin: 15% auto; */ /* 15% from the top and centered */
-  padding: 20px;
+  padding-top: 30px;
   border: 1px solid #888;
   /*! width: 80%; */ /* Could be more or less, depending on screen size */
   left: 0px;
-  position: relative;
+  position: absolute;
   height: 100%;
   top: 0px;
   overflow: hidden;

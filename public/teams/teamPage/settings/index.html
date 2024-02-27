@@ -10,12 +10,17 @@
 </head>
 
 <body>
+  
   <header>
-    <h1>
-      <div id="invite-people" onclick="invitePeopleStart()">Invite People</div>
-      <div id="team-leave" onclick="teamLeaveStart()">Leave Team</div>
-    </h1>
+    <usermanagementcolumn><catagorytext>User Management</catagorytext>
+      <h1>
+        <div id="invite-people" onclick="invitePeopleStart()">Invite People</div>
+        <div id="team-leave" onclick="teamLeaveStart()">Leave Team</div>
+      </h1>
+    </usermanagementcolumn>
   </header>
+
+  
   <div class="sidebar">
     <a href="../TeamPage.html">Home</a>
     <a href="../calendar/">Calendar</a>
@@ -121,6 +126,18 @@
         <button type="button" id="denyClearNotifications" class="button">No</button>
         <button type="button" id="confirmClearNotifications" class="button">Yes</button>
         <p id="manageAutoJoinError" style="color: red;"></p>
+    </div>
+  </div>
+  <div id="manageUserRolesModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeManageUserRolesModal">&times;</span>
+        <h2>Manage User Roles</h2>
+        <input type="text" id="usernameToChangeRole" placeholder="Enter username" class="button">
+        <label for="newUserRole" id="userRoleLabel">Role:</label>       
+        <select id="newUserRole" class="button">
+        </select>
+        <button type="button" id="manageUserRoles" class="button">Change</button>
+        <p id="manageUserRolesError" style="color: red;"></p> <!-- Error message display -->
     </div>
   </div>
   <script src="/scripts/CalendarClasses.js"></script>

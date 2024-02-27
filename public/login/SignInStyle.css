@@ -4,7 +4,8 @@
 body 
 {
     font-family: Arial, sans-serif;
-    background-image: url('corporate3.png'); /* Background image */
+    background-image: url('corporate2.jpg'); /* Background image */
+    /*<a href="https://www.freepik.com/free-vector/marketing-professional-presenting-financial-chart-boss_11235734.htm#query=business%20cartoon&position=0&from_view=keyword&track=ais&uuid=c5c551d3-b113-49ea-8daa-115728e9711e">Image by pch.vector</a> on Freepik*/
     background-size: cover;
     background-position: center;
     display: flex;

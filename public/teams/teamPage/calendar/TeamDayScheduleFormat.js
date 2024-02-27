@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function()
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.50.42:8080');
+    ws = new WebSocket('ws://192.168.73.235:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
@@ -416,6 +416,20 @@ function updateCurrentTimeLine()
 function dayContainerClick(event)
 {
     let username;
+
+    let time = document.getElementById('lineTimeText').innerHTML;
+
+    let timeArray = time.split(" ");
+    time = timeArray[0];
+    let isPM = timeArray[1] === 'PM';
+
+    let hourArray = time.split(":");
+    let hour = isPM ? parseInt(hourArray[0]) : parseInt(hourArray[0]) + 12;
+    
+    time = hour + ":" + hourArray[1];
+
+    document.getElementById('startTime').value = time; // Format to "HH:MM"
+    document.getElementById('endTime').value = endTime
     sendRequest('/getUser', {userID: localStorage.getItem("userID")})
     .then(response =>
     {
@@ -432,8 +446,10 @@ function dayContainerClick(event)
             console.error("GET USER ERROR");
         }
     });
-
+    
+    
 }
+
 
 // #endregion Popup update
 
@@ -821,8 +837,8 @@ function populateEventForm(eventID, calendarEvent, eventElement)
         permissions: calendarEvent._permissions,
         viewable: calendarEvent._viewable,
         name: calendarEvent._name,
-        startTime: formatToTime(calendarEvent._startDate), //format the times to military so that it can be easily compared later on
-        endTime: formatToTime(calendarEvent._endDate),
+        startTime: calendarEvent._startDate, //format the times to military so that it can be easily compared later on
+        endTime: calendarEvent._endDate,
         description: calendarEvent._description
     };
     eventForm.setAttribute('data-original-event', JSON.stringify(originalEventData));

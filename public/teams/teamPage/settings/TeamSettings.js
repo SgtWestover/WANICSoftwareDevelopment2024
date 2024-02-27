@@ -9,7 +9,7 @@ const roleLevels =
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.50.42:8080');
+    ws = new WebSocket('ws://192.168.73.235:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
@@ -54,12 +54,90 @@ function generateAdminSettings()
     generateUpdateDescription();
     generateManageAutoJoin();
     generateNotificationsClear();
+    generateManageUserRoles();
 }
 
 function generateOwnerSettings()
 {
     generateUpdateName();
     generateDeleteTeam();
+}
+
+function generateManageUserRoles()
+{
+    const header = document.querySelector('header h1');
+    const manageUserRolesDiv = document.createElement('div');
+    manageUserRolesDiv.id = 'manage-user-roles';
+    manageUserRolesDiv.textContent = 'Manage User Roles';
+    const modal = document.getElementById('manageUserRolesModal');
+    manageUserRolesDiv.onclick = function() 
+    {
+        const userRoleSelect = document.getElementById('newUserRole');
+        userRoleSelect.innerHTML = '';
+        for (const [role, level] of Object.entries(roleLevels)) 
+        {
+            if (level <= roleLevels[userRole]) 
+            {
+                const option = document.createElement('option');
+                option.value = role;
+                option.textContent = role.charAt(0).toUpperCase() + role.slice(1);
+                option.className = 'button';
+                userRoleSelect.appendChild(option);
+            }
+        }
+        modal.style.display = 'block';
+    };
+    document.getElementById('closeManageUserRolesModal').onclick = function()
+    {
+        resetManageUserRolesModal();
+        document.getElementById('manageUserRolesModal').style.display = 'none';
+    }
+    window.onclick = function(event) 
+    {
+        if (event.target === modal) 
+        {
+            resetManageUserRolesModal();
+            modal.style.display = 'none';
+        }
+    }
+    header.append(manageUserRolesDiv);
+}
+
+document.getElementById('manageUserRoles').onclick = async function() 
+{
+    const username = document.getElementById('usernameToChangeRole').value;
+    var newUserRole = document.getElementById('newUserRole').value;
+    if (username)
+    {
+        try
+        {
+            const response = await sendRequest('/updateUserRole', { username: username, newUserRole: newUserRole, teamCode: teamData._joinCode })
+            if (response.result === 'OK')
+            {
+                alert('User role updated successfully.');
+                document.getElementById('manageUserRolesModal').style.display = 'none';
+                resetManageUserRolesModal();
+            }
+            else if (response.result === 'FAIL')
+            {
+                document.getElementById('manageUserRolesError').textContent = response.message;
+            }   
+        }
+        catch (error)
+        {
+            document.getElementById('manageUserRolesError').textContent = "Error updating user role: " + error;
+        }
+    }
+    else
+    {
+        document.getElementById('manageUserRolesError').textContent = "Please enter a username";
+    }
+}
+
+function resetManageUserRolesModal()
+{
+    document.getElementById('usernameToChangeRole').value = '';
+    document.getElementById('manageUserRolesError').textContent = '';
 }
 
 function generateNotificationsClear() 
@@ -365,6 +443,7 @@ function generateRemoveUsers()
 function generateUpdateDescription() 
 {
     const header = document.querySelector('header h1');
+    const servercolumn = document.querySelector('header h2');
     const updateDescriptionDiv = document.createElement('div');
     updateDescriptionDiv.id = 'description-update';
     updateDescriptionDiv.textContent = 'Update Description';

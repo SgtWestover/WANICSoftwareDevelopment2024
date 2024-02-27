@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function()
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.50.42:8080');
+    ws = new WebSocket('ws://192.168.73.235:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
@@ -400,16 +400,16 @@ document.getElementById('joinTeamButton').onclick = async function()
                 updateJoinTeamMessage('Successfully joined the team!', 'Green');
                 closeTeamJoinModal();
                 renderAllTeams();
-            } 
+            }
             else if (response.result === 'QUEUED') 
             {
                 alert('You have been added to the queue');
                 updateJoinTeamMessage('You have been added to the queue.', 'White');
                 closeTeamJoinModal();
             } 
-            else 
+            else if (response.result === 'FAIL')
             {
-                alert('Failed to join the team');
+                alert('Failed to join the team: ', response.message);
                 updateJoinTeamMessage('Failed to join the team.', 'Red');
             }
         } 
