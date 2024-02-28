@@ -21,38 +21,56 @@ header /* Document header*/
   z-index: 1;
 }
 
-/*aspect of where buttons reside*/
+/*aspect of where buttons for user management reside*/
 usermanagementcolumn
 {
   position: absolute;
   border: 10px solid;
   border-color: #2b2e30;
-  width: 85.25%;
-  left: 11.5%;
+  width: 86.95%;
+  left: 12%;
   height: 200px;
-  top: 82px;
+  top: 80px;
   display:table-cell;
   vertical-align:middle;
   text-align:center;  
 }
 
+/*aspect of where buttons for general team management reside*/
 teamshomemanagementcolumn
 {
   position: absolute;
   border: 10px solid;
   border-color: #2b2e30;
-  width: 85.25%;
-  left: 23%;
+  width: 86.95%;
+  left: 12%;
   height: 200px;
-  top: 82px;
+  top: 290px;
   display:table-cell;
   vertical-align:middle;
   text-align:center;  
 }
 
+/*aspect of where buttons for general team management reside*/
+personalanagementcolumn
+{
+  position: absolute;
+  border: 10px solid;
+  border-color: #2b2e30;
+  width: 86.95%;
+  left: 12%;
+  height: 200px;
+  top: 500px;
+  display:table-cell;
+  vertical-align:middle;
+  text-align:center;  
+}
+
+/*text for box's catagory*/
 catagorytext
 {
   margin-left: 5px;
+  color: white
 }
 
 

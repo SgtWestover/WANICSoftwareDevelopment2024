@@ -283,7 +283,7 @@ div.content
 {
   margin: 70px auto;
   padding: 20px;
-  background: #fff;
+  background: #2d2e30;
   border-radius: 5px;
   width: 80%;
   max-height: 75%;
@@ -295,7 +295,7 @@ div.content
 .popup h2 /* Event popup header*/
 {
   margin-top: 0;
-  color: #333;
+  color: #fff;
   font-family: Tahoma, Arial, sans-serif;
 }
 
@@ -308,7 +308,7 @@ div.content
   font-size: 30px;
   font-weight: bold;
   text-decoration: none;
-  color: #333;
+  color: #fff;
 }
 
 .popup .close:hover /* Change color when popup hovered */
@@ -342,7 +342,7 @@ div.content
   font-size: 50px;
   font-weight: bold;
   text-decoration: none;
-  color: #333;
+  color: #fff;
   cursor: pointer;
   user-select: none;
 }

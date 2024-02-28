@@ -740,7 +740,7 @@ router.post('/findUserName', async (req, res) =>
 
 router.post('/createTeam', async (req, res) => 
 {
-    if (!req.body._name || !req.body._usersQueued) 
+    if (!req.body.team._name || !req.body.team._usersQueued || !req.body.creatorName) 
     {
         return res.status(400).send({ result: 'FAIL', message: "Missing information" });
     }
@@ -751,7 +751,6 @@ router.post('/createTeam', async (req, res) =>
         let users = {};
         let usersQueued = {};
         const currentDate = new Date();
-        const ownerUsername = Object.keys(req.body._usersQueued).find(username => req.body._usersQueued[username].role === 'Owner');
         let notificationIDs = {}; // Store notification IDs for each user added
         for (const [username, info] of Object.entries(req.body._usersQueued)) 
         {
@@ -763,8 +762,8 @@ router.post('/createTeam', async (req, res) =>
             {
                 usersQueued[username] = { role: info.role, status: info.status };
                 const notifID = new ObjectId().toString();
-                const message = `${ownerUsername} invited you to join their team ${req.body._name} as a ${info.role}`;
-                await addNotificationToUser(username, notifID, "TEAM_INVITE", message, ownerUsername, currentDate, null);
+                const message = `${req.body.creatorName} invited you to join their team ${req.body._name} as a ${info.role}`;
+                await addNotificationToUser(username, notifID, "TEAM_INVITE", message, req.body.creatorName, currentDate, null);
                 notificationIDs[username] = { notifID: notifID, role: info.role };
             }
         }
@@ -774,8 +773,8 @@ router.post('/createTeam', async (req, res) =>
         {
             for (const [username, { notifID, role }] of Object.entries(notificationIDs)) 
             {
-                const message = `${ownerUsername} invited you to join their team ${req.body._name} as a ${role}`;
-                await addNotificationToTeam(result.insertedId, notifID, "TEAM_INVITE", message, ownerUsername, username, role, currentDate, null);
+                const message = `${req.body.creatorName} invited you to join their team ${req.body._name} as a ${role}`;
+                await addNotificationToTeam(result.insertedId, notifID, "TEAM_INVITE", message, req.body.creatorName, username, role, currentDate, null);
             }
             await notifyTeamUpdate(newTeam);
             res.status(201).send({ result: 'OK', message: "Team Created", teamID: result.insertedId, teamJoinCode: teamJoinCode });

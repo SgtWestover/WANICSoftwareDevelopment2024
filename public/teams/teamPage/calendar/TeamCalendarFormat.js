@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', function ()
 
 // #endregion Global variables and listeners
 
+
+
 // #region Calendar functionality
 
 /**
@@ -64,6 +66,18 @@ function renderCalendar(date)
     if (startingDay === 5 && monthDays > 30 || startingDay === 6 && monthDays > 29) numRows = 6; //if the month starts on a friday or saturday, there will be 6 rows
     let today = new Date(); // Today's date
     today.setHours(0, 0, 0, 0); // Reset time to midnight for accurate comparisons later
+    //Get all events for the team
+    let eventList;
+    sendRequest('/getTeamEvents', {teamCode: localStorage.getItem("joinCode")})
+    .then(response =>
+    {
+        if (response.result === "OK")
+        {
+            eventList = response.teamEvents; 
+            showEventNumbers(eventList);   
+           
+        }        
+    })
     // Create rows for each week
     for (let i = 0; i < numRows; i++)
     {
@@ -87,6 +101,11 @@ function renderCalendar(date)
                     cell.style.cursor = 'pointer';
                     cell.addEventListener('click', function() // Click on day
                     {
+                        document.querySelectorAll('.calendar-cell.selected-day').forEach(function(cell) 
+                        {
+                            cell.classList.remove('selected-day');
+                        });
+                        cell.classList.add('selected-day');
                         let clickedDate = new Date(date.getFullYear(), date.getMonth(), currentDay);
                         let isToday = (clickedDate.toDateString() === today.toDateString()); //checks if the clicked cell is today's date
                         // Emit custom event with the selected date
@@ -98,8 +117,13 @@ function renderCalendar(date)
                     let cellDate = new Date(date.getFullYear(), date.getMonth(), currentDay);
                     if (cellDate.getTime() === today.getTime())
                     {
-                        cell.classList.add('selected-day');
+                        cell.classList.add('current-day');
                     }
+                    //notification text button
+                    let eventCountElement = document.createElement('div');
+                    eventCountElement.classList.add('calendar-cell-eventCount');
+                    cell.append(eventCountElement);  
+
                 }
             }) (dayOfMonth); // Pass 'dayOfMonth' to the IIFE
             // Check if the cell should contain a day of the month
@@ -114,6 +138,25 @@ function renderCalendar(date)
         // Append the row to the calendar body
         calendarBody.appendChild(row);
     }
+}
+
+function showEventNumbers(eventList)
+{
+    console.log('asdas\n\n\n\n\n\nd');
+    let elementList = Array.prototype.slice.call(document.getElementsByClassName('calendar-cell'));
+    elementList.forEach(element => 
+    {
+        let eventCount = 0;
+        eventList.forEach(event => 
+        {
+            if (new Date(event._startDate).getDate() == (element.innerText).split('<')[0])
+            {
+                eventCount++;
+                console.log('correct day')
+            }
+        });
+        element.children[0].innerHTML = eventCount;/**/
+    });
 }
 
 /**
@@ -366,3 +409,25 @@ function scrollToSelectedYear(dropdownContent)
 // #endregion Year dropdown functionality
 
 // #endregion Dropdown functionality
+
+/**
+ * Sends an HTTP POST request to the specified endpoint with the provided data.
+ * @param {string} endpoint - The endpoint to send the request to.
+ * @param {Object} data - The data to send in the request.
+ * @returns {Promise<Object>} The response from the server.
+ */
+async function sendRequest(endpoint, data) 
+{
+    const response = await fetch(endpoint,
+        {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+    if (!response.ok) 
+    {
+        throw new Error('Network response was not ok');
+    }
+    return await response.json();
+}

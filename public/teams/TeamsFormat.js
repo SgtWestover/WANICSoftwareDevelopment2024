@@ -1,5 +1,5 @@
 /*
-Name: Kaelin Wang Hu and Zach Rojas
+Name: KWH and ZR
 Date: 1/16/2024
 Last Edit: 1/16/2024
 Description: Handles account settings and deletion
@@ -62,7 +62,7 @@ function connectWebSocket()
  * Start the process to create a new team, with a modal to enter the team name and users
  * @returns {void} - but opens a modal to create a team
  */
-function teamsCreateStart() 
+function teamsCreateStart()
 {
     var modal = document.getElementById('createTeamModal');
     var closeButton = document.querySelector('#createTeamModal .close');
@@ -351,7 +351,7 @@ function handleTeamCreation(event)
                 _joinPerms: joinPerms
             };
             resetTeamsCreate();
-            return sendRequest('/createTeam', team);
+            return sendRequest('/createTeam', {team: team, creatorName: teamCreatorName} );
         }
         else 
         {

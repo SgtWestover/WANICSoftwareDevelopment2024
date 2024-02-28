@@ -13,6 +13,9 @@ Description: Handles the formatting for the day schedule
  */
 
 
+
+
+
 let ws;
 //line for indicating the current time
 var currentTimeLine;
@@ -35,6 +38,7 @@ const roleLevels =
     'Admin': 3,
     'Owner': 4
 };
+let highlightedDay;
 
 //#region Popup initialization
 
@@ -55,6 +59,7 @@ document.addEventListener('DOMContentLoaded', function()
     // Listen for the dateSelected event
     document.addEventListener('dateSelected', function(event) 
     {
+        highlightedDay = event.detail.date;
         updatePopupHeader(event.detail);
     });
     // Event listeners for the previous and next day buttons
@@ -113,7 +118,6 @@ function initializeEvents()
     }
 }
 
-
 //On the window load, set global variables startTime and endTime and generate the schedule while initializing the current time tracker
 window.onload = function() 
 {
@@ -152,6 +156,10 @@ document.querySelector('.popup .close').addEventListener('click', function()
  */
 function generateSchedule() 
 {
+    let dragging = false;
+    let mouseDownTime = 0;
+    let startX;
+    let endX;
     // Get the schedule body element
     let scheduleBody = document.getElementById('scheduleBody');
     //Clear previous content from the schedule body
@@ -179,10 +187,43 @@ function generateSchedule()
     {
         lineFollow(event);
     });
-    //when day container is clicked on, open the event form
-    dayContainer.addEventListener("click", function(event) 
+    dayContainer.addEventListener('mousedown', function(event)
     {
-        dayContainerClick(event);
+        dragging = true;
+        mouseDownTime = event.timeStamp;
+        startX = event.clientX - dayContainer.getBoundingClientRect().left;
+    });
+    dayContainer.addEventListener('mousemove', function(event) 
+    {
+        if (event.buttons === 1 && !dragging)
+        { 
+            startDragging(event);
+        }
+        else if (dragging)
+        {
+            handleDragging(event);
+        }
+    });
+    window.addEventListener('mouseup', function(event) 
+    {
+        if (dragging) 
+        {
+            dragging = false;
+            endDragging(event);
+        }
+        let mouseUpTime = event.timeStamp; 
+        let duration = mouseUpTime - mouseDownTime;
+        endX = event.clientX - dayContainer.getBoundingClientRect().left;
+        if (duration < 150)
+        {
+            console.log('click');
+            dayContainerClick(event);
+        }
+        else
+        {
+            console.log('drag');
+            dayContainerDrag(event, startX, endX);
+        }
     });
     //line for actually tracking the mouse
     let line = document.getElementById('line');
@@ -196,6 +237,21 @@ function generateSchedule()
     {
         generateTimeMeasurements();
     });
+}
+
+function startDragging(event)
+{
+    console.log("started dragging");
+}
+
+function handleDragging(event)
+{
+    console.log("dragging da S T U F F ");
+}
+
+function endDragging(event)
+{
+    console.log("stopped dragging lol");
 }
 
 /**
@@ -282,6 +338,7 @@ function lineText(event, time)
     // Position the text element to follow the mouse, displaying the time.
     text.style.left = `${event.clientX - Left - 5.5}px`;
     text.innerHTML = time; // Update the text to show the calculated time.
+
 }
 
 // #endregion Popup initialization
@@ -375,7 +432,7 @@ function updatePopupHeader(eventDetail)
     document.getElementById('popupHeader').innerText = headerText;
     document.getElementById('popupHeader').setAttribute('data-date', newDate.toISOString().split('T')[0]);
     getTeamEvents(teamData._joinCode)
-    .then(teamEvents=> 
+    .then(teamEvents=>
     {
         let currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
         let currentPopupDate = getDateFromAttribute(currentPopupDateAttr);
@@ -416,27 +473,33 @@ function updateCurrentTimeLine()
 function dayContainerClick(event)
 {
     let username;
-
     let time = document.getElementById('lineTimeText').innerHTML;
-
     let timeArray = time.split(" ");
     time = timeArray[0];
-    let isPM = timeArray[1] === 'PM';
-
+    let isPM = (timeArray[1] === 'PM');
     let hourArray = time.split(":");
-    let hour = isPM ? parseInt(hourArray[0]) : parseInt(hourArray[0]) + 12;
-    
-    time = hour + ":" + hourArray[1];
-
+    let hour
+    if (isPM)
+    {
+        hour = parseInt(hourArray[0]);
+        hour += 12;    
+    }
+    else
+    {
+        hour = parseInt(hourArray[0]);
+    }
+    if(hour >= 24) hour -= 12;
+    time = hour.toString().padStart(2, '0') + ":" + hourArray[1];
+    let endTime = (hour + 1).toString().padStart(2, '0') + ':' + hourArray[1];
     document.getElementById('startTime').value = time; // Format to "HH:MM"
-    document.getElementById('endTime').value = endTime
+    document.getElementById('endTime').value = endTime;
     sendRequest('/getUser', {userID: localStorage.getItem("userID")})
     .then(response =>
     {
         if (response.result === "OK")
         {
             username = response.user._name;
-            if (roleLevels[teamData._users[username]] > 1)
+            if (roleLevels[teamData._users[username]] > roleLevels['viewer'])
             {
                 document.getElementById('eventPopup').style.display = 'block';
             }
@@ -446,8 +509,7 @@ function dayContainerClick(event)
             console.error("GET USER ERROR");
         }
     });
-    
-    
+
 }
 
 
@@ -526,8 +588,6 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     {
         const notificationType = isEditing ? '/notificationEditEvent' : '/notificationCreateEvent';
         const prevEvent = isEditing ? JSON.parse(eventForm.getAttribute('data-original-event')) : null;
-        console.log(JSON.parse(eventForm.getAttribute('data-original-event')));
-        console.log("prevEvent: " + JSON.stringify(prevEvent));
         const notifResult = sendRequest(notificationType, 
         {    
             teamCode: teamData._joinCode, 
@@ -639,7 +699,6 @@ function renderEvent(calendarEvent)
     sendRequest('/getUser', {userID: localStorage.getItem("userID")})
     .then(response =>
     {
-        console.log(response.result);
         if (response.result === 'OK')
         {
             username = response.user._name;
@@ -725,7 +784,33 @@ function closeEventForm()
 {
     resetEventForm(); //resetEventForm() handles all of the heavy lifting, this just also closes the event popup
     document.getElementById('eventPopup').style.display = 'none';
+    highlightSelectedDay();
 }
+
+function highlightSelectedDay() 
+{
+    if (highlightedDay)
+    {
+        let calendarBody = document.getElementById('calendar-body');
+        let cells = calendarBody.querySelectorAll('.calendar-cell');
+        cells.forEach(function(cell) 
+        {
+            let cellText = cell.innerText.trim();
+            let cellDate = new Date(highlightedDay.getFullYear(), highlightedDay.getMonth(), parseInt(cellText, 10));
+            if (cellText && cellDate.getTime() === highlightedDay.getTime()) 
+            {
+                cell.classList.add('selected-day');
+                setTimeout(function() 
+                {
+                    cell.style.transition = 'background-color 10s ease-out';
+                    cell.style.backgroundColor = '#181a1b';
+                }, 100);
+            }
+        });
+    }
+}
+
+
 
 /**
  * Resets the event popup, clearing all the fields and resetting the form state, good for both when the form is closed and when it is submitted or edited
@@ -850,7 +935,6 @@ function populateEventForm(eventID, calendarEvent, eventElement)
         {
             if (response.result === "OK")
             {
-                console.log("event deleted");
                 sendRequest("/notificationDeleteEvent", 
                 {
                     teamCode : teamData._joinCode, 
@@ -1397,7 +1481,6 @@ function handleWebSocketMessage(data)
                 teamEvents.forEach(event => 
                 {
                     let eventDate = new Date(event._startDate);
-                    console.log("event Date: " + eventDate);
                     if (eventDate.toISOString().split('T')[0] === newDate.toISOString().split('T')[0]) 
                     {
                         renderEvent(event);

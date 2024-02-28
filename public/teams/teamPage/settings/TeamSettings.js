@@ -65,7 +65,7 @@ function generateOwnerSettings()
 
 function generateManageUserRoles()
 {
-    const header = document.querySelector('header h1');
+    const usercolumn = document.querySelector('usercolumn h1');
     const manageUserRolesDiv = document.createElement('div');
     manageUserRolesDiv.id = 'manage-user-roles';
     manageUserRolesDiv.textContent = 'Manage User Roles';
@@ -100,7 +100,7 @@ function generateManageUserRoles()
             modal.style.display = 'none';
         }
     }
-    header.append(manageUserRolesDiv);
+    usercolumn.append(manageUserRolesDiv);
 }
 
 document.getElementById('manageUserRoles').onclick = async function() 
@@ -142,7 +142,7 @@ function resetManageUserRolesModal()
 
 function generateNotificationsClear() 
 {
-    const header = document.querySelector('header h1');
+    const servercolumn = document.querySelector('servercolumn h1');
     const clearNotificationsDiv = document.createElement('div');
     clearNotificationsDiv.id = 'clear-notifications';
     clearNotificationsDiv.textContent = 'Clear Notifications';
@@ -164,7 +164,7 @@ function generateNotificationsClear()
             document.getElementById('manageAutoJoinError').textContent = '';
         }
     });
-    header.appendChild(clearNotificationsDiv);
+    servercolumn.appendChild(clearNotificationsDiv);
 }
 
 document.getElementById('confirmClearNotifications').onclick = async function() 
@@ -196,7 +196,7 @@ document.getElementById('denyClearNotifications').onclick = function()
 
 function generateManageAutoJoin() 
 {
-    const header = document.querySelector('header h1');
+    const usercolumn = document.querySelector('usercolumn h1');
     const manageAutoJoinDiv = document.createElement('div');
     manageAutoJoinDiv.id = 'autojoin-manage';
     manageAutoJoinDiv.textContent = 'Manage AutoJoin';
@@ -218,7 +218,7 @@ function generateManageAutoJoin()
         }
     });
 
-    header.appendChild(manageAutoJoinDiv);
+    usercolumn.appendChild(manageAutoJoinDiv);
 }
 
 function fillAutoJoin()
@@ -288,7 +288,7 @@ function fillAutoJoin()
 
 function generateManageQueue() 
 {
-    const header = document.querySelector('header h1');
+    const servercolumn = document.querySelector('servercolumn h1');
     const manageQueueDiv = document.createElement('div');
     manageQueueDiv.id = 'manage-queue';
     manageQueueDiv.textContent = 'Manage Queue';
@@ -310,7 +310,7 @@ function generateManageQueue()
             resetManageQueueModal();
         }
     });
-    header.appendChild(manageQueueDiv);
+    servercolumn.appendChild(manageQueueDiv);
 }
 
 function resetManageQueueModal()
@@ -415,7 +415,7 @@ document.getElementById('blacklistUser').onclick = async function()
 
 function generateRemoveUsers() 
 {
-    const header = document.querySelector('header h1');
+    const usercolumn = document.querySelector('usercolumn h1');
     const removeUserDiv = document.createElement('div');
     removeUserDiv.id = 'user-remove';
     removeUserDiv.textContent = 'Remove User';
@@ -437,13 +437,12 @@ function generateRemoveUsers()
             resetRemoveUserModal();
         }
     });
-    header.appendChild(removeUserDiv);
+    usercolumn.appendChild(removeUserDiv);
 }
 
 function generateUpdateDescription() 
 {
-    const header = document.querySelector('header h1');
-    const servercolumn = document.querySelector('header h2');
+    const servercolumn = document.querySelector('servercolumn h1'); 
     const updateDescriptionDiv = document.createElement('div');
     updateDescriptionDiv.id = 'description-update';
     updateDescriptionDiv.textContent = 'Update Description';
@@ -466,7 +465,7 @@ function generateUpdateDescription()
             resetUpdateDescriptionModal();
         }
     });
-    header.appendChild(updateDescriptionDiv);
+    servercolumn.appendChild(updateDescriptionDiv);
 }
 
 function fillTeamDescription()
@@ -488,7 +487,7 @@ function fillTeamDescription()
 
 function generateUpdateName()
 {
-    const header = document.querySelector('header h1');
+    const servercolumn = document.querySelector('servercolumn h1');
     const updateNameDiv = document.createElement('div');
     updateNameDiv.id = 'name-update';
     updateNameDiv.textContent = 'Update Name';
@@ -512,7 +511,7 @@ function generateUpdateName()
         }
     });
 
-    header.appendChild(updateNameDiv);
+    servercolumn.appendChild(updateNameDiv);
 }
 
 function resetUpdateNameModal()
@@ -696,7 +695,7 @@ function resetRemoveUserModal()
 
 function generateDeleteTeam() 
 {
-    const header = document.querySelector('header h1');
+    const personalcolumn = document.querySelector('personalcolumn h1');
     const deleteTeamDiv = document.createElement('div');
     deleteTeamDiv.id = 'team-delete';
     deleteTeamDiv.textContent = 'Delete Team';
@@ -719,7 +718,7 @@ function generateDeleteTeam()
             document.getElementById('teamConfirmSection').style.display = 'none';
         }
     });
-    header.appendChild(deleteTeamDiv);
+    personalcolumn.appendChild(deleteTeamDiv);
 }
 
 

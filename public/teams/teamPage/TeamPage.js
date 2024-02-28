@@ -1,5 +1,5 @@
 /*
-Name: Kaelin Wang Hu and Zach Rojas
+Name: KWH and ZR
 Date: 2/8/2024
 Last Edit: 2/8/2024
 Description: Handles the rendering of the team page
@@ -381,7 +381,7 @@ function notificationDescriptionEditEvent(data)
 function notificationDescriptionDeleteEvent(data)
 {
     //USER deleted the event: EVENT_NAME 
-    return data._sender + " deleted the event: " + data.misc.deletedEvent._name;
+    return data.sender + " deleted the event: " + data.misc.deletedEvent._name;
 }
 
 async function getCurrentUserRole() 
