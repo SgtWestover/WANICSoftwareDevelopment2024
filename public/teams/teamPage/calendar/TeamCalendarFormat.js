@@ -142,7 +142,6 @@ function renderCalendar(date)
 
 function showEventNumbers(eventList)
 {
-    console.log('asdas\n\n\n\n\n\nd');
     let elementList = Array.prototype.slice.call(document.getElementsByClassName('calendar-cell'));
     elementList.forEach(element => 
     {

@@ -224,8 +224,25 @@ function renderNotifications()
                 //get name and description 
                 switch (data.type) 
                 {
+
+                    /*
+                    TEAM_INVITE
+                    EVENT_CREATE
+                    EVENT_EDIT
+                    EVENT_DELETE
+                    TEAM_JOIN
+                    TEAM_DESC_UPDATE
+                    TEAM_NAME_UPDATE
+                    TEAM_KICK
+                    TEAM_BAN
+                    TEAM_UNBAN
+                    TEAM_UPDATE_ROLE
+                    TEAM_ADMIT
+                    TEAM_REJECT
+                    TEAM_BLACKLIST
+                    */
                     case "TEAM_INVITE":
-                        name = "Received Team Invite";
+                        name = "User Invited to Team";
                         description = data.sender + " invited " + data.receiver + " to the team as " + notificationMessageCheckRole(data.message);
                         break;
                     case "EVENT_CREATE":
@@ -243,6 +260,42 @@ function renderNotifications()
                     case "TEAM_JOIN":
                         name = "User Joined"
                         description = data.sender +" joined the team!";
+                        break;
+                    case "TEAM_DESC_UPDATE": 
+                        name = "Team Description Changed";
+                        description = notificationDescriptionDescUpdate(data);
+                        break;
+                    case "TEAM_NAME_UPDATE":
+                        name = "Tame Name Changed";
+                        description = data.message;
+                        break;
+                    case "TEAM_KiCK":
+                        name = "User Kicked";
+                        description = data.message;
+                        break;
+                    case "TEAM_BAN":
+                        name = "User Banned";
+                        description = data.message;
+                        break;
+                    case "TEAM_UNBAN":
+                        name = "User Unbanned";
+                        description = data.message;
+                        break;
+                    case "TEAM_UPDATE_ROLE":
+                        name = "User Role Changed";
+                        description = data.message
+                        break;
+                    case "TEAM_ADMIT":
+                        name = "User Joined";
+                        description = data.message
+                        break;
+                    case "TEAM_REJECT":
+                        name = "User Rejected";
+                        description = data.message;
+                        break;
+                    case "TEAM_BLACKLIST":
+                        name = "User Blacklisted"
+                        description = data.message;
                         break;
                     default:
                         console.error("INVALID NOTIFICATION TYPE: " + data.type);
@@ -265,6 +318,11 @@ function renderNotifications()
                 descriptionElement.classList.add('team-notifications-content-element-description');
                 descriptionElement.innerText = description;
                 notificationElement.append(descriptionElement);
+
+                let timeElement = document.createElement('div');
+                timeElement.classList.add('team-notifications-content-element-time');
+                timeElement.innerText = formatDate(data.sendDate, true);
+                notificationElement.appendChild(timeElement);
             }
         }
     }).catch(error =>
@@ -298,9 +356,10 @@ function notificationDescriptionCreateEvent(data)
 function formatDate(date, showDate)
 {
     date = new Date(date);
-    const hours = String(date.getHours()).padStart(2, '0');
+    let hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     const ampm = hours >= 12 ? 'PM' : 'AM';
+    if (hours > 12) hours -= 12;
     const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
     const day = String(date.getDate()).padStart(2, '0');
     const year = String(date.getFullYear()).slice(-2);
@@ -382,6 +441,12 @@ function notificationDescriptionDeleteEvent(data)
 {
     //USER deleted the event: EVENT_NAME 
     return data.sender + " deleted the event: " + data.misc.deletedEvent._name;
+}
+
+function notificationDescriptionDescUpdate(data)
+{
+    if(data.message.length() > 132/* number of characters that fits */) return data.sender + "changed the team description";
+    return data.message;
 }
 
 async function getCurrentUserRole() 

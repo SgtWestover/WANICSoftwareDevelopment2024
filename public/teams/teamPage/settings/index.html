@@ -7,7 +7,12 @@
   <title>Team Settings</title>
   <link rel="stylesheet" href="TeamSettingsStyle.css"> 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  
 </head>
+
+<header>
+
+</header>
 
 <body>
   
@@ -51,6 +56,8 @@
         <span class="close" id="closeAddPeopleModal">&times;</span>
         <h2>Add People</h2>
         <input type="text" id="usernameToAdd" placeholder="Enter username" class="button">
+        <div>
+        </div>
         <label for="userRole" id="userRoleLabel">Role:</label>       
         <select id="userRole" class="button">
         </select>
@@ -123,6 +130,9 @@
         <p id="manageQueueError" style="color: red;"></p>
     </div>
   </div>
+   <div class="back-arrow-container" onclick="window.location='../../';">
+     <i class="fa fa-arrow-left back-arrow"></i>  
+   </div>
   <div id="manageAutoJoinModal" class="modal">
     <div class="modal-content">
         <span class="close" id="closeManageAutoJoinModal">&times;</span>
@@ -151,6 +161,8 @@
         <span class="close" id="closeManageUserRolesModal">&times;</span>
         <h2>Manage User Roles</h2>
         <input type="text" id="usernameToChangeRole" placeholder="Enter username" class="button">
+        <div>
+        </div>
         <label for="newUserRole" id="userRoleLabel">Role:</label>       
         <select id="newUserRole" class="button">
         </select>

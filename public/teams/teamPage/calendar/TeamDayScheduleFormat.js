@@ -160,6 +160,7 @@ function generateSchedule()
     let mouseDownTime = 0;
     let startX;
     let endX;
+    let dragElement;
     // Get the schedule body element
     let scheduleBody = document.getElementById('scheduleBody');
     //Clear previous content from the schedule body
@@ -186,12 +187,15 @@ function generateSchedule()
     dayContainer.addEventListener("mousemove", function(event) 
     {
         lineFollow(event);
+        if(dragging) eventFollow(event, dragElement)
     });
     dayContainer.addEventListener('mousedown', function(event)
     {
         dragging = true;
         mouseDownTime = event.timeStamp;
         startX = event.clientX - dayContainer.getBoundingClientRect().left;
+        if(event.target.id !== 'day-container') dragElement = event.target;
+
     });
     dayContainer.addEventListener('mousemove', function(event) 
     {
@@ -204,7 +208,7 @@ function generateSchedule()
             handleDragging(event);
         }
     });
-    window.addEventListener('mouseup', function(event) 
+    dayContainer.addEventListener('mouseup', function(event) 
     {
         if (dragging) 
         {
@@ -252,6 +256,13 @@ function handleDragging(event)
 function endDragging(event)
 {
     console.log("stopped dragging lol");
+}
+
+function eventFollow(event, element)
+{
+    let Left = element.parentElement.getBoundingClientRect().left;
+    // Position the event to follow the mouse horizontally within the day container.
+    element.style.left = `${event.clientX - Left - element.offsetWidth/2}px`;
 }
 
 /**
@@ -493,13 +504,14 @@ function dayContainerClick(event)
     let endTime = (hour + 1).toString().padStart(2, '0') + ':' + hourArray[1];
     document.getElementById('startTime').value = time; // Format to "HH:MM"
     document.getElementById('endTime').value = endTime;
+    
     sendRequest('/getUser', {userID: localStorage.getItem("userID")})
     .then(response =>
     {
         if (response.result === "OK")
         {
             username = response.user._name;
-            if (roleLevels[teamData._users[username]] > roleLevels['viewer'])
+            if (roleLevels[teamData._users[username]] > roleLevels['Viewer'])
             {
                 document.getElementById('eventPopup').style.display = 'block';
             }
@@ -789,7 +801,7 @@ function closeEventForm()
 
 function highlightSelectedDay() 
 {
-    if (highlightedDay)
+    if (highlightedDay) 
     {
         let calendarBody = document.getElementById('calendar-body');
         let cells = calendarBody.querySelectorAll('.calendar-cell');
@@ -799,18 +811,27 @@ function highlightSelectedDay()
             let cellDate = new Date(highlightedDay.getFullYear(), highlightedDay.getMonth(), parseInt(cellText, 10));
             if (cellText && cellDate.getTime() === highlightedDay.getTime()) 
             {
-                cell.classList.add('selected-day');
+                cell.style.backgroundColor = '#FF0000';
+                cell.style.transition = '';
                 setTimeout(function() 
                 {
-                    cell.style.transition = 'background-color 10s ease-out';
-                    cell.style.backgroundColor = '#181a1b';
-                }, 100);
+                    cell.style.transition = 'background-color 5s ease-out';
+                    let targetBackgroundColor = cell.classList.contains('current-day') ? '#ff69b4' : '#181a1b';
+                    cell.style.backgroundColor = targetBackgroundColor; // Set to target color
+                    setTimeout(function() 
+                    {
+                        if (!cell.classList.contains('current-day')) 
+                        {
+                            cell.classList.remove('selected-day');
+                        }
+                        cell.style.backgroundColor = '';
+                        cell.style.transition = '';
+                    }, 5000);
+                }, 10);
             }
         });
     }
 }
-
-
 
 /**
  * Resets the event popup, clearing all the fields and resetting the form state, good for both when the form is closed and when it is submitted or edited

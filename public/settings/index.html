@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--title and external dependencies and stylesheet-->
+  <title>Settings</title>
+  <link rel="stylesheet" href="SettingsStyle.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+      <h1>
+        <!-- Month and year headers at the top, doubling as dropdown menus-->
+        <div id="month-header" onclick="monthHeaderClick()"></div>
+        <div id="year-header" onclick="yearHeaderClick()"></div>  
+      </h1>
+  </header>
+  <div class="sidebar">
+    <a href="../calendar/">Calendar</a>
+    <a href="../teams/">Teams</a>
+    <a href="../schedule/">Schedule</a>
+    <a class="active" href="#home">Settings</a>
+  </div>
+  <!-- Sign out and delete account buttons on the upper right hand corner-->
+  <button id="signout" style="position: fixed; top: 10px; right: 10px; z-index: 9;" onclick="signout()" class="button">Logout</button>
+  <button id ="deleteaccount" style = "position:fixed; top: 40px; right: 10px; z-index: 9;" onclick="deleteAccount()" class="button">Delete Account</button>  
+  <!-- Custom Password Modal for the delete account logic-->
+  <div id="passwordModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <p>Please enter your password to delete your account</p>
+        <input type="password" id="passwordInput" class="password-input"> <!-- Password input field -->
+        <i id="togglePassword" class="fa fa-eye"></i> <!-- Toggle password visibility -->
+        <button id="submitPassword">Submit</button>
+        <div id="passwordError" style="color: red;"></div> <!-- Error message element -->
+    </div>
+  </div>
+
+      <!-- Confirmation Modal for the second step of the delete account logic-->
+  <div id="confirmationModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Are you sure you want to delete your account?</p>
+      <button id="confirmDelete">Yes, delete my account</button>
+      <button id="cancelDelete">Cancel</button>
+    </div>
+  </div>  
+  <script src="/settings/settingsFormat.js"></script>
+  <script src="/settings/account.js"></script>
+</body>
+</html>

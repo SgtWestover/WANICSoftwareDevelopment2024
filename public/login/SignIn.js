@@ -161,7 +161,7 @@ function handleSigninResponse(message)
         localStorage.setItem('isSignedIn', true); //signIn flag (POTENTIALLY DEPRECATED)
         localStorage.setItem('userID', message.userID); //ID goes to local storage to be retrieved
         document.dispatchEvent(new CustomEvent('userLoggedIn')); 
-        window.location.href = '/calendar'; // Redirect to calendar page on successful signin
+        window.location.href = '/calendar/'; // Redirect to calendar page on successful signin
     }
 }
 

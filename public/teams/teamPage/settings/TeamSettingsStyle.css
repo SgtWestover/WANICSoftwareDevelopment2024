@@ -5,6 +5,7 @@ body /* Document body*/
   margin: 0;
   padding: 0;
   height: auto;
+  overflow-x: hidden;
 }
 
 header /* Document header*/
@@ -13,11 +14,11 @@ header /* Document header*/
   background-color: #333;
   color: #fff;
   text-align: center;
-  padding: 1em;
+  padding: 0.5em;
   position: fixed;
   top: 0;
   width: 100%;
-  height: 50px;
+  height: 64px;
   z-index: 1;
 }
 
@@ -27,8 +28,8 @@ usermanagementcolumn
   position: absolute;
   border: 10px solid;
   border-color: #2b2e30;
-  width: 86.95%;
-  left: 12%;
+  width: 88.95%;
+  left: 10%;
   height: 200px;
   top: 80px;
   display:table-cell;
@@ -42,8 +43,8 @@ teamshomemanagementcolumn
   position: absolute;
   border: 10px solid;
   border-color: #2b2e30;
-  width: 86.95%;
-  left: 12%;
+  width: 88.95%;
+  left: 10%;
   height: 200px;
   top: 290px;
   display:table-cell;
@@ -57,8 +58,8 @@ personalanagementcolumn
   position: absolute;
   border: 10px solid;
   border-color: #2b2e30;
-  width: 86.95%;
-  left: 12%;
+  width: 88.95%;
+  left: 10%;
   height: 200px;
   top: 500px;
   display:table-cell;
@@ -71,6 +72,29 @@ catagorytext
 {
   margin-left: 5px;
   color: white
+}
+
+.back-arrow-container 
+{
+  scale: 1.25;
+  position: fixed;
+  left: 32px;
+  top: 20px;
+  height: 40px;
+  width: 40px;
+  background-color: #04AA6D;
+  border-radius: 30%;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  color: white;
+}
+
+.back-arrow 
+{
+  font-size: 10px;
 }
 
 
@@ -188,7 +212,7 @@ div.content
 {
   display: none; /* Hidden by default */
   position: fixed; /* Stay in place */
-  z-index: 1; /* Sit on top */
+  z-index: 20; /* Sit on top */
   left: 0;
   top: 0;
   width: 100%; /* Full width */
@@ -196,6 +220,7 @@ div.content
   overflow: auto; /* Enable scroll if needed */
   background-color: rgb(0,0,0,0.4); /* Fallback color */
   overflow: hidden;
+  
 }
 
 /* Modal Content/Box */
@@ -203,7 +228,7 @@ div.content
 {
   background-color: #2b2e30;
   /*! margin: 15% auto; */ /* 15% from the top and centered */
-  padding-top: 30px;
+  padding-top: 1.45%;
   border: 1px solid #888;
   /*! width: 80%; */ /* Could be more or less, depending on screen size */
   left: 0px;
@@ -211,7 +236,11 @@ div.content
   height: 100%;
   top: 0px;
   overflow: hidden;
-  width: 180px;
+  width: 10.5%;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  
 }
 
 /* The Close Button */

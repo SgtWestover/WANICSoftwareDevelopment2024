@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--title and external dependencies and stylesheet-->
+  <title>Schedule</title>
+  <link rel="stylesheet" href="ScheduleStyle.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  <header>
+      <h1>
+        <!-- Month and year headers at the top, doubling as dropdown menus-->
+        <div id="month-header" onclick="monthHeaderClick()"></div>
+        <div id="year-header" onclick="yearHeaderClick()"></div>  
+      </h1>
+  </header>
+  <div class="sidebar">
+    <a href="../calendar/">Calendar</a>
+    <a href="../teams/">Teams</a>
+    <a class="active" href="#home">Schedule</a>
+    <a href="../settings/">Settings</a>
+  </div>
+  <script src="/schedule/scheduleFormat.js"></script>
+</body>
+</html>

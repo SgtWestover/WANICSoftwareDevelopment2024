@@ -70,22 +70,16 @@ td
 }
 
 /*Current (selected day)*/
-.selected-day
+.current-day
 {
   background-color: #ff69b4; /* Bright pink color heheheha*/
   color: #fff;
 }
 
-.calendar-cell:hover /*Upo hovering with each clickable calendar cell*/
+.calendar-cell:not(.transitioning):hover 
 {
-  background-color: #04AA6D;
+  background-color: #04AA6D; /* Green on hover */
   cursor: pointer;
-}
-
-.current-day 
-{
-  background-color: red;
-  transition: background-color 10s ease-out; /* Fading effect over 10 seconds */
 }
 
 #prev-month, #next-month /* Buttons to increment months*/
@@ -479,6 +473,7 @@ div.content
   height: 100%;
   position: absolute;
   border-radius: 12px;
+  user-select: none;
 }
 
 /*#endregion*/

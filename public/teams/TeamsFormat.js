@@ -351,7 +351,7 @@ function handleTeamCreation(event)
                 _joinPerms: joinPerms
             };
             resetTeamsCreate();
-            return sendRequest('/createTeam', {team: team, creatorName: teamCreatorName} );
+            return sendRequest('/createTeam', { team: team, creatorName: teamCreatorName } );
         }
         else 
         {

@@ -111,7 +111,7 @@ document.getElementById('manageUserRoles').onclick = async function()
     {
         try
         {
-            const response = await sendRequest('/updateUserRole', { username: username, newUserRole: newUserRole, teamCode: teamData._joinCode })
+            const response = await sendRequest('/updateUserRoles', { username: username, newUserRole: newUserRole, teamCode: teamData._joinCode, senderID: userID })
             if (response.result === 'OK')
             {
                 alert('User role updated successfully.');
@@ -547,7 +547,7 @@ document.getElementById('updateDescription').onclick = async function()
     const newDesc = document.getElementById('updatedDescription').value;
     try
     {
-        const response = await sendRequest('/updateTeamDescription', { newDesc : newDesc, teamCode : teamData._joinCode })
+        const response = await sendRequest('/updateTeamDescription', { newDesc : newDesc, teamCode : teamData._joinCode, senderID: userID })
         if (response.result === 'OK')
         {
             alert("Description Updated Successfully");
@@ -572,7 +572,7 @@ document.getElementById('updateName').onclick = async function()
     {
         try
         {
-            const response = await sendRequest('/updateTeamName', { newName : newName , teamCode : teamData._joinCode })
+            const response = await sendRequest('/updateTeamName', { newName : newName , teamCode : teamData._joinCode, senderID: userID })
             if (response.result === 'OK')
             {
                 alert("Name Updated Successfully");
