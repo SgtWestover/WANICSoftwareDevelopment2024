@@ -961,7 +961,6 @@ function findEventID(event)
     });
 }
 
-
 /**
  * Sends an HTTP POST request to the specified endpoint with the provided data.
  * @param {string} endpoint - The endpoint to send the request to.

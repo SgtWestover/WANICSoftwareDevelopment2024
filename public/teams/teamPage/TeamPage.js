@@ -162,17 +162,14 @@ function createUpcomingEventElement(event)
 {
     let container = document.createElement('div');
     container.classList.add("team-upcomingEvents-content-container");
-    
     let name = document.createElement('div');
     name.classList.add("team-upcomingEvents-content-container-name", "team-upcomingEvents-content-container-content");
     name.innerText = event._name;
     container.append(name);
-
     let description = document.createElement('div');
     description.classList.add("team-upcomingEvents-content-container-description", "team-upcomingEvents-content-container-content");
     description.innerText = event._description;
     container.append(description);
-
     let users = document.createElement("div");
     users.classList.add("team-upcomingEvents-content-container-users", "team-upcomingEvents-content-container-content");
     console.log(event._users[0]);
@@ -195,17 +192,14 @@ function createUpcomingEventElement(event)
         users.appendChild(userElement)
     });
     container.append(users);
-
     let startTime = document.createElement("div");
     startTime.classList.add("team-upcomingEvents-content-container-startTime", "team-upcomingEvents-content-container-content");
     startTime.innerHTML = "Start Time: ".bold() + new Date(event._startDate).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
     container.append(startTime);
-
     let endTime = document.createElement("div");
     endTime.classList.add("team-upcomingEvents-content-container-endTime", "team-upcomingEvents-content-container-content");
     endTime.innerHTML = "End Time: ".bold() + new Date(event._endDate).toLocaleString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true });
     container.append(endTime);
-
     document.getElementById("teamEvents").append(container);
 }
 
@@ -242,7 +236,7 @@ function renderNotifications()
                     TEAM_BLACKLIST
                     */
                     case "TEAM_INVITE":
-                        name = "User Invited to Team";
+                        name = "User Invited To Team";
                         description = data.sender + " invited " + data.receiver + " to the team as " + notificationMessageCheckRole(data.message);
                         break;
                     case "EVENT_CREATE":
@@ -294,7 +288,7 @@ function renderNotifications()
                         description = data.message;
                         break;
                     case "TEAM_BLACKLIST":
-                        name = "User Blacklisted"
+                        name = "User Blacklisted";
                         description = data.message;
                         break;
                     default:
@@ -303,22 +297,18 @@ function renderNotifications()
                 }
                 //create html
                 let container = document.getElementById('teamNotifications');
-
                 let notificationElement = document.createElement("div");
                 notificationElement.classList.add("team-notifications-content-element");
                 container.append(notificationElement);
                 container.insertBefore(notificationElement, container.firstChild)
-
                 let nameElement = document.createElement('div');
                 nameElement.classList.add('team-notifications-content-element-name');
                 nameElement.innerText = name;
                 notificationElement.append(nameElement);
-
                 let descriptionElement = document.createElement(`div`);
                 descriptionElement.classList.add('team-notifications-content-element-description');
                 descriptionElement.innerText = description;
                 notificationElement.append(descriptionElement);
-
                 let timeElement = document.createElement('div');
                 timeElement.classList.add('team-notifications-content-element-time');
                 timeElement.innerText = formatDate(data.sendDate, true);

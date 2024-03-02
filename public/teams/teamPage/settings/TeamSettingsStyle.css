@@ -71,7 +71,14 @@ personalanagementcolumn
 catagorytext
 {
   margin-left: 5px;
-  color: white
+  color: white;
+}
+
+headertext
+{
+  color: white;
+  text-align: center;
+  margin-left: 10%;
 }
 
 .back-arrow-container 
@@ -91,6 +98,8 @@ catagorytext
   cursor: pointer;
   color: white;
 }
+
+
 
 .back-arrow 
 {
@@ -258,4 +267,13 @@ div.content
   color: white;
   text-decoration: none;
   cursor: pointer;
+}
+
+.button 
+{
+  border: none;
+  background-color: #04aa6d;
+  color: white;
+  border-color: black;
+  border-radius: 5px;
 }

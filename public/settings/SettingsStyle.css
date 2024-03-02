@@ -5,6 +5,7 @@ body /* Document body*/
   margin: 0;
   padding: 0;
   height: auto;
+  overflow-x: hidden;
 }
 
 header /* Document header*/
@@ -25,12 +26,13 @@ header /* Document header*/
 {
   margin: 0;
   padding: 0;
-  width: 200px;
+  width: 12vw;
   background-color: #2b2e30;
   position: fixed;
   height: 100%;
   overflow: auto;
   top: 80px;
+  z-index: 2;
 }
 
 /* Sidebar links */
@@ -55,6 +57,7 @@ header /* Document header*/
   text-align: center;
   padding: 10px;
   background-color: rgba(51, 51, 51, 0);
+  
 }
 
 /* Active/current link */
@@ -102,6 +105,69 @@ div.content
   }
 } 
 
+usersettingsbuttoncolumn
+{
+  position: absolute;
+  border: 10px solid;
+  border-color: #2b2e30;
+  width: 88%;
+  left: 11%;
+  height: 200px;
+  top: 80px;
+  display:table-cell;
+  vertical-align:middle;
+  text-align:center;  
+  z-index: 1;
+}
+
+headertext
+{
+  color: white;
+  text-align: center;
+  margin-left: 5%;
+}
+
+#signout,
+#delete-account,
+#change-name,
+#change-password,
+#change-notifications,
+#export-events,
+#import-events,
+#clear-events
+{
+  display: inline-block; /* Align buttons horizontally */
+  margin: 0 10px; /* Space between buttons */
+  padding: 10px 20px; /* Padding around text */
+  color: white;
+  cursor: pointer; /* Hand icon on hover */
+  transition: background-color 0.3s, ; /* Smooth transitions for hover and click */
+}
+
+#signout:hover,
+#delete-account:hover,
+#change-name:hover,
+#change-password:hover,
+#change-notifications:hover,
+#export-events:hover,
+#import-events:hover,
+#clear-events:hover
+{
+  background-color: #505050; /* Slightly darker on hover */
+  transform: scale(1.05); /* Slightly larger on hover */
+}
+
+#signout:active,
+#delete-account:active,
+#change-name:active,
+#change-password:active,
+#change-notifications:active,
+#export-events:active,
+#import-events:active,
+#clear-events:active
+{
+  transform: scale(0.95); /* Slightly smaller on click */
+}
 .modal /* Modal for the delete account window */
 {
   display: none;
@@ -144,4 +210,13 @@ div.content
 .fa-eye /* font awesome eye */
 {
   cursor: pointer;
+}
+
+.button 
+{
+  border: none;
+  background-color: #04aa6d;
+  color: white;
+  border-color: black;
+  border-radius: 5px;
 }

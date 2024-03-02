@@ -169,7 +169,7 @@ function handleRemovePerson()
 
 function showUserList(event) 
 {
-    var descriptionModal= document.getElementById('descriptionModal');R
+    var descriptionModal= document.getElementById('descriptionModal');
     descriptionModal.style.display = 'none';
     var modal = document.getElementById('userListModal');
     var closeButton = document.querySelector('#userListModal .close');

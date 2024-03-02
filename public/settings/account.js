@@ -13,6 +13,139 @@ Description: Handles account settings and deletion
  */
 
 var pass; //Global variable set to entered password
+const userID = localStorage.getItem('userID');
+
+document.addEventListener('DOMContentLoaded', async function ()
+{
+    try
+    {
+        const response = await sendRequest('/getUser', { userID });
+        if (response.result === 'OK')
+        {
+            const user = response.user;
+            if (user._settings._changeNameTimes >= 3)
+            {
+                document.getElementById('change-name').disabled = true;
+            }
+            else
+            {
+                document.getElementById('change-name').addEventListener('click', function()
+                {
+                    changeNameStart();
+                });
+            }
+        }
+    }
+    catch (error)
+    {
+        console.log(error);
+    }
+});
+
+function changePasswordStart()
+{
+    let modal = document.getElementById('changePasswordModal');
+    modal.style.display = 'block';
+    document.getElementById('closeChangePasswordModal').onclick = function()
+    {
+        modal.style.display = 'none';
+        resetChangePasswordModal();
+    }
+    window.onclick = function(event) 
+    {
+        if (event.target === modal) 
+        {
+            modal.style.display = 'none';
+            resetChangePasswordModal();
+        }
+    }    
+    modal.style.display = 'block';
+}
+
+document.getElementById('submitCurrentPassword').onclick = async function() 
+{
+    const currentPassword = document.getElementById('currentPassword').value;
+    if (currentPassword)
+    {
+        try
+        {
+            const response = await sendRequest('/checkpassword', { _password: currentPassword });
+            if (response.result === 'OK' && response.message === 'CorrectPassword')
+            {
+                document.getElementById('currentPassword').style.display = 'none';
+                document.getElementById('toggleCurrentPassword').style.display = 'none';
+                document.getElementById('submitCurrentPassword').style.display = 'none';
+                document.querySelector('#changePasswordModal p').style.display = 'none';
+                document.getElementById('newPasswordSection').style.display = 'block';
+                document.getElementById('changePasswordError').textContent = '';   
+            }
+            else
+            {
+                document.getElementById('changePasswordError').textContent = response.message;   
+            }
+        }
+        catch (error)
+        {
+            document.getElementById('changePasswordError').textContent = error;   
+        }
+    }
+    else
+    {
+        document.getElementById('changePasswordError').textContent = 'Hey dumbass you gotta have a password you stupid son a ';
+    }
+}
+
+function resetChangePasswordModal() 
+{
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPasswordSection').style.display = 'none';
+    document.getElementById('currentPassword').style.display = 'block';
+    document.getElementById('toggleCurrentPassword').style.display = 'block';
+    document.getElementById('submitCurrentPassword').style.display = 'block';
+    document.querySelector('#changePasswordModal p').style.display = 'block';
+    document.getElementById('changePasswordError').textContent = '';
+    const newPasswordInput = document.getElementById('newPassword');
+    if (newPasswordInput) 
+    {
+        newPasswordInput.value = '';
+    }
+}
+
+document.getElementById('submitNewPassword').onclick = async function() 
+{
+    const newPassword = document.getElementById('newPassword').value;
+    if (newPassword)
+    {
+        if (isValidPassword(newPassword))
+        {
+            const response = await sendRequest('/changePassword', { userID, newPassword });
+            if (response.result === 'OK')
+            {
+                alert("Password successfully changed!");
+                document.getElementById('changePasswordModal').style.display = 'none';
+                resetChangePasswordModal();
+            }
+            else if (response.result === 'FAIL')
+            {
+                document.getElementById('changePasswordError').textContent = response.message;
+            }
+        }
+        else
+        {
+            document.getElementById('changePasswordError').textContent = "Invalid password format. Please enter a password 8 and 32 characters, containing at least one lowercase letter, one uppercase letter, one digit, and one special ASCII character.";
+        }
+    }
+    else
+    {
+        document.getElementById('changePasswordError').textContent = "You must have a password";
+    }
+};
+
+function isValidPassword(password)
+{
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[ -\/:-@\[-`\{-~])[A-Za-z\d -\/:-@\[-`\{-~]{8,32}$/;
+    return passwordRegex.test(password);
+}
 
 //#region Signout functions
 
@@ -145,7 +278,6 @@ async function validatePassword(password)
  */
 function deleteAccountConfirmed(password) 
 {
-    const userID = localStorage.getItem('userID'); //gets the user ID to send to server for deletion through /deleteaccount
     fetch('/deleteaccount', 
     {
         method: 'POST',
@@ -185,6 +317,21 @@ document.getElementById("togglePassword").addEventListener('click', function ()
     this.classList.toggle('fa-eye-slash'); //toggle the icon
 });
 
+document.getElementById("toggleCurrentPassword").addEventListener('click', function () 
+{
+    var passwordInput = document.getElementById("currentPassword");
+    var type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password'; //switch between text and password
+    passwordInput.setAttribute('type', type);
+    this.classList.toggle('fa-eye-slash'); //toggle the icon
+});
+
+document.getElementById("toggleNewPassword").addEventListener('click', function () 
+{
+    var passwordInput = document.getElementById("newPassword");
+    var type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password'; //switch between text and password
+    passwordInput.setAttribute('type', type);
+    this.classList.toggle('fa-eye-slash'); //toggle the icon
+});
 
 /**
  * Shows confirmation modal for account deletion
@@ -236,6 +383,160 @@ function closeModalConfirmation()
 {
     var modal = document.getElementById("confirmationModal");
     modal.style.display = "none";
+}
+
+function changeNameStart() 
+{
+    let modal = document.getElementById('changeNameModal');
+    modal.style.display = 'block';
+    document.getElementById('closeChangeNameModal').onclick = function()
+    {
+        document.getElementById('newName').value = '';
+        document.getElementById('changeNameError').textContent = '';
+        modal.style.display = 'none';
+    }
+    window.onclick = function(event) 
+    {
+        if (event.target === modal) 
+        {
+            document.getElementById('newName').value = '';
+            document.getElementById('changeNameError').textContent = '';
+            modal.style.display = 'none';
+        }
+    }
+}
+
+document.getElementById('newNameSubmit').onclick = async function() 
+{
+    const newName = document.getElementById('newName').value;
+    try
+    {
+        const response = await sendRequest('/changeName', { userID, newName });
+        if (response.result === 'OK')
+        {
+            alert(`Name changed successfully to ${newName}!`);
+            document.getElementById('change-name').style.opacity = 0.5;
+            document.getElementById('change-name').disabled = true;
+            document.getElementById('changeNameModal').style.display = 'none';
+            document.getElementById('newName').value = '';
+            document.getElementById('changeNameError').textContent = '';
+        }
+        else if (response.result === 'FAIL')
+        {
+            document.getElementById('changeNameError').textContent = response.message;
+        }
+    }
+    catch (error)
+    {
+        document.getElementById('changeNameError').textContent = error;
+    }
+}
+
+function exportEventsStart() 
+{
+    var form = document.createElement("form");
+    form.setAttribute("method", "post");
+    form.setAttribute("action", "/exportUserEvents");
+    form.setAttribute("target", "hiddenDownloader");
+    var hiddenField = document.createElement("input");
+    hiddenField.setAttribute("type", "hidden");
+    hiddenField.setAttribute("name", "userID");
+    hiddenField.setAttribute("value", userID);
+    form.appendChild(hiddenField);
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+}
+
+function importEventsStart() 
+{
+    document.getElementById('fileInput').click();
+}
+
+async function handleFileImport(files) 
+{
+    if (files.length === 0) 
+    {
+        console.log("No file selected.");
+        return;
+    }
+
+    const file = files[0];
+    const reader = new FileReader();
+
+    reader.onload = async function(event) 
+    {
+        try 
+        {
+            const events = JSON.parse(event.target.result);
+            console.log("Imported Events:", events);
+            const response = await sendRequest('/importUserEvents', 
+            {
+                userID: userID,
+                events: events
+            });
+            if (response.result === 'OK') 
+            {
+                alert(`${response.message}`);
+            } 
+            else 
+            {
+                alert('Failed to import events:', response.message);
+            }
+        } 
+        catch (error) 
+        {
+            console.error("Error reading or sending file:", error);
+        }
+    };
+    reader.readAsText(file);
+}
+
+function clearEventsStart()
+{
+    let modal = document.getElementById('clearEventsModal');
+    modal.style.display = 'block';
+    document.getElementById('closeClearEventsModal').onclick = function()
+    {
+        modal.style.display = 'none';
+        document.getElementById('clearEventsError').textContent = '';
+    }
+    window.onclick = function(event) 
+    {
+        if (event.target === modal) 
+        {
+            modal.style.display = 'none';
+            document.getElementById('clearEventsError').textContent = '';
+        }
+    }    
+    modal.style.display = 'block';
+}
+
+document.getElementById('clearEventsConfirm').onclick = async function()
+{
+    try
+    {
+        const response = await sendRequest('/clearUserEvents', { userID });
+        if (response.result === 'OK')
+        {
+            alert(`${response.message}`);
+            document.getElementById('clearEventsModal').style.display = 'none';
+        }
+        else if (response.result === 'FAIL')
+        {
+            document.getElementById('clearEventsError').textContent = response.message;
+        }
+    }
+    catch (error)
+    {
+        document.getElementById('clearEventsError').textContent = error;
+    }
+}
+
+document.getElementById('clearEventsDeny').onclick = async function()
+{
+    document.getElementById('clearEventsModal').style.display = 'none';
+    document.getElementById('clearEventsError').textContent = '';
 }
 
 /**

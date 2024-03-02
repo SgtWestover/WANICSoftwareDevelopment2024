@@ -8,10 +8,15 @@
   <link rel="stylesheet" href="TeamSettingsStyle.css"> 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   
+  
+
+  
 </head>
 
 <header>
-
+  <h1>
+    <headertext>Teams Settings</headertext>
+  </h1>
 </header>
 
 <body>
@@ -36,7 +41,7 @@
 
   <personalcolumn>
     <personalanagementcolumn>
-      <catagorytext>User Settings</catagorytext>
+      <catagorytext>Personal Settings</catagorytext>
       <h1>
         <div id="team-leave" onclick="teamLeaveStart()">Leave Team</div>
       </h1>
@@ -105,7 +110,7 @@
     <div class="modal-content">
         <span class="close" id="closeUpdateDescriptionModal">&times;</span>
         <h2>Update Description</h2>
-        <input type="text" id="updatedDescription" class="button" required>
+        <textarea id="updatedDescription" class="button" name="teamDescription"></textarea> 
         <button type="button" id="updateDescription" class="button">Update Description</button>
         <p id="updateDescriptionError" style="color: red;"></p>
     </div>

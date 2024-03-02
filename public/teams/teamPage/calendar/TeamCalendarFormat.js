@@ -99,6 +99,8 @@ function renderCalendar(date)
                     cell.classList.add('calendar-cell');
                     cell.innerText = currentDay;
                     cell.style.cursor = 'pointer';
+                    cell.style.position = 'relative';
+                    cell.style.overflow = 'hidden';
                     cell.addEventListener('click', function() // Click on day
                     {
                         document.querySelectorAll('.calendar-cell.selected-day').forEach(function(cell) 

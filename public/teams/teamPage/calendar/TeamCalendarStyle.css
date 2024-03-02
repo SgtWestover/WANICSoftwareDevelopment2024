@@ -76,11 +76,32 @@ td
   color: #fff;
 }
 
-.calendar-cell:not(.transitioning):hover 
+.calendar-cell:not(.transitioning):hover .calendar-cell-eventCount
 {
   background-color: #04AA6D; /* Green on hover */
   cursor: pointer;
 }
+
+.calendar-cell:not(.transitioning):hover
+{
+  background-color: #04AA6D; /* Green on hover */
+  cursor: pointer;
+}
+
+.calendar-cell-eventCount
+{
+  position: absolute;
+  background-color: #2d2e30;
+  padding: 3.5%;
+  width: 14%;
+  height: -28.5%;
+  right: -1%;
+  top: 0%;
+  padding-left: 1%;
+  transition: background-color 50ms ease-in-out;
+}
+
+
 
 #prev-month, #next-month /* Buttons to increment months*/
 {

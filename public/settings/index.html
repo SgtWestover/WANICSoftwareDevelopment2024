@@ -15,6 +15,9 @@
         <!-- Month and year headers at the top, doubling as dropdown menus-->
         <div id="month-header" onclick="monthHeaderClick()"></div>
         <div id="year-header" onclick="yearHeaderClick()"></div>  
+        <h1>
+          <headertext>Settings</headertext>
+        </h1>
       </h1>
   </header>
   <div class="sidebar">
@@ -23,10 +26,21 @@
     <a href="../schedule/">Schedule</a>
     <a class="active" href="#home">Settings</a>
   </div>
+  <iframe id="hiddenDownloader" name="hiddenDownloader" style="display: none;"></iframe>
+  <input type="file" id="fileInput" style="display: none;" onchange="handleFileImport(this.files)" accept=".json">
   <!-- Sign out and delete account buttons on the upper right hand corner-->
-  <button id="signout" style="position: fixed; top: 10px; right: 10px; z-index: 9;" onclick="signout()" class="button">Logout</button>
-  <button id ="deleteaccount" style = "position:fixed; top: 40px; right: 10px; z-index: 9;" onclick="deleteAccount()" class="button">Delete Account</button>  
-  <!-- Custom Password Modal for the delete account logic-->
+  <usersettingsbuttoncolumn>
+    <h1>
+      <button id ="signout" onclick="signout()">Logout</button>
+      <button id ="delete-account" onclick="deleteAccount()">Delete Account</button>
+      <button id ="change-name">Change Name</button>
+      <button id ="change-password" onclick="changePasswordStart()">Change Password</button>
+      <button id ="change-notifications" onclick="changeNotificationsStart()">Change Notifications</button>
+      <button id ="export-events" onclick="exportEventsStart()">Export Events</button>
+      <button id ="import-events" onclick="importEventsStart()">Import Events</button>
+      <button id ="clear-events" onclick="clearEventsStart()">Clear Events</button>
+    </h1>
+  </usersettingsbuttoncolumn>
   <div id="passwordModal" class="modal">
     <div class="modal-content">
         <span class="close">&times;</span>
@@ -37,7 +51,6 @@
         <div id="passwordError" style="color: red;"></div> <!-- Error message element -->
     </div>
   </div>
-
       <!-- Confirmation Modal for the second step of the delete account logic-->
   <div id="confirmationModal" class="modal">
     <div class="modal-content">
@@ -47,6 +60,49 @@
       <button id="cancelDelete">Cancel</button>
     </div>
   </div>  
+  <div id="changeNameModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeChangeNameModal">&times;</span>
+      <p>Please enter your new name (You can only do this 3 times)</p>
+        <input type="text" id="newName" placeholder = "Enter new username" class="button">
+        <button id="newNameSubmit">Submit</button>
+        <div id="changeNameError" style="color: red;"></div>
+    </div>
+  </div>
+  <div id="changePasswordModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeChangePasswordModal">&times;</span>
+        <p>Please enter your password to change your password</p>
+        <input type="password" id="currentPassword" class="password-input"> <!-- Current Password input field -->
+        <i id="toggleCurrentPassword" class="fa fa-eye"></i> <!-- Toggle current password visibility -->
+        <button id="submitCurrentPassword">Submit</button>
+        <div id="newPasswordSection" style="display: none;"> <!-- New password section, hidden by default -->
+            <p>Please enter your new password</p>
+            <input type="password" id="newPassword" class="password-input"> <!-- New Password input field -->
+            <i id="toggleNewPassword" class="fa fa-eye"></i> <!-- Toggle new password visibility -->
+            <button id="submitNewPassword">Submit New Password</button>
+        </div>
+        <div id="changePasswordError" style="color: red;"></div> <!-- Error message element -->
+    </div>
+  </div>
+  <div id="clearEventsModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeClearEventsModal">&times;</span>
+      <p>Are you sure you want to clear all events?</p>
+        <button id="clearEventsConfirm">Yes</button>
+        <button id="clearEventsDeny">No</button>
+        <div id="clearEventsError" style="color: red;"></div> <!-- Error message element -->
+    </div>
+  </div>
+  <div id="manageNotifsModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeManageNotifsModal">&times;</span>
+      <p>Manage Notifications</p>
+        <button id="clearEventsConfirm">Yes</button>
+        <button id="clearEventsDeny">No</button>
+        <div id="manageNotifsError" style="color: red;"></div> <!-- Error message element -->
+    </div>
+  </div>
   <script src="/settings/settingsFormat.js"></script>
   <script src="/settings/account.js"></script>
 </body>

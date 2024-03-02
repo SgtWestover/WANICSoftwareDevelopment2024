@@ -40,6 +40,10 @@ const roleLevels =
 };
 let highlightedDay;
 
+//array to hold the changed events after dragging
+let eventsToUpdate = [];
+
+
 //#region Popup initialization
 
 /**
@@ -176,6 +180,7 @@ function generateSchedule()
         let lineTimeText = document.getElementById('lineTimeText');
         lineTimeText.style.opacity = 1;
     });
+
     // Add an event listener to reset the opacity when not hovering
     dayContainer.addEventListener('mouseout', function () 
     {
@@ -183,12 +188,14 @@ function generateSchedule()
         let lineTimeText = document.getElementById('lineTimeText');
         lineTimeText.style.opacity = 0;
     });
+
     //make it so that the line follows the mouse when in the day container
     dayContainer.addEventListener("mousemove", function(event) 
     {
         lineFollow(event);
-        if(dragging) eventFollow(event, dragElement)
+        if(dragging) snapDragElement(dragElement, event)
     });
+
     dayContainer.addEventListener('mousedown', function(event)
     {
         dragging = true;
@@ -201,11 +208,11 @@ function generateSchedule()
     {
         if (event.buttons === 1 && !dragging)
         { 
-            startDragging(event);
+
         }
         else if (dragging)
         {
-            handleDragging(event);
+ 
         }
     });
     dayContainer.addEventListener('mouseup', function(event) 
@@ -213,7 +220,6 @@ function generateSchedule()
         if (dragging) 
         {
             dragging = false;
-            endDragging(event);
         }
         let mouseUpTime = event.timeStamp; 
         let duration = mouseUpTime - mouseDownTime;
@@ -225,8 +231,9 @@ function generateSchedule()
         }
         else
         {
-            console.log('drag');
-            dayContainerDrag(event, startX, endX);
+            //mouse up
+            //update event that was dragged
+            updateDragEvent(dragElement);
         }
     });
     //line for actually tracking the mouse
@@ -243,27 +250,44 @@ function generateSchedule()
     });
 }
 
-function startDragging(event)
+function updateDragEvent(element)
 {
-    console.log("started dragging");
+    //let Left = element.parentElement.getBoundingClientRect().left;
+    let current = parseInt(element.style.left); 
+    let max = parseInt(dayContainer.offsetWidth);
+    let percent = Math.floor((current / max) * 100) + 1;
+    let startSelectedHour = ((endTime - startTime) * percent / 100) + startTime;
+    startSelectedHour = Math.floor(startSelectedHour * 4) / 4; // Round to the nearest quarter hour.
+    let endSelectedHour = startSelectedHour + ((endTime - startTime) * ((Math.floor((element.offsetWidth / max) * 100) + 1) / 100) + startTime);
+    endSelectedHour = Math.floor(endSelectedHour * 4) / 4;
+
+    let arrayLength = eventsToUpdate.length;
+    for(let i = 0; i < arrayLength; i++)
+    {
+        if(element.getAttribute('data-event-id') === eventsToUpdate[i].eventId)
+        {
+            console.log('splice ')
+            eventsToUpdate.splice(i,1);
+            arrayLength--;
+            i--;
+        }
+    }
+    eventsToUpdate.push(new EventTimes(element.getAttribute('data-event-id'), startSelectedHour, endSelectedHour));
+    console.log(eventsToUpdate);
 }
 
-function handleDragging(event)
-{
-    console.log("dragging da S T U F F ");
-}
-
-function endDragging(event)
-{
-    console.log("stopped dragging lol");
-}
-
-function eventFollow(event, element)
+function snapDragElement(element, event)
 {
     let Left = element.parentElement.getBoundingClientRect().left;
-    // Position the event to follow the mouse horizontally within the day container.
-    element.style.left = `${event.clientX - Left - element.offsetWidth/2}px`;
+    let current = event.clientX - Left - element.offsetWidth/2;
+    let max = parseInt(dayContainer.offsetWidth);
+    let percent = Math.floor((current / max) * 100) + 1;
+    let selectedHour = ((endTime - startTime) * percent / 100) + startTime;
+    selectedHour = Math.floor(selectedHour * 4) / 4;
+    element.style.left = (max / 24) * selectedHour + 1.2 + "px";
 }
+
+
 
 /**
  * Generates the time measurements for the day container, runs 
@@ -448,6 +472,7 @@ function updatePopupHeader(eventDetail)
         let currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
         let currentPopupDate = getDateFromAttribute(currentPopupDateAttr);
         let newDate = new Date(currentPopupDate);
+        
         teamEvents.forEach(event => 
         {
             let eventDate = new Date(event._startDate);
@@ -681,7 +706,6 @@ async function createNewEvent(eventDetails)
             eventDetails._id = response.eventID;
             eventDetails._startDate = new Date(eventDetails._startDate); 
             eventDetails._endDate = new Date(eventDetails._endDate); 
-            renderEvent(eventDetails);
             initializeEvents();
             populateEventsSidebar();
             closeEventForm();
@@ -764,15 +788,16 @@ function renderEvent(calendarEvent)
  */
 function unrenderEvent(currentDate) 
 {
-    let currentDateString = currentDate.toISOString().split('T')[0]; //get the current date as a string to be compared against data-event-date of other events
+    //let currentDateString = currentDate.toISOString().split('T')[0]; //get the current date as a string to be compared against data-event-date of other events
     let eventElements = document.querySelectorAll('.schedule-event'); //get all the event elements from .schedule-event where they are stored
     eventElements.forEach(element => 
     {
-        let eventDate = element.getAttribute('data-event-date'); //for each event, compare the data-event-date against the current extracted date, and if they match, remove them from the html
+        element.remove();
+        /*let eventDate = element.getAttribute('data-event-date'); //for each event, compare the data-event-date against the current extracted date, and if they match, remove them from the html
         if (eventDate !== currentDateString) 
         {
-            element.remove();
-        }
+            
+        }*/
     });
 }
 
@@ -970,6 +995,7 @@ function populateEventForm(eventID, calendarEvent, eventElement)
     document.getElementById('eventForm').appendChild(fragment)
     document.getElementById('eventForm').style.display = 'block'; //inefficent but still works, refactor later?
 }
+
 
 /**
  * Deletes an event from the database and removes the event element from the DOM given its ID
@@ -1499,6 +1525,7 @@ function handleWebSocketMessage(data)
                 let currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
                 let currentPopupDate = getDateFromAttribute(currentPopupDateAttr);
                 let newDate = new Date(currentPopupDate);
+                unrenderEvent();
                 teamEvents.forEach(event => 
                 {
                     let eventDate = new Date(event._startDate);

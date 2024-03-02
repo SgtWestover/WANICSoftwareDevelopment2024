@@ -464,10 +464,22 @@
             this._notifications = value;
         }
     }
+
+    class EventTimes
+    {
+        constructor(eventId, startTime, endTime)
+        {
+            this.eventId = eventId;
+            this.startTime = startTime;
+            this.endTime = endTime;
+        }
+
+    }
+
     if (typeof module !== 'undefined' && module.exports) 
     {
         // Node.js Context
-        module.exports = { CalendarEvent, User, CalendarTeam, CalendarTeamEvent };
+        module.exports = { CalendarEvent, User, CalendarTeam, CalendarTeamEvent, EventTimes };
     } 
     else 
     {
@@ -476,5 +488,8 @@
         exports.CalendarEvent = CalendarEvent;
         exports.CalendarTeam = CalendarTeam;
         exports.CalendarTeamEvent = CalendarTeamEvent;
+        exports.EventTimes = EventTimes;
     }
 }) (typeof window === 'undefined' ? module.exports : window);
+
+

@@ -75,13 +75,13 @@ function clearFields()
 }
 
 /**
- * Tests whether the username is valid (between 4 and 16 characters, doesn't contain spaces special characters except for underscore and dash)
+ * Tests whether the username is valid (between 4 and 24 characters, doesn't contain spaces special characters except for underscore and dash)
  * @param   {string}
  * @returns {bool}
  */
 function isValidUsername(username)
 {
-    const usernameRegex = /^[A-Za-z\d_-]{4,16}$/;
+    const usernameRegex = /^[A-Za-z\d_-]{4,24}$/;
     return usernameRegex.test(username);
 }
 
@@ -115,7 +115,7 @@ function checkFields(username, password)
     }
     if (!isValidUsername(username))
     {
-        updateStatus("Invalid username format. Please enter a username between 4 and 16 characters long containing only letters, numbers, underscores, and dashes.");
+        updateStatus("Invalid username format. Please enter a username between 4 and 24 characters long containing only letters, numbers, underscores, and dashes.");
         return false;
     }
     else if (!isValidPassword(password, username))

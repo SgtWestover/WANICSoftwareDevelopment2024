@@ -1,4 +1,21 @@
-
+function invitePeopleStart() 
+{
+    let modal = document.getElementById('changeNameModal');
+    modal.style.display = 'block';
+    document.getElementById('closeAddPeopleModal').onclick = function()
+    {
+        document.getElementById('changeName').value = '';
+        modal.style.display = 'none';
+    }
+    window.onclick = function(event) 
+    {
+        if (event.target === modal) 
+        {
+            document.getElementById('changeName').value = '';
+            modal.style.display = 'none';
+        }
+    }
+}
 
 /**
  * Sends an HTTP POST request to the specified endpoint with the provided data.
