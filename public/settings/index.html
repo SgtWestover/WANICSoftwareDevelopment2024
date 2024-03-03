@@ -64,9 +64,9 @@
     <div class="modal-content">
       <span class="close" id="closeChangeNameModal">&times;</span>
       <p>Please enter your new name (You can only do this 3 times)</p>
-        <input type="text" id="newName" placeholder = "Enter new username" class="button">
-        <button id="newNameSubmit">Submit</button>
-        <div id="changeNameError" style="color: red;"></div>
+      <input type="text" id="newName" placeholder = "Enter new username" class="button">
+      <button id="newNameSubmit">Submit</button>
+      <div id="changeNameError" style="color: red;"></div>
     </div>
   </div>
   <div id="changePasswordModal" class="modal">
@@ -77,10 +77,10 @@
         <i id="toggleCurrentPassword" class="fa fa-eye"></i> <!-- Toggle current password visibility -->
         <button id="submitCurrentPassword">Submit</button>
         <div id="newPasswordSection" style="display: none;"> <!-- New password section, hidden by default -->
-            <p>Please enter your new password</p>
-            <input type="password" id="newPassword" class="password-input"> <!-- New Password input field -->
-            <i id="toggleNewPassword" class="fa fa-eye"></i> <!-- Toggle new password visibility -->
-            <button id="submitNewPassword">Submit New Password</button>
+          <p>Please enter your new password</p>
+          <input type="password" id="newPassword" class="password-input"> <!-- New Password input field -->
+          <i id="toggleNewPassword" class="fa fa-eye"></i> <!-- Toggle new password visibility -->
+          <button id="submitNewPassword">Submit New Password</button>
         </div>
         <div id="changePasswordError" style="color: red;"></div> <!-- Error message element -->
     </div>
@@ -89,20 +89,42 @@
     <div class="modal-content">
       <span class="close" id="closeClearEventsModal">&times;</span>
       <p>Are you sure you want to clear all events?</p>
-        <button id="clearEventsConfirm">Yes</button>
-        <button id="clearEventsDeny">No</button>
-        <div id="clearEventsError" style="color: red;"></div> <!-- Error message element -->
+      <button id="clearEventsConfirm">Yes</button>
+      <button id="clearEventsDeny">No</button>
+      <div id="clearEventsError" style="color: red;"></div> <!-- Error message element -->
     </div>
   </div>
   <div id="manageNotifsModal" class="modal">
     <div class="modal-content">
-      <span class="close" id="closeManageNotifsModal">&times;</span>
-      <p>Manage Notifications</p>
-        <button id="clearEventsConfirm">Yes</button>
-        <button id="clearEventsDeny">No</button>
+        <span class="close" id="closeManageNotifsModal">&times;</span>
+        <p>Manage Notifications</p>
+        <div>
+          <label for="ignoreTeamInvites">Ignore Team Invites:</label>
+          <input type="checkbox" id="ignoreTeamInvites">
+        </div>
+        <div>
+          <label for="rejectTeamInvites">Automatically Reject Team Invites:</label>
+          <input type="checkbox" id="rejectTeamInvites">
+        </div>
+        <div>
+          <label for="muteAllNotifs">Mute All Notifications:</label>
+          <input type="checkbox" id="muteAllNotifs">
+        </div>
+        <button id="muteSpecificTeam">Mute Specific Team</button>
+        <button id="unmuteSpecificTeam">Unmute Specific Team</button>
+        <button id="submitNotificationSettings">Submit Notification Settings</button>
         <div id="manageNotifsError" style="color: red;"></div> <!-- Error message element -->
     </div>
   </div>
+  <div id="teamCodeModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeTeamCodeModal">&times;</span>
+        <p>Enter Team Code</p>
+        <input type="text" id="teamCodeInput" class="text-input">
+        <button id="submitTeamCode">Submit</button>
+        <div id="teamCodeError" style="color: red;"></div>
+    </div>
+</div>
   <script src="/settings/settingsFormat.js"></script>
   <script src="/settings/account.js"></script>
 </body>

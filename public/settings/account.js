@@ -539,6 +539,231 @@ document.getElementById('clearEventsDeny').onclick = async function()
     document.getElementById('clearEventsError').textContent = '';
 }
 
+function changeNotificationsStart() 
+{
+    sendRequest('/fillNotificationsSettings', { userID })
+    .then(response => 
+    {
+        if (response.result === 'OK') 
+        {
+            const { _ignoreTeamInvites, _rejectTeamInvites, _muteAllNotifs, _mutedTeams } = response.settings;
+            document.getElementById('ignoreTeamInvites').checked = _ignoreTeamInvites;
+            document.getElementById('rejectTeamInvites').checked = _rejectTeamInvites;
+            document.getElementById('muteAllNotifs').checked = _muteAllNotifs;
+            const mutedTeamsContainer = document.getElementById('mutedTeamsContainer') || createMutedTeamsContainer();
+            fillMutedTeams(mutedTeamsContainer, _mutedTeams);
+            let modal = document.getElementById('manageNotifsModal');
+            modal.style.display = 'block';
+            setupModalCloseEvents(modal);
+            document.getElementById('muteSpecificTeam').addEventListener('click', function() 
+            {
+                showTeamCodeModal('Mute');
+            });
+            document.getElementById('unmuteSpecificTeam').addEventListener('click', function() 
+            {
+                showTeamCodeModal('Unmute');
+            });
+        } 
+        else 
+        {
+            document.getElementById('manageNotifsError').textContent = response.message;
+        }
+    }).catch(error => 
+    {
+        document.getElementById('manageNotifsError').textContent = `An error occurred: ${error}`;
+    });
+}
+
+function setupModalCloseEvents(modal) 
+{
+    const closeModal = () => 
+    {
+        document.getElementById('manageNotifsError').textContent = '';
+        modal.style.display = 'none';
+    };
+    document.getElementById('closeManageNotifsModal').onclick = closeModal;
+    const outsideClickListener = (event) => 
+    {
+        if (event.target === modal) 
+        {
+            closeModal();
+            window.removeEventListener('click', outsideClickListener);
+        }
+    };
+    window.addEventListener('click', outsideClickListener);
+}
+
+
+function createMutedTeamsContainer() 
+{
+    const container = document.createElement('div');
+    container.id = 'mutedTeamsContainer';
+    const modalContent = document.querySelector('#manageNotifsModal .modal-content');
+    if (modalContent) 
+    {
+        modalContent.appendChild(container);
+    }
+    return container;
+}
+
+
+function fillMutedTeams(container, teams) 
+{
+    container.innerHTML = '';
+    teams.forEach(teamCode => 
+    {
+        const teamDiv = document.createElement('div');
+        teamDiv.textContent = `Muted Team: ${teamCode}`;
+        container.appendChild(teamDiv);
+    });
+}
+
+function showTeamCodeModal(action) 
+{
+    let modal = document.getElementById('teamCodeModal');
+    modal.style.display = 'block';
+    document.getElementById('submitTeamCode').textContent = action + " Team";
+    document.getElementById('closeTeamCodeModal').onclick = function()
+    {
+        modal.style.display = 'none';
+        clearTeamCodeModal();
+    };
+    window.onclick = function(event) 
+    {
+        if (event.target === modal) 
+        {
+            modal.style.display = 'none';
+            clearTeamCodeModal();
+        }
+    };
+    document.getElementById('submitTeamCode').onclick = function() 
+    {
+        submitTeamCode(action.toLowerCase());
+    };
+}
+
+function clearTeamCodeModal()
+{
+    document.getElementById('teamCodeInput').value = '';
+    document.getElementById('teamCodeError').textContent = '';
+}
+
+function submitTeamCode(action) 
+{
+    const teamCode = document.getElementById('teamCodeInput').value;
+    if (!teamCode) 
+    {
+        document.getElementById('teamCodeError').textContent = 'Please enter a team code.';
+        return;
+    }
+    if (action === 'unmute') 
+    {
+        const wasRemoved = removeFromMutedTeamsList(teamCode);
+        if (wasRemoved) 
+        {
+            document.getElementById('teamCodeModal').style.display = 'none';
+            document.getElementById('teamCodeInput').value = '';
+            document.getElementById('teamCodeError').textContent = '';
+        } 
+        else 
+        {
+            document.getElementById('teamCodeError').textContent = 'Team code not found in muted list.';
+        }
+        return;
+    }
+    if (action === 'mute') 
+    {
+        sendRequest('/checkUserTeams', { teamCode, userID, action })
+        .then(response => 
+        {
+            if (response.result === 'OK') 
+            {
+                addToMutedTeamsList(teamCode);
+                document.getElementById('teamCodeModal').style.display = 'none';
+                document.getElementById('teamCodeInput').value = '';
+                document.getElementById('teamCodeError').textContent = '';
+            } 
+            else 
+            {
+                document.getElementById('teamCodeError').textContent = response.message;
+            }
+        })
+        .catch(error => 
+        {
+            document.getElementById('teamCodeError').textContent = `An error occurred: ${error}`;
+        });
+    }
+}
+
+function removeFromMutedTeamsList(teamCode) 
+{
+    const container = document.getElementById('mutedTeamsContainer');
+    let foundAndRemoved = false;
+    if (!container) return foundAndRemoved;
+    Array.from(container.children).forEach(child => 
+    {
+        if (child.textContent.includes(teamCode)) 
+        {
+            container.removeChild(child);
+            foundAndRemoved = true;
+        }
+    });
+    return foundAndRemoved;
+}
+
+function addToMutedTeamsList(teamCode) 
+{
+    const container = document.getElementById('mutedTeamsContainer') || createMutedTeamsContainer();
+    const teamDiv = document.createElement('div');
+    teamDiv.textContent = `Muted Team: ${teamCode}`;
+    container.appendChild(teamDiv);
+}
+
+// Add event listener to the submit button
+document.getElementById('submitNotificationSettings').addEventListener('click', function ()
+{
+    const _ignoreTeamInvites = document.getElementById('ignoreTeamInvites').checked;
+    const _rejectTeamInvites = document.getElementById('rejectTeamInvites').checked;
+    const _muteAllNotifs = document.getElementById('muteAllNotifs').checked;
+    const mutedTeamsContainer = document.getElementById('mutedTeamsContainer');
+    let _mutedTeams = [];
+    if (mutedTeamsContainer) 
+    {
+        _mutedTeams = Array.from(mutedTeamsContainer.children).map(child => 
+        {
+            return child.textContent.replace('Muted Team: ', '');
+        });
+    }
+
+    // Package the settings
+    const settings = 
+    {
+        _ignoreTeamInvites,
+        _rejectTeamInvites,
+        _muteAllNotifs,
+        _mutedTeams
+    };
+    sendRequest('/updateNotificationSettings', { userID, settings })
+    .then(response => 
+    {
+        if (response.result === 'OK') 
+        {
+            alert('Notification settings updated successfully.');
+            document.getElementById('manageNotifsModal').style.display = 'none';
+            document.getElementById('manageNotifsError').textContent = '';
+        } 
+        else 
+        {
+            document.getElementById('manageNotifsError').textContent = response.message;
+        }
+    })
+    .catch(error => 
+    {
+        document.getElementById('manageNotifsError').textContent = `An error occurred: ${error}`;
+    });
+});
+
+
 /**
  * Sends an HTTP POST request to the specified endpoint with the provided data.
  * @param {string} endpoint - The endpoint to send the request to.

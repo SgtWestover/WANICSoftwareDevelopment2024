@@ -186,7 +186,7 @@ router.post('/signup', async (req, res) =>
         res.send({ result: 'FAIL', message: "Missing username or password" });
         return;
     }
-    const settings = { _changeNameTimes: 0 };
+    const settings = { _changeNameTimes: 0, _ignoreTeamInvites: false, _rejectTeamInvites: false, _muteAllNotifs: false, _mutedTeams: [] };
     if (await findUserIgnoreCase(req.body._name) == null) //if there is no user with that name, create a new user
     {
         const newUser = new User(req.body._name, req.body._password, null, null, settings);
@@ -816,7 +816,7 @@ router.post('/createTeam', async (req, res) =>
     {
         return res.status(400).send({ result: 'FAIL', message: "Missing information" });
     }
-
+    let user;
     try 
     {
         const teamJoinCode = await getNewCode();
@@ -832,11 +832,15 @@ router.post('/createTeam', async (req, res) =>
             } 
             else if (info.status === 'INVITE') 
             {
-                usersQueued[username] = { role: info.role, status: info.status };
-                const notifID = new ObjectId().toString();
-                const userMessage = `${req.body.creatorName} invited you to join their team ${req.body.team._name} as a(n) ${info.role}`;
-                await addNotificationToUser(username, notifID, "TEAM_INVITE", userMessage, req.body.creatorName, currentDate, null);
-                notificationIDs[username] = { notifID: notifID, role: info.role };
+                user = await findUser(username);
+                if (user && !user._settings._rejectTeamInvites) //TODO: Maybe message team if user rejects team invites?
+                {
+                    usersQueued[username] = { role: info.role, status: info.status };
+                    const notifID = new ObjectId().toString();
+                    const userMessage = `${req.body.creatorName} invited you to join their team ${req.body.team._name} as a(n) ${info.role}`;
+                    await addNotificationToUser(username, notifID, "TEAM_INVITE", userMessage, req.body.creatorName, currentDate, null);
+                    notificationIDs[username] = { notifID: notifID, role: info.role };    
+                }
             }
         }
         const newTeam = new CalendarTeam(null, req.body.team._name, req.body.team._description, users, teamJoinCode, usersQueued, req.body.team._autoJoin, req.body.team._joinPerms);
@@ -873,6 +877,11 @@ async function addNotificationToUser(username, notifID, type, message, sender, s
 {
     const calendarDB = dbclient.db("calendarApp");
     const usersCollection = calendarDB.collection("users");
+    const user = await findUser(username);
+    if (type === "TEAM_INVITE" && user._settings._ignoreTeamInvites)
+    {
+        return;
+    }
     const notification = { type, message, sender, sendDate, misc };
     const updateQuery = { $set: { [`_notifications.${notifID}`]: notification } };
     await usersCollection.updateOne({ _name: username }, updateQuery);
@@ -1321,23 +1330,31 @@ async function notifyTeamEventUpdate(teamEvent)
 router.post('/getUserNotifications', async (req, res) => 
 {
     const userID = req.body.userID;
-    if (!userID)
+    if (!userID) 
     {
         return res.status(400).send({ result: 'FAIL', message: 'UserID is required' });
     }
     try 
     {
         const user = await findUserByID(userID);
-        if (user && user._notifications)
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+
+        if (user && user._notifications) 
         {
-            // Convert the _notifications object to an array. I really hate this but it is what it is
-            const notificationsArray = Object.entries(user._notifications).map(([id, notification]) => 
-            ({
-                id,
-                ...notification
-            }));
-            res.send({ result: 'OK', notifications: notificationsArray });
-        }
+            const notificationsArrayPromises = Object.entries(user._notifications).map(async ([id, notification]) => 
+            {
+                const query = { [`_notifications.${id}`]: { $exists: true } };
+                const team = await teamsCollection.findOne(query);        
+                const teamCode = team ? team._joinCode : null;
+                return {
+                    id,
+                    ...notification,
+                    teamCode };
+            });
+            const notificationsArray = await Promise.all(notificationsArrayPromises);
+            res.send({ result: 'OK', notifications: notificationsArray, userSettings: user._settings });
+        } 
         else 
         {
             res.status(404).send({ result: 'FAIL', message: 'User not found or no notifications' });
@@ -1349,6 +1366,7 @@ router.post('/getUserNotifications', async (req, res) =>
         res.status(500).send({ result: 'ERROR', message: 'An error occurred' });
     }
 });
+
 
 router.post('/handleTeamInvite', async (req, res) => 
 {
@@ -1622,8 +1640,8 @@ async function findTeamEventsByUserID(userID)
 
 router.post('/getTeamNotifications', async (req, res) => 
 {
-    const { teamCode } = req.body;
-    if (!teamCode) 
+    const { teamCode, userID } = req.body;
+    if (!teamCode || userID) 
     {
         return res.status(400).send({ message: "Missing teamCode in request" });
     }
@@ -1636,8 +1654,14 @@ router.post('/getTeamNotifications', async (req, res) =>
         {
             return res.status(404).send({ result: 'FAIL', message: "Team not found" });
         }
+        const user = await findUserByID(userID);
+        if (!user) 
+        {
+            return res.status(500).send({ result: 'FAIL', message: "Internal Server Error" });
+        }
+        const userRole = team._users[user._name];
         const notifications = team._notifications || {};
-        res.status(200).send({ result: 'OK', notifications : notifications });
+        res.status(200).send({ result: 'OK', notifications : notifications, userRole : userRole });
     } 
     catch (error) 
     {
@@ -1692,6 +1716,10 @@ router.post('/inviteUser', async (req, res) =>
         if (!receiverUser)
         {
             return res.status(404).send({ result: 'FAIL', message: "Receiver not found" });
+        }
+        if (receiverUser._settings._rejectTeamInvites)
+        {
+            return res.status(206).send({ result: 'FAIL', message: "Receiver is not accepting team invites" });
         }
         if (teamData._usersQueued[receiver] && teamData._usersQueued[receiver].status === 'BANNED')
         {
@@ -2062,7 +2090,7 @@ router.post('/updateUserRoles', async (req, res) =>
         let isOriginalOwner = false;;
         const calendarDB = dbclient.db("calendarApp");
         const teamsCollection = calendarDB.collection("teams");
-        const team = await findTeamByCode(teamCode);
+        const team = await getTeamData(teamCode);
         let senderUser = await findUserByID(senderID);
         if (!team) 
         {
@@ -2122,7 +2150,7 @@ router.post('/updateUserRoles', async (req, res) =>
         } 
         let receiverNames = [username];
         await addNotificationToUser(username, notifID, "TEAM_UPDATE_ROLE", userMessage, senderUser._name, sendDate, null);
-        await addNotificationToTeam(teamCode, notifID, "TEAM_UPDATE_ROLE", teamMessage, senderUser._name, receiverNames, "User", sendDate, null);
+        await addNotificationToTeam(team._id, notifID, "TEAM_UPDATE_ROLE", teamMessage, senderUser._name, receiverNames, "User", sendDate, null);
         await teamsCollection.updateOne({ _joinCode: teamCode }, { $set: { _users: team._users, _usersQueued: team._usersQueued}});
         return res.status(200).send({ result: 'OK', message: "User role updated successfully in team" });
     } 
@@ -2415,10 +2443,230 @@ router.post('/clearUserEvents', async (req, res) =>
         const deleteResult = await eventsCollection.deleteMany({ "_users": userID });
         res.status(200).send({ result: 'OK', message: `${deleteResult.deletedCount} event(s) were deleted.` });
     } 
-    catch (error) 
+    catch (error)
     {
         console.log(error);
         res.status(500).send({ result: 'FAIL', message: "An error occurred while clearing events" });
+    }
+});
+
+router.post('/fillNotificationsSettings', async (req, res) => 
+{
+    const { userID } = req.body;
+    try 
+    {
+        const user = await findUserByID(userID);
+        if (!user) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "User not found." });
+        }
+        const settings = 
+        {
+            _ignoreTeamInvites: user._settings._ignoreTeamInvites,
+            _rejectTeamInvites: user._settings._rejectTeamInvites,
+            _muteAllNotifs: user._settings._muteAllNotifs,
+            _mutedTeams: user._settings._mutedTeams || []
+        };
+        res.send({ result: 'OK', settings });
+    } 
+    catch (error) 
+    {
+        console.error(error);
+        res.status(500).send({ result: 'FAIL', message: "An error occurred while fetching notification settings." });
+    }
+});
+
+
+router.post('/checkUserTeams', async (req, res) => 
+{
+    const { teamCode, userID, action } = req.body;
+
+    try 
+    {
+        const team = await getTeamData(teamCode);
+        if (!team) 
+        {
+            return res.status(206).send({ result: 'FAIL', message: "Team not found." });
+        }
+        const user = await findUserByID(userID);
+        if (!user) 
+        {
+            return res.status(206).send({ result: 'FAIL', message: "User not found." });
+        }
+        if (!team._users[user._name]) 
+        {
+            return res.status(206).send({ result: 'FAIL', message: "User is not part of the team." });
+        }
+        if (action === 'mute' && !user._settings._mutedTeams.includes(teamCode)) 
+        {
+            return res.send({ result: 'OK', action: 'addMutedTeam', message: "Proceed with muting the team." });
+        }
+        else if (action === 'mute' && user._settings._mutedTeams.includes(teamCode))
+        {
+            return res.send({ result: 'FAIL', message: "Already muted team." });
+        }
+        if (action === 'unmute' && user._settings._mutedTeams.includes(teamCode)) 
+        {
+            return res.send({ result: 'OK', action: 'removeMutedTeam', message: "Proceed with unmuting the team." });
+        }
+        else if (action === 'unmute' && !user._settings._mutedTeams.includes(teamCode))
+        {
+            return res.send({ result: 'FAIL', message: "Team is not muted." });
+        }
+        else 
+        {
+            return res.status(400).send({ result: 'FAIL', message: "Invalid request or no action needed." });
+        }
+    } 
+    catch (error) 
+    {
+        console.error(error);
+        res.status(500).send({ result: 'FAIL', message: "An error occurred during the operation." });
+    }
+});
+
+router.post('/updateNotificationSettings', async (req, res) => 
+{
+    const { userID, settings } = req.body;
+    if (!userID || !settings) 
+    {
+        return res.status(400).send({ result: 'FAIL', message: "Missing userID or settings" });
+    }
+    try 
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const usersCollection = calendarDB.collection("users");
+        const currentUser = await findUserByID(userID);
+        if (!currentUser) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "User not found." });
+        }
+        const settingsChanged = settings._ignoreTeamInvites !== currentUser._settings._ignoreTeamInvites ||
+                                settings._rejectTeamInvites !== currentUser._settings._rejectTeamInvites ||
+                                settings._muteAllNotifs !== currentUser._settings._muteAllNotifs ||
+                                JSON.stringify(settings._mutedTeams.sort()) !== JSON.stringify((currentUser._settings._mutedTeams || []).sort());
+        if (!settingsChanged)
+        {
+            return res.send({ result: 'FAIL', message: "No changes to the current settings." });
+        }
+        await usersCollection.updateOne
+        (
+            { _id: new ObjectId(userID) },
+            {
+                $set: 
+                {
+                    "_settings._ignoreTeamInvites": settings._ignoreTeamInvites,
+                    "_settings._rejectTeamInvites": settings._rejectTeamInvites,
+                    "_settings._muteAllNotifs": settings._muteAllNotifs,
+                    "_settings._mutedTeams": settings._mutedTeams
+                }
+            }
+        );
+        res.send({ result: 'OK', message: "Notification settings updated successfully." });
+    } 
+    catch (error) 
+    {
+        console.error("An error occurred during the operation:", error);
+        res.status(500).send({ result: 'FAIL', message: "An error occurred while updating notification settings." });
+    }
+});
+
+router.post('/dismissNotification', async (req, res) => 
+{
+    const { teamCode, userID, notificationID } = req.body;
+
+    if (!teamCode || !userID || !notificationID)
+    {
+        return res.status(400).send({ message: "Missing required fields" });
+    }
+    try 
+    {
+        const team = await getTeamData(teamCode);
+        if (!team)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        const user = await findUserByID(userID);
+        if (!user)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "User not found" });
+        }
+        const notification = team._notifications[notificationID];
+        if (!notification)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Notification not found" });
+        }
+        const usersDismissed = notification.misc && notification.misc._usersDismissed ? notification.misc._usersDismissed : [];
+        if (usersDismissed.includes(user._name))
+        {
+            return res.status(400).send({ result: 'FAIL', message: "Notification already dismissed by this user" });
+        }
+        usersDismissed.push(user._name);
+        const updateQuery = { $set: {} };
+        updateQuery.$set[`_notifications.${notificationID}.misc`] = { ...notification.misc, _usersDismissed: usersDismissed };
+
+        const updateResult = await teamsCollection.updateOne(
+            { _joinCode: teamCode, [`_notifications.${notificationID}`]: { $exists: true } },
+            updateQuery
+        );
+        if (updateResult.modifiedCount === 1)
+        {
+            return res.send({ result: 'OK', message: "Notification dismissed successfully" });
+        } 
+        else 
+        {
+            return res.status(400).send({ result: 'FAIL', message: "Could not dismiss notification" });
+        }
+    } 
+    catch (error) 
+    {
+        console.error("Error dismissing notification:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
+
+router.post('/deleteTeamNotification', async (req, res) => 
+{
+    const { teamCode, userID, notificationID } = req.body;
+    if (!teamCode || !userID || !notificationID)
+    {
+        return res.status(400).send({ message: "Missing required fields" });
+    }
+    try 
+    {
+        const team = await getTeamData(teamCode);
+        if (!team)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        const user = await findUserByID(userID);
+        if (!user)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "User not found" });
+        }
+        const userRole = team._users[user._name];
+        if (!userRole || roleLevels[userRole] < roleLevels['Admin'])
+        {
+            return res.status(403).send({ result: 'FAIL', message: "User does not have permission to delete notifications" });
+        }
+        const updateResult = await teamsCollection.updateOne
+        (
+            { _joinCode: teamCode },
+            { $unset: { [`_notifications.${notificationID}`]: "" } } // Use $unset to remove the notification
+        );
+        if (updateResult.modifiedCount === 1)
+        {
+            return res.send({ result: 'OK', message: "Notification deleted successfully" });
+        }
+        else
+        {
+            return res.status(400).send({ result: 'FAIL', message: "Could not delete notification" });
+        }
+    } 
+    catch (error) 
+    {
+        console.error("Error deleting team notification:", error);
+        res.status(500).send({ message: "Internal Server Error" });
     }
 });
 

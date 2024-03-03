@@ -7,7 +7,13 @@ Description: Handles the rendering of the team page
 
 var joinCode = localStorage.getItem("joinCode");
 var teamData;
-
+const roleLevels = 
+{
+    'Viewer': 1, 
+    'User': 2,
+    'Admin': 3,
+    'Owner': 4
+};
 
 document.addEventListener('DOMContentLoaded', function() 
 {
@@ -29,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function()
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.73.235:8080');
+    ws = new WebSocket('ws://192.168.50.42:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
@@ -208,7 +214,7 @@ function renderNotifications()
     let name = "";
     let description = "";
     
-    sendRequest('/getTeamNotifications', {teamCode: teamData._joinCode})
+    sendRequest('/getTeamNotifications', {teamCode: teamData._joinCode, userID: localStorage.getItem('userID')})
     .then(response =>
     {
         if (response.result === "OK")
@@ -299,6 +305,13 @@ function renderNotifications()
                 let container = document.getElementById('teamNotifications');
                 let notificationElement = document.createElement("div");
                 notificationElement.classList.add("team-notifications-content-element");
+                let menuIcon = document.createElement('div');
+                menuIcon.classList.add('menu-icon');
+                menuIcon.innerHTML = '...'; // Placeholder for an actual icon or image
+                menuIcon.onclick = function() 
+                {
+                    showNotificationOptions(notificationElement, userRole, data.id);
+                };
                 container.append(notificationElement);
                 container.insertBefore(notificationElement, container.firstChild)
                 let nameElement = document.createElement('div');
@@ -319,6 +332,75 @@ function renderNotifications()
     {
         console.error("Error rendering team notificiations: ", error);
     })
+}
+
+function showNotificationOptions(notificationElement, userRole, notificationID) 
+{
+    let existingOptions = notificationElement.querySelector('.notification-options');
+    if (existingOptions) 
+    {
+        notificationElement.removeChild(existingOptions);
+    }
+    let optionsContainer = document.createElement('div');
+    optionsContainer.classList.add('notification-options');
+    let dismissButton = document.createElement('button');
+    dismissButton.innerText = 'Dismiss';
+    dismissButton.onclick = function() 
+    {
+        sendRequest('/dismissNotification', 
+        {
+            teamCode: joinCode, 
+            userID: localStorage.getItem('userID'),
+            notificationID: notificationID
+        })
+        .then(response => 
+            {
+            if (response.result === 'OK') 
+            {
+                notificationElement.remove();
+            } 
+            else 
+            {
+                console.error('Failed to dismiss notification:', response.message);
+            }
+        })
+        .catch(error => 
+        {
+            console.error('Error during dismissal:', error);
+        });
+    };
+    optionsContainer.appendChild(dismissButton);
+    if (roleLevels[userRole] >= roleLevels['Admin']) 
+    {
+        let deleteButton = document.createElement('button');
+        deleteButton.innerText = 'Delete';
+        deleteButton.onclick = function() {
+            sendRequest('/deleteTeamNotification', 
+            {
+                teamCode: joinCode,
+                userID: localStorage.getItem('userID'),
+                notificationID: notificationID
+            })
+            .then(response => 
+            {
+                if (response.result === 'OK') 
+                {
+                    notificationElement.remove();
+                } 
+                else 
+                {
+                    // Handle failure to delete here, e.g., show an error message
+                    console.error('Failed to delete notification:', response.message);
+                }
+            })
+            .catch(error => 
+            {
+                console.error('Error during deletion:', error);
+            });
+        };
+        optionsContainer.appendChild(deleteButton);
+    }
+    notificationElement.appendChild(optionsContainer);
 }
 
 function notificationMessageCheckRole(message)
