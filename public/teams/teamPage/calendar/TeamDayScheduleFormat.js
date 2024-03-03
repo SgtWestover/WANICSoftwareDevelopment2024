@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function()
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.73.235:8080');
+    ws = new WebSocket('ws://localhost:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
@@ -274,6 +274,79 @@ function updateDragEvent(element)
     }
     eventsToUpdate.push(new EventTimes(element.getAttribute('data-event-id'), startSelectedHour, endSelectedHour));
     console.log(eventsToUpdate);
+}
+
+function updateDraggedEventsToServer()
+{
+    eventsToUpdate.forEach(event => 
+    {
+        var eventUsers = [];
+        var userIDString = localStorage.getItem('userID');
+        const addedUsersDiv = document.getElementById('addedUsers');
+        const userDivs = addedUsersDiv.getElementsByClassName('addedUser');
+        Array.from(userDivs).forEach(div => 
+        {
+            const userID = div.getAttribute('data-user-id');
+            eventUsers.push(userID);
+        });
+        var eventName = document.getElementById('eventName').value;
+        var eventDesc = document.getElementById('eventDesc').value;
+        var permissions = document.getElementById('eventPermissions').value;
+        var viewable = document.getElementById('eventViewable').value;
+
+        //get minutes from event
+        let startNum = event.startTime;
+        startNum *= 100;
+        let startMin = ((startNum % 100) / 100) * 60;
+        let endNum = event.endTime
+        endNum *= 100;
+        let endMin = ((startNum % 100) / 100) * 60;
+
+        let startDate = getDateFromAttribute(document.getElementById('popupHeader').getAttribute('data-date'));
+        startDate.setHours(event.startTime, startMin)
+        let endDate = new Date(startDate);
+        endDate.setHours(event.endTime, endMin);
+
+        const processEventCreationOrUpdate = () => 
+        {
+            const eventDetails = 
+            {
+                _team: teamData._joinCode,
+                _users: eventUsers,
+                _permissions: permissions,
+                _viewable: viewable,
+                _name: eventName,
+                _startDate: startDate,
+                _endDate: endDate,
+                _description: eventDesc
+            };
+            return createNewEvent(eventDetails);
+        };
+
+        const finalizeEventCreationOrUpdate = (newEventID) => 
+        {
+            const notificationType = '/notificationEditEvent';
+            const prevEvent = eventForm.getAttribute('data-original-event');
+            const notifResult = sendRequest(notificationType, 
+            {    
+                teamCode: teamData._joinCode, 
+                userID: userIDString, 
+                receivers: eventUsers, 
+                eventID: newEventID,
+                prevEvent : prevEvent
+            });
+            while (addedUsersDiv.firstChild) 
+            {
+                addedUsersDiv.removeChild(addedUsersDiv.firstChild);
+            }
+        };
+
+        deleteEvent(event.eventId).then(() => 
+        {
+            processEventCreationOrUpdate().then(newEventID => finalizeEventCreationOrUpdate(newEventID))
+            .catch(error => console.error("Error processing event creation or update:", error));
+        }).catch(error => console.error("Error deleting event:", error));
+    });
 }
 
 function snapDragElement(element, event)
@@ -824,6 +897,16 @@ function closeEventForm()
     highlightSelectedDay();
 }
 
+
+function closeEventPopupHeader()
+{
+    console.log("closed popupheader");
+    updateDraggedEventsToServer();
+    resetEventForm(); //resetEventForm() handles all of the heavy lifting, this just also closes the event popup
+    document.getElementById('eventPopup').style.display = 'none';
+    highlightSelectedDay();
+}
+
 function highlightSelectedDay() 
 {
     if (highlightedDay) 
@@ -1011,6 +1094,19 @@ function deleteEvent(eventID)
     {
         if (response.result === 'OK') 
         {
+            //delete event from the local edit queue 
+            let arrayLength = eventsToUpdate.length;
+            for(let i = 0; i < arrayLength; i++)
+            {
+                if(eventID === eventsToUpdate[i].eventId)
+                {
+                    console.log('splice ')
+                    eventsToUpdate.splice(i,1);
+                    arrayLength--;
+                    i--;
+                }
+            }
+
             // Find and remove the event element with the matching eventID
             const eventElements = document.querySelectorAll('.schedule-event');
             eventElements.forEach(element => 

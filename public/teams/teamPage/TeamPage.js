@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function()
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.73.235:8080');
+    ws = new WebSocket('ws://localhost:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
