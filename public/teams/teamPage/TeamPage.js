@@ -213,14 +213,17 @@ function renderNotifications()
 {
     let name = "";
     let description = "";
-    
-    sendRequest('/getTeamNotifications', {teamCode: teamData._joinCode, userID: localStorage.getItem('userID')})
+    sendRequest('/getTeamNotifications', {teamCode: joinCode, userID: localStorage.getItem('userID')})
     .then(response =>
     {
         if (response.result === "OK")
         {
             for(const [key, data] of Object.entries(response.notifications))
             {
+                if (data.misc && data.misc._usersDismissed && data.misc._usersDismissed.includes(localStorage.getItem('userID'))) 
+                {
+                    continue;
+                }
                 //get name and description 
                 switch (data.type) 
                 {
@@ -310,22 +313,22 @@ function renderNotifications()
                 menuIcon.innerHTML = '...'; // Placeholder for an actual icon or image
                 menuIcon.onclick = function() 
                 {
-                    showNotificationOptions(notificationElement, userRole, data.id);
+                    showNotificationOptions(notificationElement, response.userRole, key);
                 };
-                container.append(notificationElement);
-                container.insertBefore(notificationElement, container.firstChild)
+                notificationElement.appendChild(menuIcon);
                 let nameElement = document.createElement('div');
                 nameElement.classList.add('team-notifications-content-element-name');
                 nameElement.innerText = name;
-                notificationElement.append(nameElement);
-                let descriptionElement = document.createElement(`div`);
+                notificationElement.appendChild(nameElement);
+                let descriptionElement = document.createElement('div');
                 descriptionElement.classList.add('team-notifications-content-element-description');
                 descriptionElement.innerText = description;
-                notificationElement.append(descriptionElement);
+                notificationElement.appendChild(descriptionElement);
                 let timeElement = document.createElement('div');
                 timeElement.classList.add('team-notifications-content-element-time');
                 timeElement.innerText = formatDate(data.sendDate, true);
                 notificationElement.appendChild(timeElement);
+                container.insertBefore(notificationElement, container.firstChild);
             }
         }
     }).catch(error =>

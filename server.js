@@ -1641,7 +1641,7 @@ async function findTeamEventsByUserID(userID)
 router.post('/getTeamNotifications', async (req, res) => 
 {
     const { teamCode, userID } = req.body;
-    if (!teamCode || userID) 
+    if (!teamCode || !userID) 
     {
         return res.status(400).send({ message: "Missing teamCode in request" });
     }
@@ -2581,6 +2581,8 @@ router.post('/dismissNotification', async (req, res) =>
     }
     try 
     {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
         const team = await getTeamData(teamCode);
         if (!team)
         {
@@ -2601,11 +2603,11 @@ router.post('/dismissNotification', async (req, res) =>
         {
             return res.status(400).send({ result: 'FAIL', message: "Notification already dismissed by this user" });
         }
-        usersDismissed.push(user._name);
+        usersDismissed.push(userID);
         const updateQuery = { $set: {} };
         updateQuery.$set[`_notifications.${notificationID}.misc`] = { ...notification.misc, _usersDismissed: usersDismissed };
-
-        const updateResult = await teamsCollection.updateOne(
+        const updateResult = await teamsCollection.updateOne
+        (
             { _joinCode: teamCode, [`_notifications.${notificationID}`]: { $exists: true } },
             updateQuery
         );
@@ -2634,6 +2636,8 @@ router.post('/deleteTeamNotification', async (req, res) =>
     }
     try 
     {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
         const team = await getTeamData(teamCode);
         if (!team)
         {
