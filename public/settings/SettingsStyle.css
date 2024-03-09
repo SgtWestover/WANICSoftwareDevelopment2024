@@ -141,7 +141,7 @@ headertext
   padding: 10px 20px; /* Padding around text */
   color: white;
   cursor: pointer; /* Hand icon on hover */
-  transition: background-color 0.3s, ; /* Smooth transitions for hover and click */
+  transition: background-color 0.3s, transform 0.1s; /* Smooth transitions for hover and click */
 }
 
 #signout:hover,
