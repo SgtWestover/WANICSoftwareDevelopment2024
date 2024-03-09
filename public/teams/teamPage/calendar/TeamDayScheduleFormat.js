@@ -161,6 +161,8 @@ document.querySelector('.popup .close').addEventListener('click', function()
 function generateSchedule() 
 {
     let dragging = false;
+    let dragLeft = false;
+    let dragRight = false;
     let mouseDownTime = 0;
     let startX;
     let endX;
@@ -193,7 +195,10 @@ function generateSchedule()
     dayContainer.addEventListener("mousemove", function(event) 
     {
         lineFollow(event);
-        if(dragging) snapDragElement(dragElement, event)
+        if(dragging) 
+        {
+            snapDragElement(dragElement, event, dragLeft, dragRight);
+        }        
     });
 
     dayContainer.addEventListener('mousedown', function(event)
@@ -201,8 +206,22 @@ function generateSchedule()
         dragging = true;
         mouseDownTime = event.timeStamp;
         startX = event.clientX - dayContainer.getBoundingClientRect().left;
-        if(event.target.id !== 'day-container') dragElement = event.target;
-
+        let element = event.target;
+        if(event.target.id !== 'day-container')
+        {
+            dragElement = event.target;
+            if (event.clientX - element.parentElement.getBoundingClientRect().left > parseInt(element.style.left) - 7 && event.clientX - element.parentElement.getBoundingClientRect().left < parseInt(element.style.left) + 7)
+            {
+                console.log("LEFT");
+                dragLeft = true;
+            }
+            else if (event.clientX - element.parentElement.getBoundingClientRect().left >= parseInt(element.style.left) + parseInt(element.offsetWidth) - 7 && event.clientX - element.parentElement.getBoundingClientRect().left <= parseInt(element.style.left) + parseInt(element.offsetWidth) + 7)
+            {
+                console.log("RIGHT");
+                dragRight = true;
+                
+            }
+        } 
     });
     dayContainer.addEventListener('mousemove', function(event) 
     {
@@ -220,6 +239,8 @@ function generateSchedule()
         if (dragging) 
         {
             dragging = false;
+            dragRight = false;
+            dragLeft = false;
         }
         let mouseUpTime = event.timeStamp; 
         let duration = mouseUpTime - mouseDownTime;
@@ -349,15 +370,42 @@ function updateDraggedEventsToServer()
     });
 }
 
-function snapDragElement(element, event)
+function snapDragElement(element, event, dragLeft, dragRight)
 {
+    //the left most position of the day container
     let Left = element.parentElement.getBoundingClientRect().left;
+    //position of mouse relative to day container
     let current = event.clientX - Left - element.offsetWidth/2;
+    //the width of day container
     let max = parseInt(dayContainer.offsetWidth);
+    //the percent based on position of mouse in the day contianer
     let percent = Math.floor((current / max) * 100) + 1;
     let selectedHour = ((endTime - startTime) * percent / 100) + startTime;
-    selectedHour = Math.floor(selectedHour * 4) / 4;
-    element.style.left = (max / 24) * selectedHour + 1.2 + "px";
+    
+    //check mouse pos if on edge of the event
+    if (dragLeft)
+    {
+        //the position of the right border of the element
+        let rightPos = parseInt(element.offsetWidth) + parseInt(element.style.left)
+        //set position if dragging from left
+        console.log("dragging from the left");
+        element.style.left = event.clientX - Left + "px";
+        element.style.width = rightPos - parseInt(element.style.left) + "px";
+        
+    }
+    else if (dragRight)
+    {
+        //set position if dragging from right
+        console.log("dragging from the right");
+        let leftPos = parseInt(element.style.left);
+        element.style.width = event.clientX - Left - leftPos + 'px';
+    }
+    else
+    {
+        //set poition if dragging from the middle
+        selectedHour = Math.floor(selectedHour * 4) / 4;
+        element.style.left = (max / 24) * selectedHour + 1.2 + "px";
+    }
 }
 
 
