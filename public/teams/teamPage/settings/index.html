@@ -52,7 +52,7 @@
   <div class="sidebar">
     <a href="../TeamPage.html">Home</a>
     <a href="../calendar/">Calendar</a>
-    <a href="../chat/">Chat</a>
+    <!-- <a href="../schedule/">Schedule</a> -->
     <a class="active" href="#home">Settings</a>
   </div>
   <div id="addPeopleModal" class="modal">
@@ -104,6 +104,7 @@
           <button type="button" id="banUser" class="button">Ban User</button>
           <button type="button" id="unbanUser" class="button">Unban User</button>
         <p id="removeUserError" style="color: red;"></p>
+        <!--Add the node for all users in the current teams-->
     </div>
   </div>
   <div id="updateDescriptionModal" class="modal">
@@ -133,6 +134,7 @@
         <button type="button" id="rejectUser" class="button">Reject User</button>
         <button type="button" id="blacklistUser" class="button">Blacklist User</button>
         <p id="manageQueueError" style="color: red;"></p>
+        <!--Node for list of the join queue-->
     </div>
   </div>
    <div class="back-arrow-container" onclick="window.location='../../';">
@@ -173,6 +175,7 @@
         </select>
         <button type="button" id="manageUserRoles" class="button">Change</button>
         <p id="manageUserRolesError" style="color: red;"></p> <!-- Error message display -->
+        <!--node for all users in the teams-->
     </div>
   </div>
   <script src="/scripts/CalendarClasses.js"></script>

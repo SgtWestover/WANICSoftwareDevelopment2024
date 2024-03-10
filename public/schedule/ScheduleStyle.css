@@ -5,6 +5,7 @@ body /* Document body*/
   margin: 0;
   padding: 0;
   height: auto;
+  overflow: hidden;
 }
 
 header /* Document header*/
@@ -25,7 +26,7 @@ header /* Document header*/
 {
   margin: 0;
   padding: 0;
-  width: 200px;
+  width: 12%;
   background-color: #2b2e30;
   position: fixed;
   height: 100%;
@@ -101,3 +102,110 @@ div.content
     float: none;
   }
 } 
+
+
+/* Event Styles ------------------------------------------------------------ */
+
+
+#scheduleEventsContainer
+{
+  position: absolute;
+  top: 90px;
+  width: 87%;
+  height: calc(99% - 90px);
+  left: 12.5%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+
+.event-category-container 
+{
+  margin-bottom: 20px;
+}
+
+.event-category-container h2 
+{
+  position: relative;
+  margin: 0;
+  padding: 10px;
+  background-color: #2b2e30;
+  color: white;
+}
+
+.event 
+{
+  background-color: #2b2e30;
+  position: relative;
+  margin: 5px 0;
+  border-radius: 4px;
+  height: 100px;
+  border-radius: 8px;
+}
+
+.event-name
+{
+  color: white;
+  position: absolute;
+  height: 25%;
+  width: 34%;
+  top: 15%;
+  left: 3%;
+}
+
+.event-description
+{
+  color: white;
+  position: absolute;
+  top: 45%;
+  height: 45%;
+  width: 34%;
+  left: 3%;
+}
+
+.event-users-container
+{
+  color: white;
+  position: absolute;
+  top: 15%;
+  width: 10%;
+  left: 37%;
+  height: 75%;
+  overflow: hidden;
+}
+
+.event-user{}
+
+.event-startTime
+{
+  color: white;
+  position: absolute;
+  top: 15%;
+  left: 83%;
+  width: 15%;
+  height: 36%;
+  border-bottom: #2b2e30;
+  font-size: 13px;
+}
+
+.event-endTime
+{
+  color: white;
+  position: absolute;
+  top: 54%;
+  left: 83%;
+  width: 15%;
+  height: 36%;
+  font-size: 13px;
+}
+
+.event-teamName
+{
+  position: absolute;
+  top: 15%;
+  width: 10%;
+  left: 50%;
+  height: 75%;
+  color: white;
+  overflow: hidden;
+}

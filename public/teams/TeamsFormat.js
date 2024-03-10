@@ -487,7 +487,7 @@ function showTeamsNotifs()
                     return !response.userSettings._mutedTeams.includes(notification.teamCode);
                 });
                 renderNotifications(filteredNotifications);
-            }
+            }rnotifica
         }
     })
     .catch(error => console.error('Error fetching notifications:', error));
@@ -554,35 +554,117 @@ function openNotificationModal(notification, notificationDiv)
     const actionsElement = document.getElementById('notificationActions');
     messageElement.textContent = `${notification.type}: ${notification.message}`;
     actionsElement.innerHTML = '';
-    if (notification.type === 'TEAM_INVITE') 
-    {
-        const acceptButton = createActionButton('Accept', () => handleTeamInvite(notification.id, 'accept', notificationDiv));
-        const rejectButton = createActionButton('Reject', () => handleTeamInvite(notification.id, 'reject', notificationDiv));
-        actionsElement.appendChild(acceptButton);
-        actionsElement.appendChild(rejectButton);
+
+    switch (notification.type) {
+        case 'TEAM_INVITE':
+            const acceptButton = createActionButton('Accept', () => handleTeamInvite(notification.id, 'accept', notificationDiv));
+            const rejectButton = createActionButton('Reject', () => handleTeamInvite(notification.id, 'reject', notificationDiv));
+            actionsElement.appendChild(acceptButton);
+            actionsElement.appendChild(rejectButton);
+            break;
+        case 'EVENT_CREATE':
+            var dismissButton = createActionButton('Dismiss', () => 
+            {
+                closeNotificationModal();
+                deleteNotification(notification.id, notificationDiv);
+            });
+            var goToTeamButton = createActionButton('Go To Team', () => goToTeamPage(notification.id));
+            actionsElement.appendChild(dismissButton);
+            actionsElement.appendChild(goToTeamButton);
+            break;
+        case 'EVENT_DELETE':
+            var dismissButton = createActionButton('Dismiss', () => 
+            {
+                closeNotificationModal();
+                deleteNotification(notification.id, notificationDiv);
+            });
+            var goToTeamButton = createActionButton('Go To Team', () => goToTeamPage(notification.id));
+            actionsElement.appendChild(dismissButton);
+            actionsElement.appendChild(goToTeamButton);
+            break;
+        case 'TEAM_AUTOJOIN_UPDATE':
+            var dismissButton = createActionButton('Dismiss', () => 
+            {
+                closeNotificationModal();
+                deleteNotification(notification.id, notificationDiv);
+            });
+            var goToTeamButton = createActionButton('Go To Team', () => goToTeamPage(notification.id));
+            actionsElement.appendChild(dismissButton);
+            actionsElement.appendChild(goToTeamButton);
+            break;
+        case 'TEAM_DELETE':
+            var dismissButton = createActionButton('Dismiss', () => 
+            {
+                closeNotificationModal();
+                deleteNotification(notification.id, notificationDiv);
+            });
+            actionsElement.appendChild(dismissButton);
+            break;
+        case 'TEAM_KICK':
+            var dismissButton = createActionButton('Dismiss', () => 
+            {
+                closeNotificationModal();
+                deleteNotification(notification.id, notificationDiv);
+            });
+            actionsElement.appendChild(dismissButton);
+            break;
+        case 'TEAM_BAN':
+            var dismissButton = createActionButton('Dismiss', () => 
+            {
+                closeNotificationModal();
+                deleteNotification(notification.id, notificationDiv);
+            });
+            actionsElement.appendChild(dismissButton);
+            break;
+        case 'TEAM_UNBAN':
+            var dismissButton = createActionButton('Dismiss', () => 
+            {
+                closeNotificationModal();
+                deleteNotification(notification.id, notificationDiv);
+            });
+            actionsElement.appendChild(dismissButton);
+            break;
+        case 'TEAM_UPDATE_ROLE':
+            var dismissButton = createActionButton('Dismiss', () => 
+            {
+                closeNotificationModal();
+                deleteNotification(notification.id, notificationDiv);
+            });
+            var goToTeamButton = createActionButton('Go To Team', () => goToTeamPage(notification.id));
+            actionsElement.appendChild(dismissButton);
+            actionsElement.appendChild(goToTeamButton);
+            break;
+        case 'TEAM_AUTOJOIN_UPDATE':
+            var dismissButton = createActionButton('Dismiss', () => 
+            {
+                closeNotificationModal();
+                deleteNotification(notification.id, notificationDiv);
+            });
+            var goToTeamButton = createActionButton('Go To Team', () => goToTeamPage(notification.id));
+            actionsElement.appendChild(dismissButton);
+            actionsElement.appendChild(goToTeamButton);
+            break;
+        case 'TEAM_REJECT':
+            var dismissButton = createActionButton('Dismiss', () => 
+            {
+                closeNotificationModal();
+                deleteNotification(notification.id, notificationDiv);
+            });
+            actionsElement.appendChild(dismissButton);
+            break;
+        case 'TEAM_BLACKLIST':
+            var dismissButton = createActionButton('Dismiss', () => 
+            {
+                closeNotificationModal();
+                deleteNotification(notification.id, notificationDiv);
+            });
+            actionsElement.appendChild(dismissButton);
+            break;
+        default:
+            console.logError("User Notification not Valid" + notification.type);
+            break;
     }
-    else if (notification.type === "EVENT_CREATE") 
-    {
-        const dismissButton = createActionButton('Dismiss', () => 
-        {
-            closeNotificationModal();
-            deleteNotification(notification.id, notificationDiv);
-        });
-        const goToTeamButton = createActionButton('Go To Team', () => goToTeamPage(notification.id));
-        actionsElement.appendChild(dismissButton);
-        actionsElement.appendChild(goToTeamButton);
-    }
-    else if (notification.type === "EVENT_DELETE")
-    {
-        const dismissButton = createActionButton('Dismiss', () => 
-        {
-            closeNotificationModal();
-            deleteNotification(notification.id, notificationDiv);
-        });
-        const goToTeamButton = createActionButton('Go To Team', () => goToTeamPage(notification.id));
-        actionsElement.appendChild(dismissButton);
-        actionsElement.appendChild(goToTeamButton);
-    }
+
     modal.style.display = 'block';
 }
 
@@ -751,7 +833,6 @@ async function renderAllTeams()
     try 
     {
         teamsList = await GetTeamList();
-        console.log(JSON.stringify(teamsList));
         let teamCount = 0;
         // Clear existing teams before rendering new ones
         document.querySelectorAll('.team-container').forEach(container => container.remove());

@@ -320,6 +320,7 @@ div.content
   width: 24px;
   position: absolute;
   text-align: center;
+  z-index: 4;
 }
 
 /*#endregion Header Teams panels*/
@@ -473,6 +474,8 @@ div.content
   transform: translateY(-50%);
   padding: 5px; 
 }
+
+
 
 
 /*#endregion */

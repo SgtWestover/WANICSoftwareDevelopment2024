@@ -1,9 +1,3 @@
-/*
-Name: Zach Rojas, Kaelin Wang Hu
-Date: 11/27/2023
-Last Edit: 1/11/2023
-Description: Handles the formatting for the day schedule
-*/
 
 //FUNCTION HEADER TEMPLATE
 /**
@@ -87,7 +81,6 @@ function connectWebSocket()
     };
     ws.onmessage = function(event)  //important :3
     {
-        console.log("message received");
         handleWebSocketMessage(event.data);
     };
     ws.onerror = function(error) 
@@ -114,7 +107,6 @@ function initializeEvents()
         getUserEvents(userID).then(fetchedEvents => 
         {
             userEvents = fetchedEvents; // Populate the global variable
-            console.log("UserEvents: " + JSON.stringify(userEvents));
         }).catch(error => 
         {
             console.error('Error fetching initial events:', error);
@@ -247,7 +239,6 @@ function generateSchedule()
         endX = event.clientX - dayContainer.getBoundingClientRect().left;
         if (duration < 150)
         {
-            console.log('click');
             dayContainerClick(event);
         }
         else
@@ -287,7 +278,6 @@ function updateDragEvent(element)
     {
         if(element.getAttribute('data-event-id') === eventsToUpdate[i].eventId)
         {
-            console.log('splice ')
             eventsToUpdate.splice(i,1);
             arrayLength--;
             i--;
@@ -297,80 +287,68 @@ function updateDragEvent(element)
     console.log(eventsToUpdate);
 }
 
-function updateDraggedEventsToServer()
+async function updateDraggedEventsToServer() 
 {
-    eventsToUpdate.forEach(event => 
+    for (let event of eventsToUpdate) 
     {
-        var eventUsers = [];
-        var userIDString = localStorage.getItem('userID');
-        const addedUsersDiv = document.getElementById('addedUsers');
-        const userDivs = addedUsersDiv.getElementsByClassName('addedUser');
-        Array.from(userDivs).forEach(div => 
+        try 
         {
-            const userID = div.getAttribute('data-user-id');
-            eventUsers.push(userID);
-        });
-        var eventName = document.getElementById('eventName').value;
-        var eventDesc = document.getElementById('eventDesc').value;
-        var permissions = document.getElementById('eventPermissions').value;
-        var viewable = document.getElementById('eventViewable').value;
-
-        //get minutes from event
-        let startNum = event.startTime;
-        startNum *= 100;
-        let startMin = ((startNum % 100) / 100) * 60;
-        let endNum = event.endTime
-        endNum *= 100;
-        let endMin = ((startNum % 100) / 100) * 60;
-
-        let startDate = getDateFromAttribute(document.getElementById('popupHeader').getAttribute('data-date'));
-        startDate.setHours(event.startTime, startMin)
-        let endDate = new Date(startDate);
-        endDate.setHours(event.endTime, endMin);
-
-        const processEventCreationOrUpdate = () => 
-        {
-            const eventDetails = 
+            var userIDString = localStorage.getItem('userID');
+            const teamEventID = event.eventId;
+            let oldEvent;
+            let startNum = event.startTime;
+            startNum *= 100;
+            let startMin = ((startNum % 100) / 100) * 60;
+            let endNum = event.endTime
+            endNum *= 100;
+            let endMin = ((endNum % 100) / 100) * 60;
+            let startDate = getDateFromAttribute(document.getElementById('popupHeader').getAttribute('data-date'));
+            startDate.setHours(event.startTime, startMin)
+            let endDate = new Date(startDate);
+            endDate.setHours(event.endTime, endMin);
+            console.log("update drag startDate: " + startDate);
+            const response = await sendRequest('/findTeamEventByID', { teamEventID });
+            if (response.result === 'OK') 
             {
-                _team: teamData._joinCode,
-                _users: eventUsers,
-                _permissions: permissions,
-                _viewable: viewable,
-                _name: eventName,
-                _startDate: startDate,
-                _endDate: endDate,
-                _description: eventDesc
-            };
-            return createNewEvent(eventDetails);
-        };
-
-        const finalizeEventCreationOrUpdate = (newEventID) => 
-        {
-            const notificationType = '/notificationEditEvent';
-            const prevEvent = eventForm.getAttribute('data-original-event');
-            const notifResult = sendRequest(notificationType, 
-            {    
-                teamCode: teamData._joinCode, 
-                userID: userIDString, 
-                receivers: eventUsers, 
-                eventID: newEventID,
-                prevEvent : prevEvent
-            });
-            while (addedUsersDiv.firstChild) 
+                oldEvent = response.event;
+                if (oldEvent) 
+                {
+                    const eventDetails = 
+                    {
+                        _team: teamData._joinCode,
+                        _users: oldEvent._users,
+                        _permissions: oldEvent._permissions,
+                        _viewable: oldEvent._viewable,
+                        _name: oldEvent._name,
+                        _startDate: startDate,
+                        _endDate: endDate,
+                        _description: oldEvent._description
+                    };
+                    console.log(JSON.stringify(eventDetails));
+                    const newEventID = await createNewEvent(eventDetails);
+                    await deleteEvent(event.eventId);
+                    await sendRequest('/notificationEditEvent', {
+                        teamCode: teamData._joinCode, 
+                        userID: userIDString, 
+                        receivers: oldEvent._users,
+                        eventID: newEventID,
+                        prevEvent: oldEvent
+                    });
+                }
+            } else if (response.result === 'FAIL') 
             {
-                addedUsersDiv.removeChild(addedUsersDiv.firstChild);
+                console.log(response.message);
             }
-        };
-
-        deleteEvent(event.eventId).then(() => 
+        } 
+        catch (error) 
         {
-            processEventCreationOrUpdate().then(newEventID => finalizeEventCreationOrUpdate(newEventID))
-            .catch(error => console.error("Error processing event creation or update:", error));
-        }).catch(error => console.error("Error deleting event:", error));
-    });
+            console.error("Error processing event:", error);
+        }
+    }
 }
 
-function snapDragElement(element, event, dragLeft, dragRight)
+
+function snapDragElement(element, event)
 {
     //the left most position of the day container
     let Left = element.parentElement.getBoundingClientRect().left;
@@ -593,12 +571,16 @@ function updatePopupHeader(eventDetail)
         let currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
         let currentPopupDate = getDateFromAttribute(currentPopupDateAttr);
         let newDate = new Date(currentPopupDate);
-        
         teamEvents.forEach(event => 
         {
             let eventDate = new Date(event._startDate);
-            if (eventDate.toISOString().split('T')[0] === newDate.toISOString().split('T')[0]) 
+            console.log(eventDate);
+            console.log("update popupHeader startdate: " + eventDate.toISOString().split('T')[0]);
+            console.log("update popupHeader startdate: " + eventDate.toISOString());
+            console.log("new date: " + newDate.toISOString().split('T')[0]);
+            if (toLocalISOString(eventDate) === toLocalISOString(newDate)) 
             {
+                console.log("rendering event now");
                 renderEvent(event);
             }
         });
@@ -608,6 +590,14 @@ function updatePopupHeader(eventDetail)
         console.error('Error initializing events:', error);
     });
 }
+
+function toLocalISOString(date) 
+{
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - (offset * 60000));
+    return localDate.toISOString().split('T')[0];
+}
+
 
 /**
  * Updates the line tracking the current time to move across the day container
@@ -650,7 +640,7 @@ function dayContainerClick(event)
     let endTime = (hour + 1).toString().padStart(2, '0') + ':' + hourArray[1];
     document.getElementById('startTime').value = time; // Format to "HH:MM"
     document.getElementById('endTime').value = endTime;
-    
+    document.getElementById('addedUsers').innerHTML = '';
     sendRequest('/getUser', {userID: localStorage.getItem("userID")})
     .then(response =>
     {
@@ -742,21 +732,36 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
         return createNewEvent(eventDetails);
     };
     
-    const finalizeEventCreationOrUpdate = (newEventID) => 
+    const finalizeEventCreationOrUpdate = async (newEventID) => 
     {
         const notificationType = isEditing ? '/notificationEditEvent' : '/notificationCreateEvent';
-        const prevEvent = isEditing ? JSON.parse(eventForm.getAttribute('data-original-event')) : null;
-        const notifResult = sendRequest(notificationType, 
-        {    
-            teamCode: teamData._joinCode, 
-            userID: userIDString, 
-            receivers: eventUsers, 
-            eventID: newEventID,
-            prevEvent : prevEvent
-        });
-        while (addedUsersDiv.firstChild) 
+        try
         {
-            addedUsersDiv.removeChild(addedUsersDiv.firstChild);
+            const response = await sendRequest('/findTeamEventByID', { teamEventID : newEventID });
+            if (response.result === 'OK')
+            {
+                const prevEvent = response.event
+                const notifResult = sendRequest(notificationType, 
+                {    
+                    teamCode: teamData._joinCode, 
+                    userID: userIDString, 
+                    receivers: eventUsers, 
+                    eventID: newEventID,
+                    prevEvent
+                });
+                while (addedUsersDiv.firstChild) 
+                {
+                    addedUsersDiv.removeChild(addedUsersDiv.firstChild);
+                }    
+            }
+            else if (response.result === 'FAIL')
+            {
+                console.log(response.message);
+            }
+        }
+        catch (error)
+        {
+            console.log(error);
         }
     };
 
@@ -820,18 +825,21 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
  */
 async function createNewEvent(eventDetails) 
 {
-    try {
+    try 
+    {
         const response = await sendEventToDatabase(eventDetails);
+        console.log("createNewEvent response: " + JSON.stringify(response));
         if (response.result === 'OK' && response.message === "Event Created") 
         {
             eventDetails._id = response.eventID;
             eventDetails._startDate = new Date(eventDetails._startDate); 
-            eventDetails._endDate = new Date(eventDetails._endDate); 
+            eventDetails._endDate = new Date(eventDetails._endDate);
             initializeEvents();
             populateEventsSidebar();
             closeEventForm();
             return response.eventID;
-        } else 
+        } 
+        else 
         {
             displayErrorMessage(response.message);
             return null;
@@ -948,7 +956,6 @@ function closeEventForm()
 
 function closeEventPopupHeader()
 {
-    console.log("closed popupheader");
     updateDraggedEventsToServer();
     resetEventForm(); //resetEventForm() handles all of the heavy lifting, this just also closes the event popup
     document.getElementById('eventPopup').style.display = 'none';
@@ -1070,7 +1077,7 @@ function populateEventForm(eventID, calendarEvent, eventElement)
                 {
                     const user = response.user;
                     const userDiv = document.createElement('div');
-                    userDiv.textContent = `User: ${user._name}`;
+                    userDiv.textContent = `${user._name}`;
                     userDiv.className = 'addedUser';
                     userDiv.setAttribute('data-user-id', userID);
                     addedUsersDiv.appendChild(userDiv);
@@ -1099,8 +1106,8 @@ function populateEventForm(eventID, calendarEvent, eventElement)
         permissions: calendarEvent._permissions,
         viewable: calendarEvent._viewable,
         name: calendarEvent._name,
-        startTime: calendarEvent._startDate, //format the times to military so that it can be easily compared later on
-        endTime: calendarEvent._endDate,
+        startTime: formatToTime(calendarEvent._startDate), //format the times to military so that it can be easily compared later on
+        endTime: formatToTime(calendarEvent._endDate),
         description: calendarEvent._description
     };
     eventForm.setAttribute('data-original-event', JSON.stringify(originalEventData));
@@ -1112,6 +1119,7 @@ function populateEventForm(eventID, calendarEvent, eventElement)
         {
             if (response.result === "OK")
             {
+                document.getElementById('addedUsers').innerHTML = '';
                 sendRequest("/notificationDeleteEvent", 
                 {
                     teamCode : teamData._joinCode, 
@@ -1148,7 +1156,6 @@ function deleteEvent(eventID)
             {
                 if(eventID === eventsToUpdate[i].eventId)
                 {
-                    console.log('splice ')
                     eventsToUpdate.splice(i,1);
                     arrayLength--;
                     i--;
@@ -1424,20 +1431,11 @@ function convertTeamCalendarEvent(data)
  * @param {CalendarEvent} - the calendar event to be sent
  * @returns {string} - the message from the backend indicating whether the event insertion was successful or not
  */
-function sendEventToDatabase(event)
+async function sendEventToDatabase(event)
 {
     //send a request to create an event in the backend with the CalendarEvent
-    return sendRequest('/createTeamEvent', event)
-    .then(message => 
-    {
-        console.log(message.message);
-        return message;
-    })
-    .catch(error => 
-    {
-        console.error('Error:', error)
-        throw error;
-    });
+    const response = sendRequest('/createTeamEvent', event);
+    return response;
 }
 
 /**
@@ -1513,7 +1511,7 @@ function adjustFormOptionsRole(userRole)
         const options = Array.from(select.options);
         options.forEach(option => 
         {
-            if (roleLevels[option.value] > userLevel) 
+            if (roleLevels[option.value] > userLevel + 1) 
             {
                 option.remove();
             }
@@ -1567,7 +1565,6 @@ function addUserToEvent()
                     displayUserManagementError('User already added.');
                     return;
                 }
-                console.log('User added', response.message);
                 const userDiv = document.createElement('div');
                 userDiv.textContent = `${username}`;
                 userDiv.className = 'addedUser';
@@ -1603,11 +1600,11 @@ function removeUserFromEvent()
             const userID = response.userID;
             const addedUsersDiv = document.getElementById('addedUsers');
             const userDiv = addedUsersDiv.querySelector(`[data-user-id="${userID}"]`);
-            if (userDiv) 
+            if (userDiv)
             {
                 addedUsersDiv.removeChild(userDiv);
             }
-            else 
+            else if (!userDiv)
             {
                 displayUserManagementError('User not found in event.');
             }
@@ -1659,7 +1656,6 @@ function handleWebSocketMessage(data)
 {
     try
     {
-        console.log("handle web socket message");
         const message = JSON.parse(data);
         if (message.type === 'teamEventUpdate') 
         {

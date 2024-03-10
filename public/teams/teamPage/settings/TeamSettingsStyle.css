@@ -99,7 +99,10 @@ headertext
   color: white;
 }
 
-
+.team-user-list
+{
+  left: 5%;
+}
 
 .back-arrow 
 {

@@ -9,7 +9,7 @@ const roleLevels =
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://localhost:8080');
+    ws = new WebSocket('ws://192.168.50.42:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
@@ -899,6 +899,17 @@ document.getElementById('leaveTeam').onclick = async function()
     {
         console.error('Error: ', error);
         document.getElementById('leaveTeamError').textContent = "An error occurred while trying to leave the team.";
+    }
+}
+
+function renderUserList()
+{
+    for (const [username, role] of Object.entries(teamData._users))
+    {
+        let userElement = document.createElement("div");
+        userElement.classList.add("team-user-name");
+        userElement.innerHTML = `${username} - ${role}`;
+        /** WORK ON THIS MORE AHHHHHHH FUUUUUUUUUUUUUUUUUUCK */
     }
 }
 

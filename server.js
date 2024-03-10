@@ -928,7 +928,7 @@ router.post('/notificationEditEvent', async (req, res) =>
         const notifID = new ObjectId().toString();
         const sendDate = new Date();
         const message = `Event details have been edited (ID: ${eventID})`;
-        const notifExtras = { prevEvent : prevEvent, currentEvent: event};
+        const notifExtras = { prevEvent, currentEvent: event};
         await addNotificationToTeam(teamData._id, notifID, "EVENT_EDIT", message, user._name, receiverNames, "Viewer", sendDate, notifExtras);
         res.status(200).send({ result: 'OK', message: "Notification added successfully" });
     }
@@ -2081,7 +2081,7 @@ router.post('/updateUserRoles', async (req, res) =>
 {
     const { username, newUserRole, teamCode, senderID } = req.body;
 
-    if (!username || !newUserRole || !teamCode) 
+    if (!username || !newUserRole || !teamCode || !senderID) 
     {
         return res.status(400).send({ result: 'FAIL', message: "Missing required information" });
     }
@@ -2106,14 +2106,15 @@ router.post('/updateUserRoles', async (req, res) =>
             return res.status(404).send({ result: 'FAIL', message: "User not part of the team" });
         }
         const prevRole = team._users[username];
-        if (roleLevels[team._users[username]] >= roleLevels[team._users[senderUser]])
+        if (roleLevels[team._users[username]] >= roleLevels[team._users[senderUser._name]])
         {
-            if (roleLevels[team._users[username]] === 4 && roleLevels[team._users[senderUser]] === 4)
+            if (roleLevels[team._users[username]] === roleLevels["Owner"] && roleLevels[team._users[senderUser._name]] === roleLevels["Owner"])
             {
-                for ([username, role] of Object.entries(team._users))
+                for ([teamUserName, role] of Object.entries(team._users))
                 {
-                    if (role === 'Owner' && username === senderUser._name)
+                    if (role === 'Owner' && teamUserName === senderUser._name)
                     {
+                        console.log(senderUser._name + " is the original owner");
                         isOriginalOwner = true;
                         break;
                     }
@@ -2674,6 +2675,31 @@ router.post('/deleteTeamNotification', async (req, res) =>
     }
 });
 
+router.post('/getAllUserEvents', async (req, res) =>
+{
+    const { userID } = req.body;
+    if (!userID)
+    {
+        return res.status(400).send({ message: "Missing userID" });
+    }
+    try
+    {
+        const user = await findUserByID(userID);
+        const userEvents = await findEventsByUserID(userID);
+        const userTeamEvents = await findTeamEventsByUserID(userID);
+        const allUserEvents = userEvents.concat(userTeamEvents);
+        if (!user)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "User not found" });
+        }
+        res.status(200).send({result: 'OK', allUserEvents});
+    }
+    catch (error)
+    {
+        console.error("Error getting all events:", error);
+        res.status(500).send({ message: "Internal Server Error" });
+    }
+});
 
 // #region Websockets and server
 

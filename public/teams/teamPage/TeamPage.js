@@ -1,9 +1,3 @@
-/*
-Name: KWH and ZR
-Date: 2/8/2024
-Last Edit: 2/8/2024
-Description: Handles the rendering of the team page
-*/
 
 var joinCode = localStorage.getItem("joinCode");
 var teamData;
@@ -35,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function()
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.50.42:8080');
+    ws = new WebSocket('ws://192.168.73.235:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");
@@ -313,6 +307,7 @@ function renderNotifications()
                 menuIcon.innerHTML = '...'; // Placeholder for an actual icon or image
                 menuIcon.onclick = function() 
                 {
+                    if(1){}
                     showNotificationOptions(notificationElement, response.userRole, key);
                 };
                 notificationElement.appendChild(menuIcon);
@@ -340,9 +335,10 @@ function renderNotifications()
 function showNotificationOptions(notificationElement, userRole, notificationID) 
 {
     let existingOptions = notificationElement.querySelector('.notification-options');
-    if (existingOptions) 
+    if (existingOptions != null) 
     {
-        notificationElement.removeChild(existingOptions);
+        existingOptions.remove();
+        return;
     }
     let optionsContainer = document.createElement('div');
     optionsContainer.classList.add('notification-options');
@@ -373,6 +369,7 @@ function showNotificationOptions(notificationElement, userRole, notificationID)
         });
     };
     optionsContainer.appendChild(dismissButton);
+    optionsContainer.appendChild(document.createElement('br'));
     if (roleLevels[userRole] >= roleLevels['Admin']) 
     {
         let deleteButton = document.createElement('button');
@@ -403,6 +400,7 @@ function showNotificationOptions(notificationElement, userRole, notificationID)
         };
         optionsContainer.appendChild(deleteButton);
     }
+    
     notificationElement.appendChild(optionsContainer);
 }
 
@@ -458,31 +456,31 @@ function notificationDescriptionEditEvent(data)
     let changeCount = 0;
     let description = data.sender + " edited the event " + event._name + ", ";
     console.log("currenct start: " + event._startDate)
-    console.log("prev end: " + data.misc.prevEvent.startTime)
-    if(event._startDate === data.misc.prevEvent.startTime) console.log("They are the same!")
+    console.log("prev end: " + data.misc.prevEvent._startTime)
+    if(event._startDate === data.misc.prevEvent._startTime) console.log("They are the same!")
     //users
-    if (JSON.stringify(event._users) !== JSON.stringify(data.misc.prevEvent.users))
+    if (JSON.stringify(event._users) !== JSON.stringify(data.misc.prevEvent._users))
     {
         description = description + "users list was changed, ";
         changeCount++;
     }
 
     //permissions
-    if (event._permissions !== data.misc.prevEvent.permissions)
+    if (event._permissions !== data.misc.prevEvent._permissions)
     {
         description = description + "edit permissions changed to " + event._permissions + ", ";
         changeCount++;
     }
     
     //viewable
-    if (event._viewable !== data.misc.prevEvent.viewable)
+    if (event._viewable !== data.misc.prevEvent._viewable)
     {
         description = description + "now viewable by " + event._viewable + ", "; 
         changeCount++;
     }
 
     //name
-    if (event._name !== data.misc.prevEvent.name)
+    if (event._name !== data.misc.prevEvent._name)
     {
         console.log("name diff")
         description = description + "name changed to " + event._name + ", "; 
@@ -490,19 +488,19 @@ function notificationDescriptionEditEvent(data)
     }
 
     //start time / end time
-    if (event._startDate !== data.misc.prevEvent.startTime)
+    if (event._startDate !== data.misc.prevEvent._startTime)
     {
         description = description + "start time changed to " + formatDate(event._startDate, true) + ", ";
         changeCount++; 
     }
-    if (event._endDate !== data.misc.prevEvent.endTime)
+    if (event._endDate !== data.misc.prevEvent._endTime)
     {
         description = description + "end time changed to " + formatDate(event._endDate, true) + ", "; 
         changeCount++;
     }
 
     // description
-    if (event._description !== data.misc.prevEvent.description)
+    if (event._description !== data.misc.prevEvent._description)
     {
         description = description + "description changed, ";
         changeCount++;

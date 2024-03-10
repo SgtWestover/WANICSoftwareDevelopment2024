@@ -120,11 +120,32 @@ usersettingsbuttoncolumn
   z-index: 1;
 }
 
+eventandnotifsettingsbuttoncolumn
+{
+  position: absolute;
+  border: 10px solid;
+  border-color: #2b2e30;
+  width: 88%;
+  left: 11%;
+  height: 200px;
+  top: 290px;
+  display:table-cell;
+  vertical-align:middle;
+  text-align:center;  
+  z-index: 1;
+}
+
+catagorytext
+{
+  margin-right: 5px;
+  color: white;
+}
+
 headertext
 {
   color: white;
   text-align: center;
-  margin-left: 5%;
+  margin-left: 8.5%;
 }
 
 #signout,

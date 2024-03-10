@@ -30,17 +30,23 @@
   <input type="file" id="fileInput" style="display: none;" onchange="handleFileImport(this.files)" accept=".json">
   <!-- Sign out and delete account buttons on the upper right hand corner-->
   <usersettingsbuttoncolumn>
+    <catagorytext>User Settings</catagorytext>
     <h1>
-      <button id ="signout" onclick="signout()">Logout</button>
-      <button id ="delete-account" onclick="deleteAccount()">Delete Account</button>
-      <button id ="change-name">Change Name</button>
-      <button id ="change-password" onclick="changePasswordStart()">Change Password</button>
-      <button id ="change-notifications" onclick="changeNotificationsStart()">Change Notifications</button>
-      <button id ="export-events" onclick="exportEventsStart()">Export Events</button>
-      <button id ="import-events" onclick="importEventsStart()">Import Events</button>
-      <button id ="clear-events" onclick="clearEventsStart()">Clear Events</button>
+      <div id ="signout" onclick="signout()">Logout</div>
+      <div id ="delete-account" onclick="deleteAccount()">Delete Account</div>
+      <div id ="change-name">Change Name</div>
+      <div id ="change-password" onclick="changePasswordStart()">Change Password</div>
     </h1>
   </usersettingsbuttoncolumn>
+  <eventandnotifsettingsbuttoncolumn>
+    <catagorytext>Events Settings</catagorytext>
+    <h1>
+      <div id ="change-notifications" onclick="changeNotificationsStart()">Change Notifications</div>
+      <div id ="export-events" onclick="exportEventsStart()">Export Events</div>
+      <div id ="import-events" onclick="importEventsStart()">Import Events</div>
+      <div id ="clear-events" onclick="clearEventsStart()">Clear Events</div>
+    </h1>
+  </eventandnotifsettingsbuttoncolumn>
   <div id="passwordModal" class="modal">
     <div class="modal-content">
         <span class="close">&times;</span>
