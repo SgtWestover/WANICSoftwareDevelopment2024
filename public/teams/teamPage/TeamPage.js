@@ -12,24 +12,34 @@ const roleLevels =
 document.addEventListener('DOMContentLoaded', function() 
 {
     (async () => 
-    { 
-        await fetchTeamData(joinCode);
-        renderHeader();
-        renderDescription();
-        renderUserList();
-        renderUpcomingEvents();
-        renderNotifications()
-        userRole = await getCurrentUserRole();
-        if (userRole != null) localStorage.setItem("userRole", userRole);
+    {
+        try
+        {
+            await fetchTeamData(joinCode);
+            const navigateToDate = localStorage.getItem('navigateToDate');
+            if (navigateToDate)
+            {
+                window.location.href = `calendar/`;
+            }
+            renderHeader();
+            renderDescription();
+            renderUserList();
+            renderUpcomingEvents();
+            renderNotifications()
+            userRole = await getCurrentUserRole();
+            if (userRole != null) localStorage.setItem("userRole", userRole);
+        }
+        catch (error)
+        {
+            console.log(error);
+        }
     })();
 });
-
-// Make sure fetchTeamData, renderHeader, renderDescription, and renderUserList are defined properly
 
 function connectWebSocket() 
 {
     // Establish a WebSocket connection. Change when IP is different
-    ws = new WebSocket('ws://192.168.73.235:8080');
+    ws = new WebSocket('ws://192.168.50.42:8080');
     ws.onopen = function()
     {
         console.log("WebSocket connection established.");

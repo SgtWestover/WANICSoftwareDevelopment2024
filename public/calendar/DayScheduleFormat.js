@@ -12,6 +12,7 @@ Description: Handles the formatting for the day schedule
  * @returns {type}
  */
 
+
 //line for indicating the current time
 var currentTimeLine;
 //lines that mark each hour on the popup
@@ -26,6 +27,7 @@ var endTime = 24;
 //day container for the majority of popup stuff
 var dayContainer;
 
+
 //#region Popup initialization
 
 /**
@@ -36,6 +38,10 @@ document.addEventListener('DOMContentLoaded', function()
 {
     //upon loading, initialize the events
     initializeEvents();
+    generateSchedule();
+    initializeCurrentTimeLine();
+    startTime = 0;
+    endTime = 24;
     // Listen for the dateSelected event
     document.addEventListener('dateSelected', function(event) 
     {
@@ -50,6 +56,17 @@ document.addEventListener('DOMContentLoaded', function()
     {
         navigateDay(1);
     });
+    const navigateToDate = localStorage.getItem('navigateToDate');
+    if (navigateToDate)
+    {
+        const date = new Date(navigateToDate);
+        let today = new Date();
+        let isToday = (date.toISOString() === today.toISOString());
+        const popupInfo = { date, isToday };
+        updatePopupHeader(popupInfo);
+        window.location.href = '#popup1';
+        localStorage.removeItem('navigateToDate');
+    }
 });
 
 /**
@@ -71,16 +88,6 @@ function initializeEvents()
         });
     }
 }
-
-
-//On the window load, set global variables startTime and endTime and generate the schedule while initializing the current time tracker
-window.onload = function() 
-{
-    startTime = 0;
-    endTime = 24;
-    generateSchedule();
-    initializeCurrentTimeLine();
-};
 
 /**
  * Generates the line tracking the current time, only called if the current day is selected
@@ -333,17 +340,25 @@ function updatePopupHeader(eventDetail)
     document.getElementById('popupHeader').innerText = headerText;
     document.getElementById('popupHeader').setAttribute('data-date', newDate.toISOString().split('T')[0]);
     //check through events to see if any match the new date, and render them if they do
-    if (userEvents && userEvents.length > 0) 
+    const userID = localStorage.getItem('userID');
+    getUserEvents(userID)
+    .then(userEvents =>
     {
         userEvents.forEach(event => 
         {
             let eventDate = new Date(event._startDate);
+            console.log(eventDate);
             if (eventDate.toISOString().split('T')[0] === newDate.toISOString().split('T')[0]) //split so that only the date, month, and year are compared
             {
+                console.log('event rendered');
                 renderEvent(event); //if the eventDate's date is the same as the newDate's date, render the event
             }
-        });
-    }
+        }); 
+    })
+    .catch(error =>
+    {
+        console.log(error);
+    });
 }
 
 /**

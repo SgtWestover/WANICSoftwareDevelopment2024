@@ -54,11 +54,15 @@ document.addEventListener('DOMContentLoaded', function()
     //upon loading, initialize the events
     initializeEvents();
     connectWebSocket();
+    startTime = 0;
+    endTime = 24;
+    generateSchedule();
+    initializeCurrentTimeLine();
     // Listen for the dateSelected event
     document.addEventListener('dateSelected', function(event) 
     {
         highlightedDay = event.detail.date;
-        updatePopupHeader(event.detail);
+        updateTeamPopupHeader(event.detail);
     });
     // Event listeners for the previous and next day buttons
     document.getElementById('prev-day').addEventListener('click', function() 
@@ -69,6 +73,18 @@ document.addEventListener('DOMContentLoaded', function()
     {
         navigateDay(1);
     });
+    const navigateToDate = localStorage.getItem('navigateToDate');
+    if (navigateToDate)
+    {
+        console.log("navigating");
+        const date = new Date(navigateToDate);
+        let today = new Date();
+        let isToday = (date.toISOString() === today.toISOString());
+        const popupInfo = { date, isToday };
+        updateTeamPopupHeader(popupInfo);
+        window.location.href = '#popup1';
+        localStorage.removeItem('navigateToDate');
+    }
 });
 
 function connectWebSocket() 
@@ -113,15 +129,6 @@ function initializeEvents()
         });
     }
 }
-
-//On the window load, set global variables startTime and endTime and generate the schedule while initializing the current time tracker
-window.onload = function() 
-{
-    startTime = 0;
-    endTime = 24;
-    generateSchedule();
-    initializeCurrentTimeLine();
-};
 
 /**
  * Generates the line tracking the current time, only called if the current day is selected
@@ -348,7 +355,7 @@ async function updateDraggedEventsToServer()
 }
 
 
-function snapDragElement(element, event)
+function snapDragElement(element, event, dragLeft, dragRight)
 {
     //the left most position of the day container
     let Left = element.parentElement.getBoundingClientRect().left;
@@ -506,7 +513,7 @@ function navigateDay(delta)
         date: newDate,
         isToday: isToday
     };
-    updatePopupHeader(eventDetail);
+    updateTeamPopupHeader(eventDetail);
 }
 
 /**
@@ -530,7 +537,7 @@ function getDateFromAttribute(attr)
  * @param   {CalendarEvent} eventDetail - a date (the one to update to) and a bool of whether or not that date is today
  * @returns {void} - but makes the popup day into its current state
  */
-function updatePopupHeader(eventDetail)
+function updateTeamPopupHeader(eventDetail)
 {
     //immediately store the components of eventDetail
     let newDate = eventDetail.date;

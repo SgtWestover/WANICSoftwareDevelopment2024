@@ -22,7 +22,40 @@
     <a href="../settings/">Settings</a>
   </div>
   <div id="scheduleEventsContainer">  </div>
-
+  <div id="deleteEventModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeDeleteEventModal">&times;</span>
+        <h2>Delete Event</h2>
+        <p id="deleteEventText">Are you sure you want to delete the event "<span id="eventNameToDelete"></span>"?</p>
+        <div id="eventConfirmSection">
+            <button type="button" id="confirmDeleteEvent" class="button">Yes</button>
+            <button type="button" id="cancelDeleteEvent" class="button">No</button>
+        </div>
+        <p id="deleteEventError" style="color: red;"></p>
+    </div>
+  </div>
+  <div id="markEventImportanceModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeMarkEventImportanceModal">&times;</span>
+        <h2>Event Importance</h2>
+        <p id="markEventImportanceText">Are you sure you want to <span id="importanceAction"></span> the event "<span id="eventNameToMark"></span>" as important?</p>
+        <div id="eventImportanceConfirmSection">
+            <button type="button" id="confirmMarkEventImportance" class="button">Yes</button>
+            <button type="button" id="cancelMarkEventImportance" class="button">No</button>
+        </div>
+        <p id="markEventImportanceError" style="color: red;"></p>
+    </div>
+  </div>
+    <!-- Confirmation Modal HTML -->
+  <div id="confirmNavigationModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeConfirmNavigationModal">&times;</span>
+      <h2 id="navigationModalHeader">Go To Calendar</h2>
+      <p id="navigationConfirmText">Are you sure you want to navigate to the calendar?</p>
+      <button type="button" id="confirmNavigation" class="button">Yes</button>
+      <button type="button" id="cancelNavigation" class="button">No</button>
+    </div>
+  </div>
   <script src="/schedule/scheduleFormat.js"></script>
 </body>
 </html>

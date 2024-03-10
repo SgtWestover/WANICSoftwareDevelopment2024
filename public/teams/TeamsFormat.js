@@ -30,7 +30,31 @@ document.addEventListener('DOMContentLoaded', function()
 {
     connectWebSocket();
     renderAllTeams();
+    const navigateToDate = localStorage.getItem('navigateToDate');
+    const eventID = localStorage.getItem('eventID');
+    if (navigateToDate)
+    {
+        findTeam(eventID);
+    }
 });
+
+function findTeam(eventID)
+{
+    sendRequest('/findTeamWithEventID', { eventID })
+    .then(response =>
+    {
+        if (response.result === 'OK')
+        {
+            window.location.href = `teamPage/TeamPage.html`;
+            localStorage.setItem("joinCode", response.team._joinCode);  
+            localStorage.removeItem('eventID');          
+        }
+    })
+    .catch(error =>
+    {
+        console.log(error);
+    })
+}
 
 function connectWebSocket() 
 {

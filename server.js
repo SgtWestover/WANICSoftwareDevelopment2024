@@ -189,7 +189,8 @@ router.post('/signup', async (req, res) =>
     const settings = { _changeNameTimes: 0, _ignoreTeamInvites: false, _rejectTeamInvites: false, _muteAllNotifs: false, _mutedTeams: [] };
     if (await findUserIgnoreCase(req.body._name) == null) //if there is no user with that name, create a new user
     {
-        const newUser = new User(req.body._name, req.body._password, null, null, settings);
+        const userEventsSettings = { _important: [] }
+        const newUser = new User(req.body._name, req.body._password, userEventsSettings, null, settings);
         await addUser(newUser);
         console.log("signing up " + newUser._name);
         res.send({ result: 'OK', message: "Account created" });
@@ -572,6 +573,7 @@ router.post('/deleteEvent', async (req, res) =>
     }
 });
 
+
 /**
  * Retrieves details of a specific event from the database.
  * @param {string} eventID - The unique identifier of the event.
@@ -620,6 +622,33 @@ router.post('/findTeamEventByID', async (req, res) =>
         res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
     }
 });
+
+router.post('/findEventByID', async (req, res) => 
+{
+    const { eventID } = req.body;
+    if (!eventID) 
+    {
+        return res.status(400).send({ message: "Missing eventID in request" });
+    }
+    try 
+    {
+        const event = await findEventDetails(teamEventID);
+        if (event) 
+        {
+            res.status(200).send({ result: 'OK', event });
+        } 
+        else 
+        {
+            res.status(404).send({ result: 'FAIL', message: "Event not found" });
+        }
+    } 
+    catch (error) 
+    {
+        console.error("Error in finding team events: ", error);
+        res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
+    }
+});
+
 
 async function findTeamEventDetails(eventID) 
 {
@@ -673,6 +702,25 @@ router.get('/getUserEvents/:userID', async (req, res) =>
     catch (error) 
     {
         console.error(error);
+        res.status(500).send({ error: 'Internal Server Error' });
+    }
+});
+
+router.post('/getUserEvents', async (req, res) =>
+{
+    try
+    {
+        const { userID } = req.body;
+        if (!userID)
+        {
+            res.status(400).send({ result: 'FAIL', message: "Missing information" });
+        }
+        const userEvents = await findEventsByUserID(userID);    
+        res.status(200).send({ result: 'OK', userEvents});
+    }
+    catch (error)
+    {
+        console.log(error);
         res.status(500).send({ error: 'Internal Server Error' });
     }
 });
@@ -1843,6 +1891,38 @@ router.post('/findTeamWithNotifID', async (req, res) =>
     }
 });
 
+router.post('/findTeamWithEventID', async (req, res) => 
+{
+    const { eventID } = req.body;
+
+    if (!eventID) 
+    {
+        return res.status(400).send({ message: "Missing eventID in request" });
+    }
+
+    try 
+    {
+        const eventsCollection = dbclient.db("calendarApp").collection("teamEvents");
+        const teamsCollection = dbclient.db("calendarApp").collection("teams");
+        const event = await eventsCollection.findOne({ _id: new ObjectId(eventID) });
+        if (!event) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Event not found" });
+        }
+        const team = await teamsCollection.findOne({ _joinCode: event._team });
+        if (!team) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        res.status(200).send({ result: 'OK', team });
+    } 
+    catch (error) 
+    {
+        console.error("Error in finding team with eventID:", error);
+        res.status(500).send({ result: 'ERROR', message: "Internal Server Error" });
+    }
+});
+
 router.post('/updateTeamDescription', async (req, res) => 
 {
     const { newDesc, teamCode, senderID } = req.body;
@@ -2692,7 +2772,7 @@ router.post('/getAllUserEvents', async (req, res) =>
         {
             return res.status(404).send({ result: 'FAIL', message: "User not found" });
         }
-        res.status(200).send({result: 'OK', allUserEvents});
+        res.status(200).send({ result: 'OK', allUserEvents, importantEvents: user._events._important});
     }
     catch (error)
     {
@@ -2700,6 +2780,88 @@ router.post('/getAllUserEvents', async (req, res) =>
         res.status(500).send({ message: "Internal Server Error" });
     }
 });
+
+router.post('/deleteEventAll', async (req, res) => 
+{
+    const { eventID } = req.body;
+
+    if (!eventID) 
+    {
+        return res.status(400).send({ result: 'FAIL', message: "Missing eventID" });
+    }
+    try 
+    {
+        const eventObjectID = new ObjectId(eventID);
+        const regularEvent = await findEventDetails(eventObjectID);
+        if (regularEvent) 
+        {
+            await deleteEvent(eventObjectID);
+            return res.send({ result: 'OK', message: "Event deletion successful" });
+        } 
+        else 
+        {
+            const teamEvent = await findTeamEventDetails(eventObjectID);
+            if (teamEvent) 
+            {
+                const calendarDB = dbclient.db("calendarApp");
+                const eventsCollection = calendarDB.collection("teamEvents");
+                await eventsCollection.deleteOne({ _id: eventObjectID });
+                return res.send({ result: 'OK', message: "Event deletion successful" });
+            } 
+            else 
+            {
+                return res.status(404).send({ result: 'FAIL', message: "Event not found" });
+            }
+        }
+    } 
+    catch (error) 
+    {
+        console.error("Error deleting event:", error);
+        return res.status(500).send({ result: 'FAIL', message: "Internal Server Error" });
+    }
+});
+
+router.post('/toggleEventImportance', async (req, res) => 
+{
+    const { userID, eventID, isImportant } = req.body;
+    if (!userID || !eventID || typeof isImportant !== 'boolean') 
+    {
+        return res.status(400).send({ result: 'FAIL', message: "Missing information" });
+    }
+    try 
+    {
+        const user = await findUserByID(userID);
+        const calendarDB = dbclient.db("calendarApp");
+        const usersCollection = calendarDB.collection("users");
+        if (!user) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "User not found" });
+        }
+        if (isImportant) 
+        {
+            if (!user._events._important.includes(eventID)) 
+            {
+                user._events._important.push(eventID);
+            }
+        } 
+        else 
+        {
+            const index = user._events._important.indexOf(eventID);
+            if (index > -1) 
+            {
+                user._events._important.splice(index, 1);
+            }
+        }
+        await usersCollection.updateOne({ _id: new ObjectId(userID) }, { $set: { "_events._important": user._events._important } });
+        return res.send({ result: 'OK', message: `Event ${isImportant ? "marked as" : "unmarked from"} important successfully` });
+    } 
+    catch (error) 
+    {
+        console.error("Error toggling event importance:", error);
+        return res.status(500).send({ result: 'FAIL', message: "Internal Server Error" });
+    }
+});
+
 
 // #region Websockets and server
 
