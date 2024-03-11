@@ -22,11 +22,18 @@ const Roles =
     ADMIN: 'Admin',
     OWNER: 'Owner'
 };
+const roleLevels = 
+{
+    'Viewer': 1, 
+    'User': 2,
+    'Admin': 3,
+    'Owner': 4
+};
 var userID = localStorage.getItem('userID');
 let modalState = 'add';
 const teamHeight = 180;
 
-document.addEventListener('DOMContentLoaded', function() 
+document.addEventListener('DOMContentLoaded', async function() 
 {
     connectWebSocket();
     renderAllTeams();
@@ -36,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function()
     {
         findTeam(eventID);
     }
+    updateNotificationCount();
 });
 
 function findTeam(eventID)
@@ -79,6 +87,39 @@ function connectWebSocket()
         setTimeout(connectWebSocket, 3000); // Reconnect after 3 seconds
     };
 }
+
+async function updateNotificationCount() 
+{
+    try 
+    {
+        const response = await sendRequest('/getUserNotifications', { userID: userID });
+        if (response.result === 'OK') 
+        {
+            if (!response.userSettings._muteAllNotifs) 
+            {
+                const filteredNotifications = response.notifications.filter(notification => 
+                    !response.userSettings._mutedTeams.includes(notification.teamCode)
+                );
+
+                const notificationCountElement = document.getElementById('notificationCount');
+                if (filteredNotifications.length > 0) 
+                {
+                    notificationCountElement.textContent = filteredNotifications.length;
+                    notificationCountElement.style.display = 'flex';
+                } 
+                else 
+                {
+                    notificationCountElement.style.display = 'none';
+                }
+            }
+        }
+    } 
+    catch (error) 
+    {
+        console.error('Error fetching notifications:', error);
+    }
+}
+
 
 // #region Teams create and join functions
 
@@ -435,6 +476,7 @@ document.getElementById('joinTeamButton').onclick = async function()
             {
                 alert('Failed to join the team: ', response.message);
                 updateJoinTeamMessage('Failed to join the team.', 'Red');
+                console.log(response.message);
             }
         } 
         catch (error) 
@@ -511,7 +553,7 @@ function showTeamsNotifs()
                     return !response.userSettings._mutedTeams.includes(notification.teamCode);
                 });
                 renderNotifications(filteredNotifications);
-            }rnotifica
+            }
         }
     })
     .catch(error => console.error('Error fetching notifications:', error));
@@ -559,6 +601,12 @@ function deleteNotification(notificationId, notificationDiv)
         if (response.result === 'OK') 
         {
             notificationDiv.remove();
+            const notificationCountElement = document.getElementById('notificationCount');
+            notificationCountElement.textContent -= 1;
+            if (notificationCountElement.textContent <= 0) 
+            {
+                notificationCountElement.style.display = 'none';
+            }
         } 
         else 
         {
@@ -731,6 +779,12 @@ function handleTeamInvite(notificationId, action, notificationDiv)
             alert(`Team invite ${action}ed.`);
             closeNotificationModal();
             notificationDiv.remove(); // Remove the notification div from the dropdown
+            const notificationCountElement = document.getElementById('notificationCount');
+            notificationCountElement.textContent -= 1;
+            if (notificationCountElement.textContent <= 0) 
+            {
+                notificationCountElement.style.display = 'none';
+            }
         } 
         else 
         {
@@ -762,81 +816,115 @@ function teamsSort()
 //creates the html elements to display the team panel
 function renderTeamsPanel(team, teamCount)
 {
-    const teamPadding = 30;
-    const teamListVertOffset = 82 /*Height of header*/ + teamPadding;
-    const teamVerticalSpacing = teamHeight + teamPadding;
-    let container = document.createElement("div");
-    container.classList.add("team-container");
-    container.style.top = `${teamVerticalSpacing * (teamCount - 1) + teamListVertOffset}px`;
-    let teamName = document.createElement("div"); 
-    teamName.classList.add("team-name");
-    teamName.innerHTML = team._name;
-    let description = document.createElement("div");
-    description.classList.add("team-description");
-    description.innerHTML = team._description;
-    description.onclick = function(event)
-    {
-        showTeamDescription(event);
-    };
-    let userList = document.createElement("div");
-    userList.classList.add("team-userList-container");
-    let teamViewButton = document.createElement("div");
-    teamViewButton.classList.add("button");
-    teamViewButton.classList.add("team-viewButton");
-    teamViewButton.onclick = function(event)
-    {
-        window.location.href = `teamPage/TeamPage.html`;
-        localStorage.setItem("joinCode", team._joinCode);
-    };
-    let teamViewButtonIcon = document.createElement("i");
-    //teamViewButtonIcon.classList.add("button");
-    teamViewButtonIcon.classList.add("fa", "fa-arrow-right");
-    teamViewButtonIcon.classList.add("team-viewButton-icon");
-    sendRequest('/getUser', { userID: userID })
+    sendRequest('/getTeamNotifications', { teamCode: team._joinCode, userID })
     .then(response =>
     {
         if (response.result === 'OK')
         {
-            let user = response.user;
-            let thisUserElement = document.createElement("div");
-            thisUserElement.classList.add("modal-team-user");
-            thisUserElement.innerHTML = `${user._name} - ${team._users[user._name]}`; //render the viewing user first
-            thisUserElement.onclick = function(event)
+            const teamPadding = 30;
+            const teamListVertOffset = 82 /*Height of header*/ + teamPadding;
+            const teamVerticalSpacing = teamHeight + teamPadding;
+            let container = document.createElement("div");
+            container.classList.add("team-container");
+            container.style.top = `${teamVerticalSpacing * (teamCount - 1) + teamListVertOffset}px`;
+            let teamName = document.createElement("div"); 
+            teamName.classList.add("team-name");
+            teamName.innerHTML = team._name;
+            let description = document.createElement("div");
+            description.classList.add("team-description");
+            description.innerHTML = team._description;
+            description.onclick = function(event)
             {
-                showUserList(event);
+                showTeamDescription(event);
             };
-            userList.appendChild(thisUserElement);
-            for (const [username, role] of Object.entries(team._users)) 
+            let userList = document.createElement("div");
+            userList.classList.add("team-userList-container");
+            let teamViewButton = document.createElement("div");
+            teamViewButton.classList.add("button");
+            teamViewButton.classList.add("team-viewButton");
+            teamViewButton.onclick = function(event)
             {
-                if (username === user._name) continue; // Skip the current user
-                let userElement = document.createElement("div");
-                userElement.classList.add("team-user");
-                userElement.innerHTML = `${username} - ${role}`;
-                userElement.onclick = function(event)
+                window.location.href = `teamPage/TeamPage.html`;
+                localStorage.setItem("joinCode", team._joinCode);
+            };
+            let teamViewButtonIcon = document.createElement("i");
+            //teamViewButtonIcon.classList.add("button");
+            teamViewButtonIcon.classList.add("fa", "fa-arrow-right");
+            teamViewButtonIcon.classList.add("team-viewButton-icon");
+            const notifications = response.notifications;
+            console.log("notifications: " + JSON.stringify(response.notifications));
+            const userRole = response.userRole;
+            let notificationCount = 0;
+            for (const notificationID in notifications) 
+            {
+                const notification = notifications[notificationID];
+                const canView = roleLevels[userRole] >= roleLevels[notification.viewable];
+                console.log("canView: " + canView);
+                const notDismissed = !(notification.misc && notification.misc._usersDismissed && notification.misc._usersDismissed.includes(userID));
+                if (canView && notDismissed) 
                 {
-                    showUserList(event);
-                };
-                userList.appendChild(userElement); // Append the user element to the user list container
-            }        
+                    notificationCount++;
+                }
+            }
+            console.log(notificationCount);
+            sendRequest('/getUser', { userID: userID })
+            .then(response =>
+            {
+                if (response.result === 'OK')
+                {
+                    let user = response.user;
+                    let thisUserElement = document.createElement("div");
+                    thisUserElement.classList.add("modal-team-user");
+                    thisUserElement.innerHTML = `${user._name} - ${team._users[user._name]}`; //render the viewing user first
+                    thisUserElement.onclick = function(event)
+                    {
+                        showUserList(event);
+                    };
+                    userList.appendChild(thisUserElement);
+                    for (const [username, role] of Object.entries(team._users)) 
+                    {
+                        if (username === user._name) continue; // Skip the current user
+                        let userElement = document.createElement("div");
+                        userElement.classList.add("team-user");
+                        userElement.innerHTML = `${username} - ${role}`;
+                        userElement.onclick = function(event)
+                        {
+                            showUserList(event);
+                        };
+                        userList.appendChild(userElement); // Append the user element to the user list container
+                    }
+                    let teamCode = document.createElement("div");
+                    teamCode.classList.add("team-code");
+                    teamCode.innerHTML = team._joinCode;
+                    let teamNotification = document.createElement("div");
+                    teamNotification.classList.add("team-notification");
+                    // Append all created elements to the container. That's a lotta appends
+                    teamViewButton.appendChild(teamViewButtonIcon);
+                    container.appendChild(teamViewButton);
+                    container.appendChild(description);
+                    container.appendChild(teamName);
+                    container.appendChild(userList);
+                    container.appendChild(teamCode);
+                    if (notificationCount > 0) 
+                    {
+                        const notificationCountElement = document.createElement('div');
+                        notificationCountElement.classList.add('team-notification-count');
+                        notificationCountElement.textContent = notificationCount;
+                        container.appendChild(notificationCountElement);
+                    }
+                    document.body.append(container);         
+                }
+            })
+            .catch(error =>
+            {
+                console.error('Error fetching user:', error);
+            });
         }
     })
     .catch(error =>
     {
-        console.error('Error fetching user:', error);
+        console.log(error);
     });
-    let teamCode = document.createElement("div");
-    teamCode.classList.add("team-code");
-    teamCode.innerHTML = team._joinCode;
-    let teamNotification = document.createElement("div");
-    teamNotification.classList.add("team-notification");
-    // Append all created elements to the container. That's a lotta appends
-    teamViewButton.appendChild(teamViewButtonIcon);
-    container.appendChild(teamViewButton);
-    container.appendChild(description);
-    container.appendChild(teamName);
-    container.appendChild(userList);
-    container.appendChild(teamCode);
-    document.body.append(container);
 }
 
 async function GetTeamList() 

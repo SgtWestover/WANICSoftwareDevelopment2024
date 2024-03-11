@@ -53,7 +53,7 @@ teamshomemanagementcolumn
 }
 
 /*aspect of where buttons for general team management reside*/
-personalanagementcolumn
+personalmanagementcolumn
 {
   position: absolute;
   border: 10px solid;

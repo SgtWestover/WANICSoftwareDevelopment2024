@@ -1,5 +1,6 @@
 
 var joinCode = localStorage.getItem("joinCode");
+var userID = localStorage.getItem("userID");
 var teamData;
 const roleLevels = 
 {
@@ -222,9 +223,20 @@ function renderNotifications()
     {
         if (response.result === "OK")
         {
+            let container = document.getElementById('teamNotifications');
+            container.innerHTML = '';
+            const dismissAllButton = document.createElement("button");
+            dismissAllButton.textContent = "Dismiss All";
+            dismissAllButton.classList.add("dismiss-all-button");
+            dismissAllButton.onclick = dismissAllNotifications;
+            container.appendChild(dismissAllButton);
             for(const [key, data] of Object.entries(response.notifications))
             {
                 if (data.misc && data.misc._usersDismissed && data.misc._usersDismissed.includes(localStorage.getItem('userID'))) 
+                {
+                    continue;
+                }
+                else if (roleLevels[response.userRole] < roleLevels[data.viewable])
                 {
                     continue;
                 }
@@ -273,10 +285,10 @@ function renderNotifications()
                         description = notificationDescriptionDescUpdate(data);
                         break;
                     case "TEAM_NAME_UPDATE":
-                        name = "Tame Name Changed";
+                        name = "Team Name Changed";
                         description = data.message;
                         break;
-                    case "TEAM_KiCK":
+                    case "TEAM_KICK":
                         name = "User Kicked";
                         description = data.message;
                         break;
@@ -304,12 +316,15 @@ function renderNotifications()
                         name = "User Blacklisted";
                         description = data.message;
                         break;
+                    case "TEAM_AUTOJOIN_UPDATE":
+                        name = "AutoJoin Updated";
+                        description = data.message;
+                        break;
                     default:
                         console.error("INVALID NOTIFICATION TYPE: " + data.type);
                         break;
                 }
                 //create html
-                let container = document.getElementById('teamNotifications');
                 let notificationElement = document.createElement("div");
                 notificationElement.classList.add("team-notifications-content-element");
                 let menuIcon = document.createElement('div');
@@ -333,6 +348,8 @@ function renderNotifications()
                 timeElement.classList.add('team-notifications-content-element-time');
                 timeElement.innerText = formatDate(data.sendDate, true);
                 notificationElement.appendChild(timeElement);
+                notificationElement.classList.add("team-notifications-content-element");
+                notificationElement.setAttribute('data-notification-id', key); // Embed notification ID
                 container.insertBefore(notificationElement, container.firstChild);
             }
         }
@@ -362,8 +379,8 @@ function showNotificationOptions(notificationElement, userRole, notificationID)
             userID: localStorage.getItem('userID'),
             notificationID: notificationID
         })
-        .then(response => 
-            {
+        .then(response =>     
+        {
             if (response.result === 'OK') 
             {
                 notificationElement.remove();
@@ -384,7 +401,8 @@ function showNotificationOptions(notificationElement, userRole, notificationID)
     {
         let deleteButton = document.createElement('button');
         deleteButton.innerText = 'Delete';
-        deleteButton.onclick = function() {
+        deleteButton.onclick = function() 
+        {
             sendRequest('/deleteTeamNotification', 
             {
                 teamCode: joinCode,
@@ -399,7 +417,6 @@ function showNotificationOptions(notificationElement, userRole, notificationID)
                 } 
                 else 
                 {
-                    // Handle failure to delete here, e.g., show an error message
                     console.error('Failed to delete notification:', response.message);
                 }
             })
@@ -412,6 +429,30 @@ function showNotificationOptions(notificationElement, userRole, notificationID)
     }
     
     notificationElement.appendChild(optionsContainer);
+}
+
+function dismissAllNotifications() 
+{
+    const notificationElements = document.querySelectorAll('.team-notifications-content-element');
+    const notificationIDs = Array.from(notificationElements).map(element => element.getAttribute('data-notification-id'));
+    sendRequest('/dismissAllNotifications', { userID: localStorage.getItem('userID'), teamCode: joinCode, notificationIDs: notificationIDs })
+    .then(response => 
+    {
+        if (response.result === 'OK') 
+        {
+            alert("Dismissed all notifications!");
+            renderNotifications();
+        } 
+        else 
+        {
+            alert(response.message);
+        }
+    })
+    .catch(error => 
+    {
+        alert(error.message);
+        console.error('Error dismissing all notifications:', error);
+    });
 }
 
 function notificationMessageCheckRole(message)

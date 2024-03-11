@@ -248,7 +248,7 @@ document.getElementById('updateAutoJoin').onclick = async function()
     console.log(newAutoJoinValue);
     try
     {
-        const response = await sendRequest('/updateAutoJoin', { newAutoJoin : newAutoJoinValue, teamCode : teamData._joinCode })
+        const response = await sendRequest('/updateAutoJoin', { newAutoJoin : newAutoJoinValue, teamCode : teamData._joinCode, senderID: userID })
         if (response.result === 'OK')
         {
             alert("AutoJoin successfully updated");

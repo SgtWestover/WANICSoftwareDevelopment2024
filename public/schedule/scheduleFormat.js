@@ -223,7 +223,7 @@ function deleteEvent(eventElement, eventID)
     {
         try
         {
-            const response = await sendRequest('/deleteEventAll', { eventID })
+            const response = await sendRequest('/deleteEventAll', { userID, eventID })
             {
                 if (response.result === 'OK')
                 {

@@ -679,7 +679,7 @@ function populateEventForm(eventID, calendarEvent, eventElement)
  */
 function deleteEvent(eventID) 
 {
-    let eventBody = { eventID: eventID };
+    let eventBody = { userID: localStorage.getItem('userID'), eventID };
     //removes the current globally selected event element if it exists, and sends a request to delete the event given the ID
     if (currentEventElement) currentEventElement.remove();
     return sendRequest('/deleteEvent', eventBody)

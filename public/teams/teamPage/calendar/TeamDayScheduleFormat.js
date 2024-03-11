@@ -334,7 +334,8 @@ async function updateDraggedEventsToServer()
                     console.log(JSON.stringify(eventDetails));
                     const newEventID = await createNewEvent(eventDetails);
                     await deleteEvent(event.eventId);
-                    await sendRequest('/notificationEditEvent', {
+                    await sendRequest('/notificationEditEvent', 
+                    {
                         teamCode: teamData._joinCode, 
                         userID: userIDString, 
                         receivers: oldEvent._users,
@@ -573,7 +574,7 @@ function updateTeamPopupHeader(eventDetail)
     document.getElementById('popupHeader').innerText = headerText;
     document.getElementById('popupHeader').setAttribute('data-date', newDate.toISOString().split('T')[0]);
     getTeamEvents(teamData._joinCode)
-    .then(teamEvents=>
+    .then(teamEvents =>
     {
         let currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
         let currentPopupDate = getDateFromAttribute(currentPopupDateAttr);
@@ -581,10 +582,6 @@ function updateTeamPopupHeader(eventDetail)
         teamEvents.forEach(event => 
         {
             let eventDate = new Date(event._startDate);
-            console.log(eventDate);
-            console.log("update popupHeader startdate: " + eventDate.toISOString().split('T')[0]);
-            console.log("update popupHeader startdate: " + eventDate.toISOString());
-            console.log("new date: " + newDate.toISOString().split('T')[0]);
             if (toLocalISOString(eventDate) === toLocalISOString(newDate)) 
             {
                 console.log("rendering event now");
@@ -696,12 +693,16 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     // Convert time to Date objects
     var currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
     var currentDate = new Date(currentPopupDateAttr);
-    var startDate = new Date(currentDate);
-    var endDate = new Date(currentDate);    
+    currentDate = new Date(currentDate.getTime() + currentDate.getTimezoneOffset() * 60000 + 181000);
+    console.log("currentDate: " + currentDate);
+    var startDate = new Date(currentDate.getTime() + currentDate.getTimezoneOffset() * 60000);
+    var endDate = new Date(currentDate.getTime() + currentDate.getTimezoneOffset() * 60000);    
+    console.log("start date and end date 0: " + startDate + "   " + endDate);
     // Set the start and end time correctly with the given form values after manipulating them to be valid
     var [startHours, startMinutes] = startTime.split(':').map(Number);
     var [endHours, endMinutes] = endTime.split(':').map(Number);
     var timeOffset = startDate.getTimezoneOffset() * 60000;
+    console.log(timeOffset / 60000);
     startDate.setUTCHours(startHours, startMinutes); // For some reason, setUTCHours is the one that actually sets the hours locally...
     endDate.setUTCHours(endHours, endMinutes);
     startDate = new Date(startDate.getTime() + timeOffset); // Adding a day offset is required because we set it locally 3 times, so we have to add the time back
@@ -775,13 +776,6 @@ document.getElementById('eventForm').addEventListener('submit', function(e)
     // Edit mode: first delete the existing event, then create/update
     if (isEditing && eventID) 
     {
-        if (eventUsers.length === 0)
-        {
-            var errorMessageDiv = document.getElementById('errorMessage');
-            errorMessageDiv.textContent = "Need at least one person in event";
-            errorMessageDiv.style.display = 'block';
-            return;
-        }
         const originalEventData = JSON.parse(eventForm.getAttribute('data-original-event'));
         // Compare current form data with original event data
         const currentEventData = 
@@ -835,7 +829,6 @@ async function createNewEvent(eventDetails)
     try 
     {
         const response = await sendEventToDatabase(eventDetails);
-        console.log("createNewEvent response: " + JSON.stringify(response));
         if (response.result === 'OK' && response.message === "Event Created") 
         {
             eventDetails._id = response.eventID;
@@ -888,7 +881,7 @@ function renderEvent(calendarEvent)
                 eventElement.setAttribute('data-event-date', eventDateID);
                 eventElement.setAttribute('data-event-id', calendarEvent._id);
                 //when the event is clicked, it should populate the event form to go into editing mode
-                eventElement.addEventListener('click', function() //TODO: CHECK THAT THEY CAN EDIT!
+                eventElement.addEventListener('click', function() 
                 {
                     if ((roleLevels[teamData._users[username]] >= roleLevels[calendarEvent._permissions] || calendarEvent._users.includes(response.user._id)) && roleLevels[teamData._users[username]] > 1)
                     {
@@ -1002,6 +995,37 @@ function highlightSelectedDay()
         });
     }
 }
+
+function leaveEvent() 
+{
+    const eventForm = document.getElementById('eventForm');
+    const eventID = eventForm.getAttribute('data-event-id');
+    const userID = localStorage.getItem('userID');
+    if (!eventID) 
+    {
+        console.log('Event ID not found.');
+        return;
+    }
+    sendRequest('/leaveEvent', { eventID, userID })
+        .then(response => 
+        {
+            if (response.result === 'OK') 
+            {
+                alert('Successfully left the event.');
+                closeEventPopupHeader();
+            } 
+            else 
+            {
+                alert('Failed to leave the event: ' + response.message);
+            }
+        })
+        .catch(error => 
+        {
+            console.error('Error leaving the event:', error);
+            alert('Error leaving the event.');
+        });
+}
+
 
 /**
  * Resets the event popup, clearing all the fields and resetting the form state, good for both when the form is closed and when it is submitted or edited
@@ -1150,7 +1174,7 @@ function populateEventForm(eventID, calendarEvent, eventElement)
  */
 function deleteEvent(eventID) 
 {
-    let eventBody = { eventID: eventID };
+    let eventBody = { userID: localStorage.getItem('userID'), eventID: eventID };
     if (currentEventElement) currentEventElement.remove();
     return sendRequest('/deleteTeamEvent', eventBody)
     .then(response => 
@@ -1555,6 +1579,10 @@ function addUserToEvent()
         if (response.result === 'OK') 
         {
             let userID = response.userID;
+            if (userID === localStorage.getItem('userID'))
+            {
+                displayUserManagementError('Cannot add yourself.');
+            }
             if (teamData._users[username])
             {
                 const addedUsersDiv = document.getElementById('addedUsers');
@@ -1604,6 +1632,10 @@ function removeUserFromEvent()
     {
         if (response.result === 'OK') 
         {
+            if (userID === localStorage.getItem('userID'))
+            {
+                displayUserManagementError('Cannot remove yourself.');
+            }
             const userID = response.userID;
             const addedUsersDiv = document.getElementById('addedUsers');
             const userDiv = addedUsersDiv.querySelector(`[data-user-id="${userID}"]`);
@@ -1626,6 +1658,59 @@ function removeUserFromEvent()
         console.error('Error removing user from event:', error);
         displayUserManagementError('Error removing user from event.');
     });
+}
+
+async function addAllUsers() 
+{
+    const addedUsersDiv = document.getElementById('addedUsers');
+    let usersLabel = addedUsersDiv.querySelector('.usersLabel');
+    if (!usersLabel) 
+    {
+        usersLabel = document.createElement('div');
+        usersLabel.textContent = 'USERS:';
+        usersLabel.className = 'usersLabel';
+        addedUsersDiv.appendChild(usersLabel);
+    }
+    const teamResponse = await sendRequest('/getTeamWithJoinCode', { joinCode: teamData._joinCode });
+    if (teamResponse.result === 'OK') 
+    {
+        const teamUsers = teamResponse.team._users;
+        for (const username of Object.keys(teamUsers)) 
+        {
+            const userResponse = await sendRequest('/findUser', { username: username });
+            if (userResponse.result === 'OK') 
+            {
+                const teamUserID = userResponse.userID;
+                if (teamUserID === localStorage.getItem('userID')) continue;
+                let existingUserDiv = addedUsersDiv.querySelector(`[data-user-id="${teamUserID}"]`);
+                if (!existingUserDiv) 
+                {
+                    const userDiv = document.createElement('div');
+                    userDiv.textContent = username;
+                    userDiv.className = 'addedUser';
+                    userDiv.setAttribute('data-user-id', teamUserID);
+                    addedUsersDiv.appendChild(userDiv);
+                }
+            } 
+            else 
+            {
+                console.error(`Error adding user ${username} to event:`, userResponse.message);
+            }
+        }
+    } else {
+        // Handle errors or team not found
+        console.error('Failed to fetch team data:', teamResponse.message);
+    }
+}
+
+function clearAllUsers() 
+{
+    const addedUsersDiv = document.getElementById('addedUsers');
+    while (addedUsersDiv.firstChild) 
+    {
+        addedUsersDiv.removeChild(addedUsersDiv.firstChild);
+    }
+    alert('All users have been cleared.');
 }
 
 function displayUserManagementError(message)
@@ -1672,11 +1757,12 @@ function handleWebSocketMessage(data)
                 let currentPopupDateAttr = document.getElementById('popupHeader').getAttribute('data-date');
                 let currentPopupDate = getDateFromAttribute(currentPopupDateAttr);
                 let newDate = new Date(currentPopupDate);
+                console.log(newDate);
                 unrenderEvent();
                 teamEvents.forEach(event => 
                 {
                     let eventDate = new Date(event._startDate);
-                    if (eventDate.toISOString().split('T')[0] === newDate.toISOString().split('T')[0]) 
+                    if (toLocalISOString(eventDate) === toLocalISOString(newDate)) 
                     {
                         renderEvent(event);
                     }

@@ -22,7 +22,7 @@
   <div class="sidebar">
     <a href="../TeamPage.html">Home</a>
     <a class="active" href="#home">Calendar</a>
-    <!-- <a href="../schedule/">Schedule</a> -->
+    <a href="../announcements/">Announcements</a>
     <a href="../settings/">Settings</a>
   </div>
       <!-- Previous and next month buttons that navigate the months (big arrows) -->
@@ -63,6 +63,8 @@
       <div id="currentUserRoleDisplay"></div>
       <div id="addedUsers"></div>
       <button type="button" onclick="openUserManagementModal()">Add/Remove Users</button><br> <!-- Button that opens the user management modal-->
+      <button type="button" onclick="addAllUsers()">Add All Users</button><br>
+      <button type="button" onclick="clearAllUsers()">Clear Users</button><br>
       <label for="eventName">Event Name:</label><br>
       <!-- All the stuff that has the required keyword attached means they cannot be submitted missing -->
       <input type="text" id="eventName" name="eventName" required><br>
@@ -90,6 +92,7 @@
         <option value="Owner">Owner</option>
       </select><br>
       <input type="submit" id="submitEventButton" value="Create Event">
+      <button type="button" onclick="leaveEvent()">Leave Event</button><br>
       <div id="errorMessage" style="color: red; display: none;"></div> <!-- Error message element -->
       <button type="button" onclick="closeEventForm()">Cancel</button> <!-- Cancel button that closes and resets the event form-->
     </form>
