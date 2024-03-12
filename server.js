@@ -190,7 +190,8 @@ router.post('/signup', async (req, res) =>
     if (await findUserIgnoreCase(req.body._name) == null) //if there is no user with that name, create a new user
     {
         const userEventsSettings = { _important: [] }
-        const newUser = new User(req.body._name, req.body._password, userEventsSettings, null, settings);
+        const userTeamsSettings = { _dismissedAnnouncements: [] }
+        const newUser = new User(req.body._name, req.body._password, userEventsSettings, userTeamsSettings, settings);
         await addUser(newUser);
         console.log("signing up " + newUser._name);
         res.send({ result: 'OK', message: "Account created" });
@@ -926,6 +927,7 @@ router.post('/createTeam', async (req, res) =>
         const result = await addTeam(newTeam);
         if (result.insertedId) 
         {
+            await addNotificationToTeam(result.insertedId, result.insertedId, "TEAM_CREATE", `${req.body.creatorName} created the team`, req.body.creatorName, null, "Viewer", currentDate, null)
             for (const [username, { notifID, role }] of Object.entries(notificationIDs)) 
             {
                 const teamMessage = `${req.body.creatorName} invited ${username} to join the team as a(n) ${role}`;
@@ -2956,6 +2958,402 @@ router.post('/dismissAllNotifications', async (req, res) =>
     }
 });
 
+router.post('/createAnnouncement', async (req, res) => 
+{
+    const { senderID, name, description, pings, teamCode } = req.body;
+    if (!senderID || !name || !pings || !teamCode) 
+    {
+        return res.status(400).send({ result: 'FAIL', message: "Missing required fields" });
+    }
+    try 
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        const team = await getTeamData(teamCode);
+        if (!team) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        const senderUser = await findUserByID(senderID);
+        if (!senderUser) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Sender not found" });
+        }
+        const _id = new ObjectId();
+        const lowestPingRole = pings.reduce((lowest, role) => 
+        {
+            return roleLevels[role] < roleLevels[lowest] ? role : lowest;
+        }, pings[0]);
+        const announcement = 
+        {
+            _id,
+            _name: name,
+            _description: description,
+            _pings: pings,
+            _viewable: lowestPingRole,
+            _senderName: senderUser._name,
+            _pinned: false,
+            _date: new Date()
+        };
+        const updateResult = await teamsCollection.updateOne
+        (
+            { _joinCode: teamCode },
+            { $push: { _announcements: announcement } }
+        );
+
+        if (updateResult.modifiedCount === 1) 
+        {
+            for (const [username, role] of Object.entries(team._users)) 
+            {
+                if (pings.includes(role)) 
+                {
+                    await addNotificationToUser(username, announcement._id.toString(), "ANNOUNCEMENT_CREATE", `${senderUser._name} created an announcement: ${name} in team ${team._name}`, senderUser._name, new Date(), null);
+                }
+            }
+            const lowestPingRole = pings.reduce((lowest, role) => 
+            {
+                return roleLevels[role] < roleLevels[lowest] ? role : lowest;
+            }, pings[0]);
+            await addNotificationToTeam(team._id, _id, "ANNOUNCEMENT_CREATE", `Announcement "${announcement._name}" created by ${senderUser._name}`, senderUser._name, null, lowestPingRole, new Date(), null);
+            return res.send({ result: 'OK', message: 'Announcement created successfully', announcementID: _id });
+        } 
+        else 
+        {
+            return res.status(500).send({ result: 'FAIL', message: 'Failed to create announcement'});
+        }
+    } 
+    catch (error) 
+    {
+        console.error("Error creating announcement:", error);
+        res.status(500).send({ result: 'FAIL', message: "Internal Server Error" });
+    }
+});
+
+router.post('/getTeamAnnouncements', async (req, res) => 
+{
+    const { teamCode, userID } = req.body;
+    if (!teamCode || !userID)
+    {
+        return res.status(400).send({ result: 'FAIL', message: "Missing required fields" });
+    }
+    try
+    {
+        const team = await getTeamData(teamCode);
+        if (!team)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Missing required fields" });
+        }
+        const user = await findUserByID(userID);
+        if (!user)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Missing user" });
+        }
+        const filteredAnnouncements = team._announcements.filter(announcement => 
+        {
+            return !user._teams._dismissedAnnouncements.includes(announcement._id.toString());
+        });
+        return res.send({ result: 'OK', announcements: filteredAnnouncements });
+    }
+    catch (error)
+    {
+        console.log(error);
+    }
+});
+
+router.post('/deleteAnnouncement', async (req, res) => 
+{
+    const { teamCode, announcementID, userID } = req.body;
+    if (!teamCode || !announcementID) 
+    {
+        return res.status(400).send({ result: 'FAIL', message: "Missing required fields" });
+    }
+    try 
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        const user = await findUserByID(userID);
+        if (!user)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "User not found" });
+        }
+        const teamData = await getTeamData(teamCode);
+        if (!teamData) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        const announcement = teamData._announcements.find(ann => ann._id.toString() === announcementID);
+        teamData._announcements = teamData._announcements.filter(announcement => announcement._id.toString() !== announcementID);
+        const updateResult = await teamsCollection.updateOne({ _joinCode: teamCode }, { $set: { _announcements: teamData._announcements } });
+        if (updateResult.modifiedCount === 1) 
+        {
+            await addNotificationToTeam(teamData._id, announcementID, "ANNOUNCEMENT_DELETE", `${user._name} has deleted the announcement "${announcement._name}"`, user._name, null, announcement._viewable, new Date(), null)
+            return res.send({ result: 'OK', message: 'Announcement deleted successfully.' });
+        } 
+        else 
+        {
+            return res.status(500).send({ result: 'FAIL', message: 'Failed to delete announcement' });
+        }
+    } 
+    catch (error) 
+    {
+        console.error("Error deleting announcement:", error);
+        return res.status(500).send({ result: 'FAIL', message: "Internal Server Error" });
+    }
+});
+
+router.post('/pinAnnouncement', async (req, res) => 
+{
+    const { teamCode, announcementID, userID } = req.body;
+
+    if (!teamCode || !announcementID || !userID) 
+    {
+        return res.status(400).send({ result: 'FAIL', message: "Missing required fields" });
+    }
+    try 
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        const teamData = await getTeamData(teamCode);
+        let isPinned;
+        if (!teamData) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        const user = await findUserByID(userID);
+        if (!user)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "User not found" });
+        }
+        const announcement = teamData._announcements.find(ann => ann._id.toString() === announcementID);
+        if (announcement) 
+        {
+            announcement._pinned = !announcement._pinned;
+            isPinned = announcement._pinned;
+        }
+        else 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Announcement not found" });
+        }
+        const updateResult = await teamsCollection.updateOne({ _joinCode: teamCode }, { $set: { _announcements: teamData._announcements } });
+        if (updateResult.modifiedCount === 1) 
+        {
+            for (const [username, role] of Object.entries(teamData._users)) 
+            {
+                if (announcement._pings.includes(role)) 
+                {
+                    await addNotificationToUser(username, announcementID, "ANNOUNCEMENT_PIN", `${user._name} has pinned the announcement "${announcement._name}" in the team ${teamData._name}`, user._name, new Date(), null);
+                }
+            }
+            if (isPinned) await addNotificationToTeam(teamData._id, announcementID, "ANNOUNCEMENT_PIN", `${user._name} has pinned the announcement "${announcement._name}"`, user._name, null, announcement._viewable, new Date(), null)
+            else await addNotificationToTeam(teamData._id, announcementID, "ANNOUNCEMENT_UNPIN", `${user._name} has unpinned the announcement "${announcement._name}"`, user._name, null, announcement._viewable, new Date(), null)
+            return res.send({ result: 'OK', message: `Announcement ${announcement._pinned ? 'pinned' : 'unpinned'} successfully.` });
+        } 
+        else 
+        {
+            return res.status(500).send({ result: 'FAIL', message: 'Failed to update announcement pin status' });
+        }
+    } 
+    catch (error) 
+    {
+        console.error("Error updating announcement pin status:", error);
+        return res.status(500).send({ result: 'FAIL', message: "Internal Server Error" });
+    }
+});
+
+
+
+router.post('/checkAnnouncementEdit', async (req, res) => 
+{
+    const { teamCode, userID, announcementID } = req.body;
+
+    if (!teamCode || !userID || !announcementID)
+    {
+        return res.status(400).send({ result: 'FAIL', message: "Missing required fields" });
+    }
+
+    try
+    {
+        const team = await getTeamData(teamCode);
+        if (!team)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        const user = await findUserByID(userID);
+        if (!user)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "User not found" });
+        }
+        const announcement = team._announcements.find(a => a._id.toString() === announcementID);
+        if (!announcement)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Announcement not found" });
+        }
+        const sender = announcement._senderName;
+        const userRole = team._users[user._name];
+        const senderRole = team._users[sender];
+        if (roleLevels[userRole] >= roleLevels[senderRole])
+        {
+            return res.send({ result: 'OK', canEdit: true, pinned: announcement._pinned});
+        }
+        else
+        {
+            return res.send({ result: 'OK', canEdit: false });
+        }
+    }
+    catch (error)
+    {
+        console.error("Error checking announcement edit permissions:", error);
+        return res.status(500).send({ result: 'FAIL', message: "Internal Server Error" });
+    }
+});
+
+router.post('/getAnnouncement', async (req, res) => 
+{
+    const { teamCode, announcementID } = req.body;
+    if (!teamCode || !announcementID) 
+    {
+        return res.status(400).send({ result: 'FAIL', message: "Missing teamCode or announcementID" });
+    }
+    try 
+    {
+        const team = await getTeamData(teamCode);
+        if (!team) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        const announcement = team._announcements.find(a => a._id.toString() === announcementID);
+        if (!announcement) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Announcement not found" });
+        }
+        res.send({ result: 'OK', announcement });
+    } 
+    catch (error) 
+    {
+        console.error("Error retrieving announcement:", error);
+        res.status(500).send({ result: 'FAIL', message: "Internal Server Error" });
+    }
+});
+
+router.post('/updateAnnouncement', async (req, res) => 
+{
+    const { teamCode, announcementID, name, description, userID } = req.body;
+
+    if (!teamCode || !announcementID || !name || !description || !userID) 
+    {
+        return res.status(400).send({ result: 'FAIL', message: "Missing required fields" });
+    }
+    try 
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const teamsCollection = calendarDB.collection("teams");
+        const team = await getTeamData(teamCode);
+        if (!team) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Team not found" });
+        }
+        const user = await findUserByID(userID);
+        if (!user)
+        {
+            return res.status(404).send({ result: 'FAIL', message: "User not found" });
+        }
+        const announcementIndex = team._announcements.findIndex(a => a._id.toString() === announcementID);
+        if (announcementIndex === -1) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "Announcement not found" });
+        }
+        const currentAnnouncement = team._announcements[announcementIndex];
+        let notifMessage = `${user._name} has edited the announcement "${currentAnnouncement._name}"`;
+        if (currentAnnouncement._name !== name && currentAnnouncement._description !== description) 
+        {
+            notifMessage += ` by changing its name to "${name}" and its description.`;
+        }
+        else if (currentAnnouncement._name !== name) 
+        {
+            notifMessage += ` by changing its name to "${name}".`;
+        }
+        else if (currentAnnouncement._description !== description) 
+        {
+            notifMessage += ` by changing its description.`;
+        }
+        else
+        {
+            return res.status(206).send({ result: 'FAIL', message: "No changes detected" });
+        }
+        const updateQuery = 
+        { 
+            $set: 
+            {
+                [`_announcements.${announcementIndex}._name`]: name,
+                [`_announcements.${announcementIndex}._description`]: description
+            }
+        };
+        const updateResult = await teamsCollection.updateOne({ _joinCode: teamCode }, updateQuery);
+        if (updateResult.modifiedCount === 1) 
+        {
+            await addNotificationToTeam(team._id, announcementID, "ANNOUNCEMENT_EDIT", notifMessage, user._name, null, currentAnnouncement._viewable, new Date(), null);
+            return res.send({ result: 'OK', message: 'Announcement updated successfully' });
+        } 
+        else 
+        {
+            return res.status(500).send({ result: 'FAIL', message: 'Failed to update announcement' });
+        }
+    } 
+    catch (error) 
+    {
+        console.error("Error updating announcement:", error);
+        res.status(500).send({ result: 'FAIL', message: "Internal Server Error" });
+    }
+});
+
+router.post('/dismissAnnouncement', async (req, res) => 
+{
+    const { announcementID, userID } = req.body;
+    if (!announcementID || !userID) 
+    {
+        return res.status(400).send({ result: 'FAIL', message: "Missing announcementID or userID" });
+    }
+    try 
+    {
+        const calendarDB = dbclient.db("calendarApp");
+        const usersCollection = calendarDB.collection("users");
+        const user = await findUserByID(userID)
+        if (!user) 
+        {
+            return res.status(404).send({ result: 'FAIL', message: "User not found" });
+        }
+        if (!user._teams._dismissedAnnouncements) 
+        {
+            user._teams._dismissedAnnouncements = [];
+        }
+        if (!user._teams._dismissedAnnouncements.includes(announcementID)) 
+        {
+            user._teams._dismissedAnnouncements.push(announcementID);
+            const updateResult = await usersCollection.updateOne
+            (
+                { _id: new ObjectId(userID) },
+                { $set: { "_teams._dismissedAnnouncements": user._teams._dismissedAnnouncements } }
+            );
+            if (updateResult.modifiedCount === 1) 
+            {
+                return res.send({ result: 'OK', message: 'Announcement dismissed successfully' });
+            } 
+            else 
+            {
+                return res.status(500).send({ result: 'FAIL', message: 'Failed to dismiss announcement'});
+            }
+        }
+        else 
+        {
+            return res.send({ result: 'OK', message: 'Announcement already dismissed' });
+        }
+    } 
+    catch (error) 
+    {
+        console.error("Error dismissing announcement:", error);
+        res.status(500).send({ result: 'FAIL', message: "Internal Server Error" });
+    }
+});
 
 
 // #region Websockets and server

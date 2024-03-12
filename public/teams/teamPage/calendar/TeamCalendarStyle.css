@@ -78,7 +78,7 @@ td
 
 .calendar-cell:not(.transitioning):hover .calendar-cell-eventCount
 {
-  background-color: #04AA6D; /* Green on hover */
+  /*background-color: #04AA6D !important; /* Green on hover */
   cursor: pointer;
 }
 

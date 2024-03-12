@@ -132,6 +132,39 @@ headertext
   text-decoration: none;
 }
 
+.team-users
+{
+  padding: 5px;
+  padding-top: 10px;
+}
+
+.team-users-content
+{
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  height: 100%;
+}
+
+.team-users-categories
+{
+  padding-top: 20px;
+}
+
+.team-queue
+{
+  padding: 5px;
+}
+
+.team-queue-content
+{
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  height: 100%;
+}
+
+
+
+
 /*Container for buttons to navigate to teams and friends*/
 .button-container 
 {

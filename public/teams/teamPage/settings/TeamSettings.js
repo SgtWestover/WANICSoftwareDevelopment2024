@@ -37,14 +37,26 @@ let teamData = JSON.parse(localStorage.getItem('teamData'));
 
 document.addEventListener('DOMContentLoaded', function ()
 {
-    if (roleLevels[userRole] > roleLevels['User'])
+    (async () =>
     {
-        generateAdminSettings();
-    }
-    if (roleLevels[userRole] > roleLevels['Admin'])
-    {
-        generateOwnerSettings();
-    }
+        try
+        {
+            if (roleLevels[userRole] > roleLevels['User'])
+            {
+                generateAdminSettings();
+            }
+            if (roleLevels[userRole] > roleLevels['Admin'])
+            {
+                generateOwnerSettings();
+            }
+            renderUserList();
+        }
+        catch(error)
+        {
+            console.log(error);
+        }
+    })();
+    
 });
 
 function generateAdminSettings()
@@ -412,7 +424,6 @@ document.getElementById('blacklistUser').onclick = async function()
     }
 };
 
-
 function generateRemoveUsers() 
 {
     const usercolumn = document.querySelector('usercolumn h1');
@@ -534,6 +545,7 @@ function fillTeamName()
         if (response.result === "OK")
         {
             document.getElementById('updatedName').value = response.team._name;
+            console.log(document.getElementById('updatedName'));
         }
     })
     .catch(error =>
@@ -904,12 +916,46 @@ document.getElementById('leaveTeam').onclick = async function()
 
 function renderUserList()
 {
-    for (const [username, role] of Object.entries(teamData._users))
+    for (const [username, role] of Object.entries(teamData._users)) 
     {
         let userElement = document.createElement("div");
         userElement.classList.add("team-user-name");
         userElement.innerHTML = `${username} - ${role}`;
-        /** WORK ON THIS MORE AHHHHHHH FUUUUUUUUUUUUUUUUUUCK */
+        switch (role) 
+        {
+            case "Owner":
+                var container = document.getElementById("ownerContainer");
+                container.appendChild(userElement);
+                break;
+            case "Admin":
+                var container = document.getElementById("adminContainer");
+                container.appendChild(userElement);
+                break;
+            case "User":
+                var container = document.getElementById("userContainer");
+                container.appendChild(userElement);
+                break;
+            case "Viewer":
+                var container = document.getElementById("viewerContainer");
+                container.appendChild(userElement);
+                break;
+            default:
+                console.error("User role: " + role + " is not correct");
+                break;
+        }
+    }
+
+    if(document.getElementById("adminContainer").childElementCount === 0)
+    {
+        document.getElementById("adminContainer").remove();
+    }
+    if(document.getElementById("userContainer").childElementCount === 0)
+    {
+        document.getElementById("userContainer").remove();
+    }
+    if(document.getElementById("viewerContainer").childElementCount === 0)
+    {
+        document.getElementById("viewerContainer").remove();
     }
 }
 

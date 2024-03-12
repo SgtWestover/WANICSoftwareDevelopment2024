@@ -112,7 +112,7 @@
     //Team class for the teams that users can create and join
     class CalendarTeam 
     {
-        constructor(id, name, description, users, joinCode, usersQueued, autoJoin, joinPerms, notifications = {})
+        constructor(id, name, description, users, joinCode, usersQueued, autoJoin, joinPerms, notifications = {}, announcements = [])
         {
             this.id = id;
             this.name = name;
@@ -123,6 +123,7 @@
             this.autoJoin = autoJoin;
             this.joinPerms = joinPerms;
             this.notifications = notifications;
+            this.announcements = announcements;
         }
 
         // Getter for name
@@ -207,6 +208,14 @@
         set notifications(value)
         {
             this._notifications = value;
+        }
+        get announcements()
+        {
+            return this._announcements;
+        }
+        set announcements(value)
+        {
+            this._announcements = value;
         }
     }
 

@@ -5,7 +5,7 @@ body /* Document body*/
   margin: 0;
   padding: 0;
   height: auto;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 header /* Document header*/
@@ -14,11 +14,11 @@ header /* Document header*/
   background-color: #333;
   color: #fff;
   text-align: center;
-  padding: 1em;
+  padding: 0.5em;
   position: fixed;
   top: 0;
   width: 100%;
-  height: 50px;
+  height: 64px;
   z-index: 1;
 }
 
@@ -26,7 +26,7 @@ header /* Document header*/
 {
   margin: 0;
   padding: 0;
-  width: 12%;
+  width: 12vw;
   background-color: #2b2e30;
   position: fixed;
   height: 100%;
@@ -80,166 +80,6 @@ div.content
   height: 735px;
 }
 
-/* On screens that are less than 700px wide, make the sidebar into a topbar */
-@media screen and (max-width: 700px) 
-{
-  .sidebar 
-  {
-    width: 100%;
-    height: auto;
-    position: relative;
-  }
-  .sidebar a {float: left;}
-  div.content {margin-left: 0;}
-}
-
-/* On screens that are less than 400px, display the bar vertically, instead of horizontally */
-@media screen and (max-width: 400px) 
-{
-  .sidebar a 
-  {
-    text-align: center;
-    float: none;
-  }
-} 
-
-
-/* Event Styles ------------------------------------------------------------ */
-
-
-#scheduleEventsContainer
-{
-  position: absolute;
-  top: 90px;
-  width: 87%;
-  height: calc(99% - 90px);
-  left: 12.5%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-width: thin;
-}
-
-.event-category-container 
-{
-  margin-bottom: 20px;
-}
-
-.event-category-container h2 
-{
-  position: relative;
-  margin: 0;
-  padding: 10px;
-  background-color: #2b2e30;
-  color: white;
-}
-
-.event 
-{
-  background-color: #2b2e30;
-  position: relative;
-  margin: 5px 0;
-  border-radius: 4px;
-  height: 130px;
-  border-radius: 8px;
-}
-
-.event-name
-{
-  color: white;
-  position: absolute;
-  height: 25%;
-  width: 34%;
-  top: 15%;
-  left: 3%;
-}
-
-.event-description
-{
-  color: white;
-  position: absolute;
-  top: 45%;
-  height: 45%;
-  width: 34%;
-  left: 3%;
-  overflow-y: auto; 
-  word-break: break-all;
-  scrollbar-width: thin;
-}
-
-.event-users-container
-{
-  color: white;
-  position: absolute;
-  top: 15%;
-  width: 10%;
-  left: 37%;
-  height: 75%;
-  overflow: hidden;
-}
-
-.event-user{}
-
-.event-startTime
-{
-  color: white;
-  position: absolute;
-  top: 15%;
-  left: 83%;
-  width: 15%;
-  height: 36%;
-  border-bottom: #2b2e30;
-  font-size: 13px;
-}
-
-.event-endTime
-{
-  color: white;
-  position: absolute;
-  top: 54%;
-  left: 83%;
-  width: 15%;
-  height: 36%;
-  font-size: 13px;
-}
-
-.event-menu
-{
-  color: white;
-  z-index: 15;
-  cursor: pointer;
-}
-
-.event-teamName
-{
-  position: absolute;
-  top: 15%;
-  width: 10%;
-  left: 50%;
-  height: 75%;
-  color: white;
-  overflow: hidden;
-}
-
-.event-options-menu 
-{
-  position: absolute;
-  right: 0;
-  background-color: white;
-  border: 1px solid #ddd;
-  z-index: 100;
-}
-
-.event-options-menu div 
-{
-  padding: 5px;
-  cursor: pointer;
-}
-
-.event-options-menu div:hover 
-{
-  background-color: #f0f0f0;
-}
-
 .modal 
 {
   display: none; /* Hidden by default */
@@ -290,6 +130,90 @@ div.content
   color: white;
   text-decoration: none;
   cursor: pointer;
+}
+
+.button 
+{
+  border: none;
+  background-color: #04aa6d;
+  color: white;
+  border-color: black;
+  border-radius: 5px;
+}
+
+.back-arrow-container 
+{
+  scale: 1.25;
+  position: fixed;
+  left: 32px;
+  top: 20px;
+  height: 40px;
+  width: 40px;
+  background-color: #04AA6D;
+  border-radius: 30%;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.back-arrow 
+{
+  font-size: 10px;
+  color: white; /* For some reason this has to be specified */
+}
+
+
+/* Announcements ----------------------------------------------------------------------------------- */
+
+.announcement-container 
+{
+  width: 86%;
+  margin-left: 14%;
+  margin-top: 140px;
+  background-color: #525558;
+  color: white;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  border-radius: 5px;
+  display: block;
+  position: relative;
+}
+
+.announcement-name
+{
+  width: 0;
+  height: 0;
+  top: 0;
+  left: 0;
+}
+.announcement-description
+{
+  width: 0;
+  height: 0;
+  top: 0;
+  left: 0;
+}
+.annoucement-pings
+{
+  width: 0;
+  height: 0;
+  top: 0;
+  left: 0;
+}
+.annoucement-sender
+{
+  width: 0;
+  height: 0;
+  top: 0;
+  left: 0;
+}
+.announcement-content
+{
+  position: absolute;
+  background-color: springgreen;
+  color: white;
 }
 
 .button 

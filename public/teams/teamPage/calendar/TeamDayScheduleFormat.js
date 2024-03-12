@@ -206,7 +206,7 @@ function generateSchedule()
         mouseDownTime = event.timeStamp;
         startX = event.clientX - dayContainer.getBoundingClientRect().left;
         let element = event.target;
-        if(event.target.id !== 'day-container')
+        if(event.target.classList[0] === 'schedule-event')
         {
             dragElement = event.target;
             if (event.clientX - element.parentElement.getBoundingClientRect().left > parseInt(element.style.left) - 7 && event.clientX - element.parentElement.getBoundingClientRect().left < parseInt(element.style.left) + 7)
@@ -221,17 +221,6 @@ function generateSchedule()
                 
             }
         } 
-    });
-    dayContainer.addEventListener('mousemove', function(event) 
-    {
-        if (event.buttons === 1 && !dragging)
-        { 
-
-        }
-        else if (dragging)
-        {
- 
-        }
     });
     dayContainer.addEventListener('mouseup', function(event) 
     {

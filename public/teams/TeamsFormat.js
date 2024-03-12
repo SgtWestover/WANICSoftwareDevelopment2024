@@ -104,7 +104,7 @@ async function updateNotificationCount()
                 const notificationCountElement = document.getElementById('notificationCount');
                 if (filteredNotifications.length > 0) 
                 {
-                    notificationCountElement.textContent = filteredNotifications.length;
+                    notificationCountElement.children[0].innerHTML =  filteredNotifications.length;
                     notificationCountElement.style.display = 'flex';
                 } 
                 else 
@@ -733,7 +733,7 @@ function openNotificationModal(notification, notificationDiv)
             actionsElement.appendChild(dismissButton);
             break;
         default:
-            console.logError("User Notification not Valid" + notification.type);
+            console.error("User Notification not Valid" + notification.type);
             break;
     }
 
@@ -912,7 +912,8 @@ function renderTeamsPanel(team, teamCount)
                         notificationCountElement.textContent = notificationCount;
                         container.appendChild(notificationCountElement);
                     }
-                    document.body.append(container);         
+                    document.body.append(container);
+                    repositionTeams();      
                 }
             })
             .catch(error =>

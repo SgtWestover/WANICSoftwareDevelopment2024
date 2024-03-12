@@ -115,16 +115,19 @@ function renderCalendar(date)
                         document.dispatchEvent(event);
                         window.location.href = '#popup1'; //open the popup
                     });
+                    
+                    //notification text button
+                    let eventCountElement = document.createElement('div');
+                    eventCountElement.classList.add('calendar-cell-eventCount');
+                    cell.append(eventCountElement);  
+                    
                     // Highlight the current day
                     let cellDate = new Date(date.getFullYear(), date.getMonth(), currentDay);
                     if (cellDate.getTime() === today.getTime())
                     {
                         cell.classList.add('current-day');
                     }
-                    //notification text button
-                    let eventCountElement = document.createElement('div');
-                    eventCountElement.classList.add('calendar-cell-eventCount');
-                    cell.append(eventCountElement);  
+
 
                 }
             }) (dayOfMonth); // Pass 'dayOfMonth' to the IIFE

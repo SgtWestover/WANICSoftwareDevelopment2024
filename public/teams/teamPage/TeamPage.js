@@ -320,6 +320,30 @@ function renderNotifications()
                         name = "AutoJoin Updated";
                         description = data.message;
                         break;
+                    case "ANNOUNCEMENT_CREATE":
+                        name = "Announcement Created";
+                        description = data.message;
+                        break;
+                    case "ANNOUNCEMENT_DELETE":
+                        name = "Announcement Deleted";
+                        description = data.message;
+                        break;
+                    case "ANNOUNCEMENT_PIN":
+                        name = "Announcement Pinned";
+                        description = data.message;
+                        break;
+                    case "ANNOUNCEMENT_UNPIN":
+                        name = "Announcement Unpinned";
+                        description = data.message;
+                        break;
+                    case "ANNOUNCEMENT_EDIT":
+                        name = "Announcement Edited";
+                        description = data.message;
+                        break;
+                    case "TEAM_CREATE":
+                        name = "Team Created";
+                        description = data.message;
+                        break;
                     default:
                         console.error("INVALID NOTIFICATION TYPE: " + data.type);
                         break;
@@ -355,7 +379,7 @@ function renderNotifications()
         }
     }).catch(error =>
     {
-        console.error("Error rendering team notificiations: ", error);
+        console.error("Error rendering team notifications: ", error);
     })
 }
 

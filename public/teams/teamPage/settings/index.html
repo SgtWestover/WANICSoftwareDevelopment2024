@@ -100,6 +100,13 @@
           <button type="button" id="banUser" class="button">Ban User</button>
           <button type="button" id="unbanUser" class="button">Unban User</button>
         <p id="removeUserError" style="color: red;"></p>
+        <div class="team-users"> <b>UserList</b>
+          <div class="team-users-content">
+            <div class="team-users-owner team-users-categories" id="ownerContainer"> Owner: </div>
+            <div class="team-users-admin team-users-categories" id="adminContainer"> Admins: </div>
+            <div class="team-users-user team-users-categories" id="userContainer"> Users: </div>
+            <div class="team-users-viewer team-users-categories" id="viewerContainer"> Viewers: </div>  </div>
+        </div>
         <!--Add the node for all users in the current teams-->
     </div>
   </div>
@@ -130,6 +137,11 @@
         <button type="button" id="rejectUser" class="button">Reject User</button>
         <button type="button" id="blacklistUser" class="button">Blacklist User</button>
         <p id="manageQueueError" style="color: red;"></p>
+        <div class="team-queue"> <b>Queue List</b>
+          <div class="team-queue-content">
+            <div class="queuedUser"></div>
+          </div>
+        </div>
         <!--Node for list of the join queue-->
     </div>
   </div>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Team:</title>
-  <link rel="stylesheet" href="announcementStyle.css">
+  <link rel="stylesheet" href="announcementsStyle.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
@@ -14,9 +14,79 @@
   <div class="sidebar">
     <a href="../TeamPage.html">Home</a>
     <a href="../calendar/">Calendar</a>
-    <a class="active" href="#home">Announcement</a>
+    <a class="active" href="#home">Announcements</a>
     <a href="../settings/">Settings</a>
   </div>
-  <script src="announcementFormat.js"></script>
+  <div class="back-arrow-container" onclick="window.location='../../';">
+    <i class="fa fa-arrow-left back-arrow"></i>  
+  </div>
+  <div id="createAnnouncementModal" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+      <span class="close" onclick="closeAnnouncementModal()">&times;</span>
+      <form id="createAnnouncementForm">
+        <h2>Create an Announcement</h2>
+        <label for="announcementName">Announcement Name (required):</label>
+        <input type="text" id="announcementName" name="announcementName" required class="button">
+        <label for="announcementDescription">Announcement Description (optional):</label>
+        <textarea id="announcementDescription" class="button" name="announcementDescription"></textarea>
+        <label for="announcementPings">Pings (required):</label>
+        <select id="announcementPings" class="button" multiple required>
+            <option value="Viewer" class="button">Viewer</option>
+            <option value="User" class="button">User</option>
+            <option value="Admin" class="button">Admin</option>
+            <option value="Owner" class="button">Owner</option>
+        </select>       
+        <input type="submit" value="Create Announcement" class="button">
+      </form>
+    </div>
+  </div>
+  <div id="pinnedAnnouncements"></div>
+  <div id="unpinnedAnnouncements"></div>
+  <div id="deleteAnnouncementModal" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+        <span class="close" id="closeDeleteAnnouncementModal">&times;</span>
+        <h2>Delete Announcement</h2>
+        <p>Are you sure you want to delete the announcement??</p>
+        <button type="button" id="deleteAnnouncement" class="button">Delete</button>
+        <button type="button" id="cancelDeleteAnnouncement" class="button">Cancel</button>
+        <p id="deleteAnnouncementError" style="color: red;"></p> <!-- Error message display -->
+    </div>
+  </div>
+  <div id="pinAnnouncementModal" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+        <span class="close" id="closePinAnnouncementModal">&times;</span>
+        <h2 id="pinModalHeader">Pin Announcement</h2>
+        <p id="pinModalQuestion">Are you sure you want to pin this announcement?</p>
+        <button type="button" id="pinAnnouncement" class="button">Pin</button>
+        <button type="button" id="cancelPinAnnouncement" class="button">Cancel</button>
+        <p id="pinAnnouncementError" style="color: red;"></p> <!-- Error message display -->
+    </div>
+  </div>
+  <div id="editAnnouncementModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeEditAnnouncementModal">&times;</span>
+        <h2>Edit Announcement</h2>
+        <input type="text" id="newAnnouncementName" class="button" required>
+        <textarea id="newAnnouncementDescription" class="button" name="newAnnouncementDescription"></textarea> 
+        <button type="button" id="editAnnouncement" class="button">Update Announcement</button>
+        <button type="button" id="cancelEditAnnouncement" class="button">Cancel</button>
+        <p id="editAnnouncementError" style="color: red;"></p>
+    </div>
+  </div>
+  <div id="dismissAnnouncementModal" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+        <span class="close" id="closeDismissAnnouncementModal">&times;</span>
+        <h2>Dismiss Announcement</h2>
+        <p>Are you sure you want to dismiss the announcement??</p>
+        <button type="button" id="dismissAnnouncement" class="button">Dismiss</button>
+        <button type="button" id="cancelDismissAnnouncement" class="button">Cancel</button>
+        <p id="dismissAnnouncementError" style="color: red;"></p> <!-- Error message display -->
+    </div>
+  </div>
+  <script src="announcementsFormat.js"></script>
 </body>
 </html>

@@ -205,7 +205,6 @@ function showEventMenu(eventElement, eventID, importantEventIDs)
 
 function deleteEvent(eventElement, eventID) 
 {
-    console.log(document.getElementById('eventNameToDelete'));
     document.getElementById('eventNameToDelete').textContent = eventElement.childNodes[0].innerHTML;
     const modal = document.getElementById('deleteEventModal');
     modal.style.display = 'block';
@@ -230,7 +229,16 @@ function deleteEvent(eventElement, eventID)
                     alert("Event deletion successful");
                     modal.style.display = 'none';
                     document.getElementById('deleteEventError').textContent = '';
-                    eventElement.remove(); // TOOD: Fix later so that if it's the only div the outer div is also removed
+                    document.getElementById('scheduleEventsContainer').innerHTML = '';
+                    const userResponse = await sendRequest('/getAllUserEvents', { userID });
+                    if (userResponse.result === 'OK')
+                    {
+                        generateUserSchedule(userResponse.allUserEvents, userResponse.importantEvents);
+                    }
+                    else if (userResponse.result === 'FAIL')
+                    {
+                        console.log(error);
+                    }
                 }
                 else
                 {
@@ -281,7 +289,16 @@ function markEventImportance(eventElement, eventID, isImportant)
                 alert(response.message);
                 modal.style.display = 'none';
                 document.getElementById('markEventImportanceError').textContent = '';
-                // TODO: Refresh the event list with websocket
+                document.getElementById('scheduleEventsContainer').innerHTML = '';
+                const userResponse = await sendRequest('/getAllUserEvents', { userID });
+                if (userResponse.result === 'OK')
+                {
+                    generateUserSchedule(userResponse.allUserEvents, userResponse.importantEvents);
+                }
+                else if (userResponse.result === 'FAIL')
+                {
+                    console.log(error);
+                }            
             } 
             else 
             {
